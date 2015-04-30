@@ -1,63 +1,69 @@
+# set the species to be processed manually here
+#SPECIES=28731-ACE-SAC
+#SPECIES=18032-ABI-BAL
+SPECIES=28728-ACE-RUB
+
+all: results/$(SPECIES)_mcmc_out.txt
+
 ## step 1
-dat/28731-ACE-SAC_processed.rdata: scr/1_prep_data.r dat/transition_twostate_28731-ACE-SAC.rdata
-	./scr/1_prep_data.r -s "28731-ACE-SAC"
+s1: dat/$(SPECIES)_processed.rdata
+dat/$(SPECIES)_processed.rdata: scr/1_prep_data.r dat/transition_twostate_$(SPECIES).rdata
+	./scr/1_prep_data.r -s "$(SPECIES)"
 	
-dat/18032-ABI-BAL_processed.rdata: scr/1_prep_data.r dat/transition_twostate_18032-ABI-BAL.rdata
-	./scr/1_prep_data.r -s "18032-ABI-BAL"
+dat/$(SPECIES)_climGrid_scaled.rds: dat/$(SPECIES)_processed.rdata
 
-dat/28731-ACE-SAC_climGrid_scaled.rds: dat/28731-ACE-SAC_processed.rdata
-
-dat/18032-ABI-BAL_climGrid_scaled.rds: dat/18032-ABI-BAL_processed.rdata
-
-## step 2
-#dat/28731-ACE-SAC_sdmData.rdata: scr/2_interactive_select_sdm_vars.r dat/28731-ACE-SAC_processed.rdata
+## step 2 - this must be done MANUALLY for each species in an interactive session
+#dat/$(SPECIES)_sdmData.rdata: scr/2_interactive_select_sdm_vars.r dat/$(SPECIES)_processed.rdata
 #	./scr/2_interactive_select_sdm_vars.r
-
-#dat/18032-ABI-BAL_sdmData.rdata: scr/2_interactive_select_sdm_vars.r dat/18032-ABI-BAL_processed.rdata
-# 	./scr/2_interactive_select_sdm_vars.r
 
 
 ## step 3
-results/28731-ACE-SAC_sdm_models.rdata: scr/3_fit_sdm.r dat/28731-ACE-SAC_sdmData.rdata
-	./scr/3_fit_sdm.r -s "28731-ACE-SAC" -p 2
+s3: results/$(SPECIES)_sdm_models.rdata
+results/$(SPECIES)_sdm_models.rdata: scr/3_fit_sdm.r dat/$(SPECIES)_sdmData.rdata
+	./scr/3_fit_sdm.r -s "$(SPECIES)" -p 2
 	
-results/18032-ABI-BAL_sdm_models.rdata: scr/3_fit_sdm.r dat/18032-ABI-BAL_sdmData.rdata
-	./scr/3_fit_sdm.r -s "18032-ABI-BAL" -p 2
-
 ## step 4
-dat/28731-ACE-SAC_climGrid_projected.rds: scr/4_project_sdms.r \
-dat/28731-ACE-SAC_climGrid_scaled.rds results/28731-ACE-SAC_sdm_models.rdata \
-dat/28731-ACE-SAC_processed.rdata results/28731-ACE-SAC_sdm_models.rdata
-	./scr/4_project_sdms.r -s "28731-ACE-SAC"
+s4: dat/$(SPECIES)_climGrid_projected.rds
+dat/$(SPECIES)_climGrid_projected.rds: scr/4_project_sdms.r \
+dat/$(SPECIES)_climGrid_scaled.rds results/$(SPECIES)_sdm_models.rdata \
+dat/$(SPECIES)_processed.rdata results/$(SPECIES)_sdm_models.rdata
+	./scr/4_project_sdms.r -s "$(SPECIES)"
 
-dat/28731-ACE-SAC_transitions_projected.rds: dat/28731-ACE-SAC_climGrid_projected.rds
-
-
-
-#./scr/4_project_sdms.r -s "18032-ABI-BAL"
-
+dat/$(SPECIES)_transitions_projected.rds: dat/$(SPECIES)_climGrid_projected.rds
 
 ## step 5
-img/28731-ACE-SAC_sdm_maps.pdf: scr/5_plot_sdm.r results/28731-ACE-SAC_sdm_models.rdata \
-dat/28731-ACE-SAC_sdmData.rdata dat/28731-ACE-SAC_climGrid_projected.rds
-	./scr/5_plot_sdm.r -s "28731-ACE-SAC"
+s5: img/$(SPECIES)_sdm_maps.pdf
+img/$(SPECIES)_sdm_maps.pdf: scr/5_plot_sdm.r results/$(SPECIES)_sdm_models.rdata \
+dat/$(SPECIES)_sdmData.rdata dat/$(SPECIES)_climGrid_projected.rds
+	./scr/5_plot_sdm.r -s "$(SPECIES)"
 
-img/28731-ACE-SAC_response_curves.pdf: img/28731-ACE-SAC_sdm_maps.pdf
+img/$(SPECIES)_response_curves.pdf: img/$(SPECIES)_sdm_maps.pdf
 
 # step 6
-results/28731-ACE-SAC_anneal_parameters_0.1.rds: scr/6_fit_stm.r \
-dat/28731-ACE-SAC_transitions_projected.rds
-	./scr/6_fit_stm.r -s "28731-ACE-SAC" -g -f 0.1
+anneal: results/$(SPECIES)_anneal_parameters_0.1.rds
+results/$(SPECIES)_anneal_parameters_0.1.rds: scr/6_fit_stm.r \
+dat/$(SPECIES)_transitions_projected.rds
+	./scr/6_fit_stm.r -s "$(SPECIES)" -g -f 0.1
 
 
+# step 7 - prep mcmc
+s7: dat/mcmc_trans_$(SPECIES).txt
+dat/mcmc_trans_$(SPECIES).txt: scr/7_prep_mcmc_dat.r \
+dat/$(SPECIES)_transitions_projected.rds results/$(SPECIES)_anneal_parameters_0.1.rds
+	./scr/7_prep_mcmc_dat.r -s "$(SPECIES)" -f 0.25
 
-# step 7
-## requires
-annealResults = readRDS(paste("results/", argList$species, "_anneal_parameters_", argList$fraction, ".rds", sep=""))
-load(paste("dat/", argList$species, "_sdmData.rdata", sep=""))
-load(paste("results/", argList$species, "_sdm_models.rdata", sep=""))
-	climGrid = readRDS(paste("dat/", argList$species, "_climGrid_projected.rds", sep=''))
+dat/mcmc_pars_$(SPECIES).txt: dat/mcmc_trans_$(SPECIES).txt
 
 
-# produces
-		pdf(paste("img/", argList$species, "_stm_response_curves.pdf", sep=""), w=width, h=height)
+#./scr/7_prep_mcmc_dat.r -s "18032-ABI-BAL" -f 0.25
+#./scr/7_prep_mcmc_dat.r -s "18032-ABI-BAL" -f 0.001
+
+# step 8 - run mcmc
+mcmc: results/$(SPECIES)_mcmc_out.txt
+results/$(SPECIES)_mcmc_out.txt: stm2_mcmc dat/mcmc_trans_$(SPECIES).txt \
+dat/mcmc_pars_$(SPECIES).txt
+	./stm2_mcmc -v 2 -n 25 -i 10000 -b 5000 -c 10 -p dat/mcmc_pars_$(SPECIES).txt \
+	-t dat/mcmc_trans_$(SPECIES).txt -o results/$(SPECIES)/
+
+#./stm2_mcmc -v 2 -n 25 -i 10000 -b 5000 -c 10 -p dat/mcmc_pars_18032-ABI-BAL.txt -t dat/mcmc_trans_18032-ABI-BAL.txt -o results/18032-ABI-BAL/
+#./stm2_mcmc -v 2 -i 500 -c 10 -p dat/mcmc_pars_18032-ABI-BAL.txt -t dat/mcmc_trans_18032-ABI-BAL.txt -o results/18032-ABI-BAL

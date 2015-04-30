@@ -17,3 +17,6 @@ img/*
 
 # stuff from a previous model that I have on hand for reference
 old
+
+# exe files
+stm2_mcmc*

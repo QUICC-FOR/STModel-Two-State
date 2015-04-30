@@ -5,8 +5,7 @@ library(argparse)
 parser = ArgumentParser()
 parser$add_argument("-s", "--species", default="28731-ACE-SAC", help="desired species code")
 argList = parser$parse_args()
-# spName = argList$species
-spName = '18032-ABI-BAL'
+spName = argList$species
 # set seed - drawn from sample(1:1e6, 1)
 set.seed(588533)
 
