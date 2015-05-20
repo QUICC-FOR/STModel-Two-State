@@ -55,7 +55,7 @@ plotbg = function(txt="")
 	mtext(txt, adj=0, cex = 1)
 
 	# plot grid lines and labels
-	llgridlines(ocean.proj, easts=seq(-90, -40, 10), norths=seq(20,50,10), ndiscr=100, side="ES", offset=1e6)
+	llgridlines(ocean, easts=seq(-90, -40, 10), norths=seq(20,50,10), ndiscr=100, side="ES", offset=1e6)
 	par(xpd=TRUE)
 	westText = c("30°N", "40°N", "50°N")
 	westCoords = list(rep(-3e5,3), c(0.75e6, 1.9e6, 3e6))
