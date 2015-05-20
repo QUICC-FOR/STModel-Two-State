@@ -4,10 +4,12 @@ parser = ArgumentParser()
 parser$add_argument("-s", "--species", default="28731-ACE-SAC", help="desired species code")
 parser$add_argument("-c", "--cubic", action="store_true", default=FALSE, help="use cubic terms in model (default is square only)")
 parser$add_argument("-r", "--rf", action="store_true", default=FALSE, help="random forest for prevalence (default: GLM)")
-parser$add_argument("-g", "--gam", action="store_true", default=FALSE, help="use GAM for prevalence (default: GAM)")
-parser$add_argument("-f", "--fraction", default=1, type="double", help="proportion of data to use for model fitting")
+parser$add_argument("-m", "--gam", action="store_true", default=FALSE, help="use GAM for prevalence (default: GLM)")
+parser$add_argument("-f", "--fraction", default=0.1, type="double", help="proportion of data to use for model fitting")
+parser$add_argument("-i", "--interval", default=5, type="double", help="how many years should the parameterization interval be")
 argList = parser$parse_args()
-# argList$species = "18032-ABI-BAL"
+spName = argList$species
+targetInterval = argList$interval
 
 minus_log_likelihood = function(p, dat, useCubic)
 {
@@ -41,8 +43,8 @@ minus_log_likelihood = function(p, dat, useCubic)
 	gamma_annual = plogis(logit_gamma_annual)
 	epsilon_annual = plogis(logit_epsilon_annual)
 
-	gamma_interval =  1 - (1 - gamma_annual)^dat$interval
-	epsilon_interval =  1 - (1 - epsilon_annual)^dat$interval
+	gamma_interval =  1 - (1 - gamma_annual)^(dat$interval/targetInterval)
+	epsilon_interval =  1 - (1 - epsilon_annual)^(dat$interval/targetInterval)
 
 	# likelihood
 	colonizations = which(dat$state1 == 0 & dat$state2 == 1)
@@ -65,10 +67,10 @@ minus_log_likelihood = function(p, dat, useCubic)
 }
 
 
-transitionData = readRDS(paste("dat/", argList$species, "_transitions_projected.rds", sep=""))
+transitionData = readRDS(paste("dat/", spName, "/", spName, "_transitions_projected.rds", sep=""))
 
 # set seed - drawn from sample(1:1e6, 1)
-set.seed(588533)
+## set.seed(588533)
 
 # subsample data, if desired
 # transitionData.subsample = transitionData
@@ -91,11 +93,11 @@ modelData = within(modelData,
 {
 	if(argList$gam)
 	{
-		expectedPresence = transitionData.subsample$expectedGLM
-	} else if(argList$rf) {
 		expectedPresence = transitionData.subsample$expectedGAM
-	} else {
+	} else if(argList$rf) {
 		expectedPresence = transitionData.subsample$expectedRF
+	} else {
+		expectedPresence = transitionData.subsample$expectedGLM
 	}
 })
 
@@ -124,4 +126,4 @@ annealParams = GenSA(par = parameters, fn = minus_log_likelihood,
 		 control = list(verbose = TRUE, max.time = (60*20), smooth=TRUE), dat = modelData,
 		 useCubic = argList$cubic)
 		 
-saveRDS(annealParams, paste("results/", argList$species, "_anneal_parameters_", argList$fraction, ".rds", sep=""))
+saveRDS(annealParams, paste("results/", spName, "/", spName, "_anneal_parameters.rds", sep=""))

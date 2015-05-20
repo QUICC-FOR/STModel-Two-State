@@ -7,13 +7,13 @@ parser$add_argument("-s", "--species", default="28731-ACE-SAC", help="desired sp
 argList = parser$parse_args()
 spName = argList$species
 # set seed - drawn from sample(1:1e6, 1)
-set.seed(588533)
+## set.seed(588533)
 
 #-------------------
 #  Load and prepare data
 #-------------------
 
-infile = paste("dat/transition_twostate_", spName, ".rdata", sep="")
+infile = paste("dat/", spName, "/transition_twostate_", spName, ".rdata", sep="")
 load(infile)
 
 # get and scale the climate variables
@@ -43,6 +43,13 @@ clim.scale = scalefunc(attr(stateData.clim.scaled, "scaled:center"), attr(stateD
 stateData.scaled = cbind(stateData[,-climVars], stateData.clim.scaled)
 transitionData.scaled = clim.scale$scale(transitionData)
 
+# remove extremely long sampling intervals from the dataset 
+# (to avoid the possibility of 2 transitions in the space we missed)
+intervals = transitionData.scaled$year2 - transitionData.scaled$year1
+indices = which(intervals <= 15)
+transitionData.scaled = transitionData.scaled[indices,]
+
+
 # subset the data for the SDM
 # select only a single row for each plot (to avoid too much spatial duplication)
 rows = sapply(unique(stateData.scaled$plot_id), function(i) {
@@ -53,16 +60,11 @@ stateData.subset = stateData.scaled[rows,]
 
 
 save(stateData.subset, transitionData.scaled, spName, climVars, 
-		climVarNames, clim.scale, file=paste("dat/", spName, "_processed.rdata", sep=""))
+		climVarNames, clim.scale, file=paste("dat/", spName, "/", spName, "_processed.rdata", sep=""))
 
 
 climGrid.raw = read.csv("dat/SDMClimate_grid.csv")
 climGrid.raw = climGrid.raw[complete.cases(climGrid.raw),]
 # apply transformation to the climate grid
 climGrid.scaled = clim.scale$scale(climGrid.raw)
-saveRDS(climGrid.scaled, file = paste("dat/", spName, "_climData_scaled.rds", sep=""))
-
-climGrid.past = read.csv("dat/2states_past_climate_1901-1930.csv")
-climGrid.past = climGrid.past[complete.cases(climGrid.past),]
-climGrid.past.scaled = clim.scale$scale(climGrid.past)
-saveRDS(climGrid.past.scaled, file = "dat/climPast_scaled.rds")
+saveRDS(climGrid.scaled, file = paste("dat/", spName, "/", spName, "_climGrid_scaled.rds", sep=""))

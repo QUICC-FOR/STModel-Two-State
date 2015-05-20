@@ -1,69 +1,112 @@
 # set the species to be processed manually here
-#SPECIES=28731-ACE-SAC
+
+# MCMC to-do
+#SPECIES=19049-ULM-AME
+#SPECIES=32931-FRA-AME
+#SPECIES=19462-FAG-GRA
+#SPECIES=183295-PIC-GLA
+#SPECIES=195773-POP-TRE
+
+# MCMC done
+
+# posterior processing done
 #SPECIES=18032-ABI-BAL
-SPECIES=28728-ACE-RUB
+#SPECIES=19290-QUE-ALB
+#SPECIES=183319-PIN-BAN
+#SPECIES=183302-PIC-MAR
+#SPECIES=19481-BET-ALL
+#SPECIES=19489-BET-PAP
+#SPECIES=28728-ACE-RUB
+#SPECIES=28731-ACE-SAC
 
-all: results/$(SPECIES)_mcmc_out.txt
 
-## step 1
-s1: dat/$(SPECIES)_processed.rdata
-dat/$(SPECIES)_processed.rdata: scr/1_prep_data.r dat/transition_twostate_$(SPECIES).rdata
-	./scr/1_prep_data.r -s "$(SPECIES)"
+#all: results/$(SPECIES)/posterior.csv
+
+# step 1: data preparation
+s1: dat/$(SPECIES)/$(SPECIES)_processed.rdata
+dat/$(SPECIES)/$(SPECIES)_processed.rdata: scr/1_prep_data.r \
+			dat/$(SPECIES)/transition_twostate_$(SPECIES).rdata dat/SDMClimate_grid.csv
+	./scr/1_prep_data.r -s $(SPECIES)
+
+dat/$(SPECIES)/$(SPECIES)_climGrid_scaled.rds: dat/$(SPECIES)/$(SPECIES)_processed.rdata
+
+
+
+# step 2: sdm
+s2: results/$(SPECIES)/$(SPECIES)_sdm_models.rdata
+results/$(SPECIES)/$(SPECIES)_sdm_models.rdata: scr/2_fit_sdm.r \
+			dat/$(SPECIES)/$(SPECIES)_processed.rdata
+	./scr/2_fit_sdm.r -s $(SPECIES) -p 3
+
+
+# step 3 - project the SDMs
+sdm: dat/$(SPECIES)/$(SPECIES)_transitions_projected.rds
+s3: dat/$(SPECIES)/$(SPECIES)_transitions_projected.rds
+dat/$(SPECIES)/$(SPECIES)_transitions_projected.rds: scr/3_project_sdm.r \
+			dat/$(SPECIES)/$(SPECIES)_processed.rdata \
+			dat/$(SPECIES)/$(SPECIES)_climGrid_scaled.rds \
+			results/$(SPECIES)/$(SPECIES)_sdm_models.rdata
+	./scr/3_project_sdm.r -s $(SPECIES)
+
+dat/$(SPECIES)/$(SPECIES)_climGrid_projected.rds: dat/$(SPECIES)/$(SPECIES)_transitions_projected.rds
+img/$(SPECIES)/$(SPECIES)_sdm_maps.pdf: dat/$(SPECIES)/$(SPECIES)_transitions_projected.rds
+img/$(SPECIES)/$(SPECIES)_response_curves.pdf: dat/$(SPECIES)/$(SPECIES)_transitions_projected.rds
+
+
+## step 4 - estimate some params with simulated annealing
+anneal: results/$(SPECIES)/$(SPECIES)_anneal_parameters.rds
+results/$(SPECIES)/$(SPECIES)_anneal_parameters.rds: scr/4_fit_stm.r \
+			dat/$(SPECIES)/$(SPECIES)_transitions_projected.rds
+	# for glm
+#	./scr/4_fit_stm.r -s $(SPECIES)
+	# for gam
+#	./scr/4_fit_stm.r -s $(SPECIES) -m
+	# for random forest
+	./scr/4_fit_stm.r -s $(SPECIES) -r
+
+
+## step 5 - make MCMC input files
+mcmc: run2/$(SPECIES)/trans.txt run2/$(SPECIES)/inits.txt
+run2/$(SPECIES)/trans.txt: scr/5_prep_mcmc.r \
+			dat/$(SPECIES)/$(SPECIES)_transitions_projected.rds \
+			results/$(SPECIES)/$(SPECIES)_anneal_parameters.rds
+	# for glm
+#	./scr/5_prep_mcmc.r -s $(SPECIES)
+	# for gam
+#	./scr/5_prep_mcmc.r -s $(SPECIES) -m
+	# for random forest
+	./scr/5_prep_mcmc.r -s $(SPECIES) -r
+
+run2/$(SPECIES)/inits.txt: run2/$(SPECIES)/trans.txt
+
+
+## run the mcmc
+## we don't actually do it using make, since we run it by hand using qsub scripts
+## this is just here to give an idea how it should be lauched
+## the program logs extensively to std err, so it might be a good idea to redirect using 
+## 2>log.txt at the end of the command
+##
+## ./stm2_mcmc -v 2 -n 25 -i 10000 -b 5000 -c 20 -p run/$(SPECIES)/inits.txt -t \
+## 				run/$(SPECIES)/trans.txt -o ./ -l 5
+##
+## for resuming an interrupted session - note that after -i the number gives the number 
+## of ADDITIONAL samples to take
+## ./stm2_mcmc -r run/$(SPECIES)/resumeData.txt -t -t run/$(SPECIES)/trans.txt -i 10000
+
+## step 6 - process the posterior distribution
+s6: results/$(SPECIES)/$(SPECIES)_posterior.rds
+results/$(SPECIES)/$(SPECIES)_rangeRaster.rds: results/$(SPECIES)/$(SPECIES)_posterior.rds
+results/$(SPECIES)/$(SPECIES)_posteriorSummary.rds: results/$(SPECIES)/$(SPECIES)_posterior.rds
+results/$(SPECIES)/$(SPECIES)_posterior.rds: scr/6_process_posterior.r \
+			results/$(SPECIES)/posterior.csv \
+			dat/$(SPECIES)/$(SPECIES)_climGrid_projected.rds
+	./scr/6_process_posterior.r -s $(SPECIES) -r 4
 	
-dat/$(SPECIES)_climGrid_scaled.rds: dat/$(SPECIES)_processed.rdata
-
-## step 2 - this must be done MANUALLY for each species in an interactive session
-#dat/$(SPECIES)_sdmData.rdata: scr/2_interactive_select_sdm_vars.r dat/$(SPECIES)_processed.rdata
-#	./scr/2_interactive_select_sdm_vars.r
-
-
-## step 3
-s3: results/$(SPECIES)_sdm_models.rdata
-results/$(SPECIES)_sdm_models.rdata: scr/3_fit_sdm.r dat/$(SPECIES)_sdmData.rdata
-	./scr/3_fit_sdm.r -s "$(SPECIES)" -p 2
 	
-## step 4
-s4: dat/$(SPECIES)_climGrid_projected.rds
-dat/$(SPECIES)_climGrid_projected.rds: scr/4_project_sdms.r \
-dat/$(SPECIES)_climGrid_scaled.rds results/$(SPECIES)_sdm_models.rdata \
-dat/$(SPECIES)_processed.rdata results/$(SPECIES)_sdm_models.rdata
-	./scr/4_project_sdms.r -s "$(SPECIES)"
+## step 7 - make figures
+figures: img/$(SPECIES)/$(SPECIES)_posterior_maps.pdf
+img/$(SPECIES)/$(SPECIES)_posterior_maps.pdf: scr/7_make_figs.r \
+			results/$(SPECIES)/$(SPECIES)_rangeRaster.rds \
+			results/$(SPECIES)/$(SPECIES)_posteriorSummary.rds
+	./scr/7_make_figs.r -s $(SPECIES)
 
-dat/$(SPECIES)_transitions_projected.rds: dat/$(SPECIES)_climGrid_projected.rds
-
-## step 5
-s5: img/$(SPECIES)_sdm_maps.pdf
-img/$(SPECIES)_sdm_maps.pdf: scr/5_plot_sdm.r results/$(SPECIES)_sdm_models.rdata \
-dat/$(SPECIES)_sdmData.rdata dat/$(SPECIES)_climGrid_projected.rds
-	./scr/5_plot_sdm.r -s "$(SPECIES)"
-
-img/$(SPECIES)_response_curves.pdf: img/$(SPECIES)_sdm_maps.pdf
-
-# step 6
-anneal: results/$(SPECIES)_anneal_parameters_0.1.rds
-results/$(SPECIES)_anneal_parameters_0.1.rds: scr/6_fit_stm.r \
-dat/$(SPECIES)_transitions_projected.rds
-	./scr/6_fit_stm.r -s "$(SPECIES)" -g -f 0.1
-
-
-# step 7 - prep mcmc
-s7: dat/mcmc_trans_$(SPECIES).txt
-dat/mcmc_trans_$(SPECIES).txt: scr/7_prep_mcmc_dat.r \
-dat/$(SPECIES)_transitions_projected.rds results/$(SPECIES)_anneal_parameters_0.1.rds
-	./scr/7_prep_mcmc_dat.r -s "$(SPECIES)" -f 0.25
-
-dat/mcmc_pars_$(SPECIES).txt: dat/mcmc_trans_$(SPECIES).txt
-
-
-#./scr/7_prep_mcmc_dat.r -s "18032-ABI-BAL" -f 0.25
-#./scr/7_prep_mcmc_dat.r -s "18032-ABI-BAL" -f 0.001
-
-# step 8 - run mcmc
-mcmc: results/$(SPECIES)_mcmc_out.txt
-results/$(SPECIES)_mcmc_out.txt: stm2_mcmc dat/mcmc_trans_$(SPECIES).txt \
-dat/mcmc_pars_$(SPECIES).txt
-	./stm2_mcmc -v 2 -n 25 -i 10000 -b 5000 -c 10 -p dat/mcmc_pars_$(SPECIES).txt \
-	-t dat/mcmc_trans_$(SPECIES).txt -o results/$(SPECIES)/
-
-#./stm2_mcmc -v 2 -n 25 -i 10000 -b 5000 -c 10 -p dat/mcmc_pars_18032-ABI-BAL.txt -t dat/mcmc_trans_18032-ABI-BAL.txt -o results/18032-ABI-BAL/
-#./stm2_mcmc -v 2 -i 500 -c 10 -p dat/mcmc_pars_18032-ABI-BAL.txt -t dat/mcmc_trans_18032-ABI-BAL.txt -o results/18032-ABI-BAL

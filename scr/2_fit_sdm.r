@@ -1,28 +1,16 @@
 #!/usr/bin/Rscript
-# it's no longer necessary to run this interactively, since the predictor data is the same for all species
-# this is not a model selection step, it is just selecting which variables aren't correlated with each other
-# the SDM fitting is the model selection step, which is semi-automated (using step())
-# note that since all species are the same, it's not really necessary to re-run this for each species
-# should probably change this
-if(!interactive()) stop(paste("SDM variable selection should be done interactively for each species",
-	"This message means the script has likely changed and is being run via the makefile"
-	"Run the '2_interactive_select_sdm_vars.r' in an interactive R session", sep="\n")
 
-#-------------------
-#  USER DEFINED VARIABLES
-#  these must be set for each species
-#-------------------
-# spName = ""
-# spName = "28731-ACE-SAC" # the script as written below is for this species
-# spName = "18032-ABI-BAL"
-spName = "28728-ACE-RUB"
-
-
-
+library(argparse)
+# handle command line arguments
+parser = ArgumentParser()
+parser$add_argument("-s", "--species", default="28731-ACE-SAC", help="desired species code")
+parser$add_argument("-p", "--power", default=2, type="integer", help="max exponent for model fitting")
+argList = parser$parse_args()
+spName = argList$species
 
 # set seed - drawn from sample(1:1e6, 1)
-set.seed(588533)
-infile = paste("dat/", spName, "_processed.rdata", sep="")
+## set.seed(588533)
+infile = paste("dat/", spName, "/", spName, "_processed.rdata", sep="")
 load(infile)
 
 
@@ -66,4 +54,37 @@ selectedVars = c('annual_mean_temp', 'tot_annual_pp', 'pp_seasonality',
 		'gdd_above_base_temp_period2', 'mean_temp_wettest_quarter')
 		
 sdmData = stateData.subset[,c('presence', selectedVars)]
-save(sdmData, selectedVars, file=paste("dat/", spName, "_sdmData.rdata", sep=""))
+
+
+# --------------------
+#  fit models
+# --------------------
+
+make_glm_model = function(vars, pow = 2)
+{
+	as.formula(paste("presence ~ ", paste(sapply(vars, function(v) paste(v, ifelse(pow > 1, paste(c("", sapply(2:pow, 
+			function(p) paste("I(", v, "^", p, ")", sep=""))), collapse = ' + '), ""))), collapse = " + "), sep=""))
+}
+
+make_gam_scope = function(vars, pow)
+{ lapply(vars, function(v) as.formula(paste("~ 1 + ", v, " + s(", v, ", ", pow, ")", sep=""))) }
+
+
+## fit models
+library(gam)
+library(randomForest)
+
+glm.mod = step(glm(make_glm_model(selectedVars, argList$power), family=binomial, data = 
+		sdmData), k = log(nrow(sdmData)))
+
+gam.mod = step.gam(gam(presence ~ ., family=binomial, data = sdmData),
+		scope = make_gam_scope(selectedVars, argList$power))
+
+rf.mod = randomForest(as.factor(presence) ~ . , data = sdmData, ntree = 500)
+
+save(glm.mod, gam.mod, rf.mod, selectedVars, sdmData, file=paste("results/", spName, "/", spName, "_sdm_models.rdata", sep=""))
+
+
+
+
+
