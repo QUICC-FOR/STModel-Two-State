@@ -42,17 +42,23 @@ posteriorRaster = projectRaster(posteriorRaster, crs=P4S.albers)
 # get some map data
 ocean = readOGR(dsn="dat/ne_50m_ocean", layer="ne_50m_ocean")
 ocean = spTransform(ocean, P4S.albers)
+littleMap = readOGR(dsn=paste("dat/", spName, "/", spName, sep=""), layer=spName)
+proj4string(littleMap) = P4S.latlon
+littleMap = spTransform(littleMap, P4S.albers)
 lakes = readOGR(dsn="dat/ne_50m_lakes", layer="ne_50m_lakes")
 # grab specific lakes
 lkNames = c("Huron", "Michigan", "Superior", "Ontario", "Erie", "St. Clair")
 grLakes = lakes[as.integer(sapply(lkNames, grep, lakes$name)),]
 grLakes = spTransform(grLakes, P4S.albers)
 
-plotbg = function(txt="")
+plotbg = function(txt="", rangeMap=T)
 {
 	plot(ocean, col="white", add=T)
 	plot(grLakes, col="white", add=T)
 	mtext(txt, adj=0, cex = 1)
+	
+	if(rangeMap)
+	plot(littleMap, border="red", add=T)
 
 	# plot grid lines and labels
 	llgridlines(ocean, easts=seq(-90, -40, 10), norths=seq(20,50,10), ndiscr=100, side="ES", offset=1e6)
@@ -70,27 +76,35 @@ plotbg = function(txt="")
 rangeColors = colorRampPalette(c("#b30000", "#e34a33", "#fc8d59", "#fdcc8a", "#ffffff"), interpolate = 'spline', space='rgb', bias=1.0)(200)
 
 
-w = 8
-h = 8
+w = 9
+h = 3
 pdf(width=w, height = h, file=paste("img/", spName, "/", spName, "_posterior_maps.pdf", sep=""))
-#quartz(width=w, height = h)
-par(mfrow=c(2,2), mar=c(2,2,2,1), oma=c(0,0,0,1))
-## par(oma = c(0,0,1.5,0))
+## quartz(width=w, height = h)
+par(mfrow=c(1,3), mar=c(2,2,2,1), oma=c(0,0,0,1))
 
 # plot the posterior range boundary
-plot(rangeRaster, col=rev(rangeColors), main="pr(c - e == 0)", xaxt='n', yaxt='n')
-plotbg()
+## plot(rangeRaster, col=rev(rangeColors), main="pr(c - e == 0)", xaxt='n', yaxt='n')
+## plotbg()
 
 # plot the mean of c - e
 lamColors = colorRampPalette(c("#008837", "#a6dba0", "#f7f7f7", "#c2a5cf", "#7b3294"), interpolate='spline', space="rgb", bias=1.0)(200)
-zrange = c(minValue(posteriorRaster$lambda), maxValue(posteriorRaster$lambda))
-zlims = round(zrange[which(abs(zrange) == min(abs(zrange)))] * c(-1, 1), 2)
-## breaks = seq(-0.04, 0.04, 0.02)
-## lab.breaks = as.character(breaks)
-## lab.breaks[1] = paste('<', lab.breaks[1])
-# unfortunately, plotting all 3 doesn't work right, so have to live with the clipping
-## plot(posteriorRaster$lambda, col="#008837", legend=F) 
-## plot(posteriorRaster$lambda, col=lamColors, zlim=zlims, axis.args=list(at=breaks, labels=lab.breaks), add=T)
+# zrange = c(minValue(posteriorRaster$lambda), maxValue(posteriorRaster$lambda))
+# zlims = round(zrange[which(abs(zrange) == min(abs(zrange)))] * c(-1, 1), 2)
+# hist(posteriorRaster$lambda)
+
+# zlims were chosen manually to make for pretty pictures
+lam_zlims = list(
+	"18032-ABI-BAL" = c(-0.15, 0.15),
+	"19290-QUE-ALB" = c(-0.1, 0.1),
+	"19481-BET-ALL" = c(-0.65, 0.65),
+	"19489-BET-PAP" = c(-0.25, 0.25),
+	"28728-ACE-RUB" = c(-0.2, 0.2),
+	"28731-ACE-SAC" = c(-0.05, 0.05),
+	"183302-PIC-MAR" = c(-0.15, 0.15),
+	"183319-PIN-BAN" = c(-0.005, 0.005))
+	
+zlims = lam_zlims[[spName]]
+
 plot(posteriorRaster$lambda, col=lamColors, zlim=zlims, main=paste(spName, ": c-e", sep=""), xaxt='n', yaxt='n')
 plotbg()
 
