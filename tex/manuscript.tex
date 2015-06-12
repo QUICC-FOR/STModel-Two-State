@@ -1,0 +1,137 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+
+% use proper unicode fonts
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+\usepackage{amsmath} % for better display of equations
+
+\usepackage{setspace}
+\usepackage{natbib} 
+
+\usepackage{titling} % controls the way the title information is displayed
+\pretitle{\begin{flushleft}\Large}
+\posttitle{\end{flushleft}}
+\predate{}
+\postdate{}
+\preauthor{\begin{flushleft}}
+\postauthor{\end{flushleft}}
+\setlength{\droptitle}{-3em}
+
+\usepackage{authblk} % adds some nice options for displaying the author list
+\renewcommand\Authsep{\protect\\}
+\renewcommand\Authands{\protect\\}
+
+%% graphics packages
+\usepackage{graphicx}
+%\usepackage[nomarkers, tablesfirst]{endfloat} % for final
+\usepackage{caption}
+%\captionsetup{labelsep=none,textformat=empty} % for final
+\captionsetup{labelformat=simple} % for drafts
+\usepackage{booktabs}
+
+
+%% ----------------------------------
+%
+%     Title and authorship information
+%
+%% ----------------------------------
+
+
+\title{Colonization-extinction dynamics determine tree species range limits in northeastern North America}
+\date{}
+\author[1,4]{Matthew V. Talluto (mtalluto@gmail.com)}
+\author[1]{Isabelle Boulangeat (isabelle.boulangeat@gmail.com)}
+\author[1]{Steve Vissault (steve.vissault@uqar.ca)}
+\author[2,3]{Wilfried Thuiller (wilfried.thuiller@ujf-grenoble.fr)}
+\author[1]{Dominique Gravel (dominique\_gravel@uqar.ca)}
+\affil[1]{Département de biologie, Université du Québec à Rimouski, Rimouski, Quebec, Canada}
+\affil[2]{Université Grenoble Alpes, Laboratoire d’Ecologie Alpine (LECA), F-38000 Grenoble, France}
+\affil[3]{CNRS, Laboratoire d’Ecologie Alpine (LECA), F-38000 Grenoble, France}
+\affil[4]{Author for correspondance. Address: Departament de Biologie, chimie, et geographie, 300, Allée des Ursulines, Rimouski, Quebec G5L 3A1, Canada}
+
+
+%% ----------------------------------
+%
+%     END PREAMBLE
+%
+%% ----------------------------------
+
+\begin{document}
+%\doublespacing
+%% ----------------------------------
+%
+%     TITLE PAGE
+%
+%% ----------------------------------
+
+%TC:ignore
+\begin{titlingpage}
+	\maketitle
+	
+	\begin{flushleft}
+	
+	\textbf{Short title:} Colonization-extinction dynamics of eastern North American trees
+		
+	\textbf{Keywords:}
+	\end{flushleft}
+\end{titlingpage}
+%TC:endignore
+
+%TC:break abstract
+\begin{abstract}
+\noindent
+
+ \end{abstract}
+
+%TC:break manuscript
+%% ----------------------------------
+%
+%     INTRODUCTION
+%
+%% ----------------------------------
+
+%\section*{Introduction}
+
+%\section*{Methods}
+
+%\section*{Results}
+
+%\section*{Discussion}
+
+\subsection*{Conclusions}
+\begin{itemize}
+	\item Range limits of [some/many/most/all] [temperate/boreal] tree species in northeastern north America are determined by colonization-extinction dynamics
+	\item Moisture and energy (i.e., mean annual temperature and precipitation) are associated with colonization and extinction rates for many species
+	\item For some species, the equilibrium state of the model did not match the predicted distribution of the species, suggesting that these species are either out of equilibrium with the environment, or that other processes (e.g., large-scale disturbances) contribute to their range dynamics.
+	\item Resilience (represented by the dominant eigenvalue (c - e) near the transition point) varies widely among species, suggesting greatly differential rates of response to environmental change.
+	\item Validation? Model Selection?
+%		\begin{itemize}
+%			\item use DIC with a few models for each species (for each combo of c and e)
+%			\item $t^3 + p^3$
+%			\item $t^2 + p^2$
+%			\item $t^3$
+%			\item $p^3$
+%			\item $t^2$
+%			\item $p^2$
+%			\item intercept only
+%		\end{itemize}
+\end{itemize}
+
+
+\subsection*{List of figures}
+\begin{itemize}
+	\item Fig 1: theoretical/introductory figure or diagram
+	\item Fig 2: posterior response curves for c and e w.r.t climate
+	\item Fig 3: maps for selected species (with remaining in appendix) - 4 panels - c; e; predicted range; SDM
+	\item Fig 4: eigenvalue maps
+\end{itemize}
+
+\subsection*{Tables}
+\input{table}
+
+
+
+\end{document}

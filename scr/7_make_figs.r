@@ -5,12 +5,22 @@ library(rgdal)
 library(fields)
 library(reshape2)
 library(raster)
+library(coda)
 
 # handle command line arguments
 parser = ArgumentParser()
 parser$add_argument("-s", "--species", default="28731-ACE-SAC", help="desired species code")
 argList = parser$parse_args()
 spName = argList$species
+
+
+# plot traces
+posterior = readRDS(paste("results/", spName, "/", spName, "_posterior.rds", sep=""))
+pdf(width=30, height = 10, file=paste("img/", spName, "/", spName, "_mcmc_trace.pdf", sep=""))
+par(mfcol=c(2,7), mar=c(2,2,2,1), oma=c(0,0,0,1))
+plot(posterior, ask=FALSE, auto.layout=FALSE)
+dev.off()
+
 
 # set up projections
 P4S.latlon <- CRS("+proj=longlat +datum=WGS84")
