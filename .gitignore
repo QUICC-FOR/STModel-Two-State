@@ -22,3 +22,9 @@ old
 stm2_mcmc*
 
 run2/*
+
+*.pdf
+*.log
+*.aux
+*.bbl
+*.xls*

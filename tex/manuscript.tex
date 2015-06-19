@@ -31,6 +31,7 @@
 %\captionsetup{labelsep=none,textformat=empty} % for final
 \captionsetup{labelformat=simple} % for drafts
 \usepackage{booktabs}
+\usepackage[flushleft]{threeparttable}
 
 
 %% ----------------------------------
@@ -42,7 +43,7 @@
 
 \title{Colonization-extinction dynamics determine tree species range limits in northeastern North America}
 \date{}
-\author[1,4]{Matthew V. Talluto (mtalluto@gmail.com)}
+\author[1,2,3,4]{Matthew V. Talluto (mtalluto@gmail.com)}
 \author[1]{Isabelle Boulangeat (isabelle.boulangeat@gmail.com)}
 \author[1]{Steve Vissault (steve.vissault@uqar.ca)}
 \author[2,3]{Wilfried Thuiller (wilfried.thuiller@ujf-grenoble.fr)}
@@ -95,7 +96,33 @@
 
 %\section*{Introduction}
 
-%\section*{Methods}
+\section*{Methods}
+
+\subsection*{Model description}
+
+\subsection*{Prevalence model}
+We used the RF package in R to build models of regional prevalence for each species. 
+For predictors, we initially evaluated a set of xx environmental variables. 
+From these, we selected xx variables that were relatively uncorrelated to each other (pairwise Pearson correlation < xx) and that had high loadings in a principal components analysis (PCA) of all variables. 
+In this way, we reduced the risk of estimation problems due to correlations among the predictors while retaining variables that were representative of the available climatic space.
+
+\subsection*{Model selection}
+For each species, we evaluated a set of 145 colonization-extinction models. 
+Each model consisted of at most two environmental variables, one associated with temperature and the other precipitation\. 
+The model set was constructed from eight possible model forms (Table?) applied to all possible two-variable combinations of the four energy and four moisture variables (i.e., 16 possible variable combinations), along with two additional single-variable forms for each variable and an intercept-only model. 
+Because of the large number of models, fitting all models using MCMC was infeasible; therefore, we performed model selection by computing the Akaike Information Criterion (AIC) on maximum likelihood estimates for each model, fit using simulated annealing (package GenSA in R). 
+We then selected the model that minimized AIC for final parameterization.
+
+\subsection*{Parameterization}
+We used a Markov Chain Monte Carlo (MCMC) sampler employing a Metropolis-Hastings scheme to estimate posterior distributions for all parameters.
+This method has a number of advantages over the simulated annealing approach used for preliminary model selection.
+First, MCMC results in full joint posterior distributions of the parameters, allowing for a robust understanding of the uncertainty both in model parameters and predictions.
+Second, the use of a Bayesian framework allows the inclusion of prior information.
+As our parameters were all estimated on the logit scale, we used the weakly informative Cauchy priors suggested by (cite Gelman paper), with a mean of 0 and (variance?) of 10 for intercept parameters or 2.5 for slope parameters.
+Finally, having posterior distributions of the predictors allows for the information produced by our model to be incorporated in future meta-modeling efforts that can further improve our characterization of species' ranges and our understanding of model uncertainty (cite GEB paper).
+
+For each species, we obtained xxx posterior samples...
+We assessed convergence...
 
 %\section*{Results}
 
@@ -108,16 +135,6 @@
 	\item For some species, the equilibrium state of the model did not match the predicted distribution of the species, suggesting that these species are either out of equilibrium with the environment, or that other processes (e.g., large-scale disturbances) contribute to their range dynamics.
 	\item Resilience (represented by the dominant eigenvalue (c - e) near the transition point) varies widely among species, suggesting greatly differential rates of response to environmental change.
 	\item Validation? Model Selection?
-%		\begin{itemize}
-%			\item use DIC with a few models for each species (for each combo of c and e)
-%			\item $t^3 + p^3$
-%			\item $t^2 + p^2$
-%			\item $t^3$
-%			\item $p^3$
-%			\item $t^2$
-%			\item $p^2$
-%			\item intercept only
-%		\end{itemize}
 \end{itemize}
 
 

@@ -5,6 +5,7 @@ library(gam)
 library(randomForest)
 parser = ArgumentParser()
 parser$add_argument("-s", "--species", default="28731-ACE-SAC", help="desired species code")
+parser$add_argument("-f", "--fraction", default=0.5, type="double", help="proportion of data to use for model fitting")
 argList = parser$parse_args()
 spName = argList$species
 
@@ -20,6 +21,19 @@ transitionData.projected$expectedGLM = predict(glm.mod, newdata = transitionData
 transitionData.projected$expectedGAM = predict(gam.mod, newdata = transitionData.scaled, type='response')
 transitionData.projected$expectedRF = predict(rf.mod, newdata = transitionData.scaled, type='prob')[,2]
 saveRDS(transitionData.projected, paste("dat/", spName, "/", spName, "_transitions_projected.rds", sep=""))
+
+
+# subset the transition data for use in the annealing
+if(argList$fraction < 1)
+{
+	sel = sample(nrow(transitionData.projected), 
+			as.integer(argList$fraction*nrow(transitionData.projected)))
+} else {
+	sel = 1:nrow(transitionData.projected)
+}
+transitionData.subsample = transitionData.projected[sel,]
+saveRDS(transitionData.subsample, paste("dat/", spName, "/", spName, "_transitions_projected_subsample.rds", sep=""))
+
 
 
 # project the SDMs to the climate grid

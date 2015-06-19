@@ -1,26 +1,20 @@
 #!/usr/bin/Rscript
-library(argparse)
-parser = ArgumentParser()
-parser$add_argument("-s", "--species", default="28731-ACE-SAC", help="desired species code")
-parser$add_argument("-r", "--rf", action="store_true", default=FALSE, help="random forest for prevalence (default: GLM)")
-parser$add_argument("-m", "--gam", action="store_true", default=FALSE, help="use GAM for prevalence (default: GLM)")
-parser$add_argument("-f", "--fraction", default=0.5, type="double", help="proportion of data to use for model fitting")
-parser$add_argument("-i", "--interval", default=5, type="double", help="how many years should the parameterization interval be")
-parser$add_argument("-t", "--tempvar", default="annual_mean_temp", help="Temperature variable to use")
-parser$add_argument("-p", "--precipvar", default="tot_annual_pp", help="Precipitation variable to use")
-parser$add_argument("-c", "--coldesign", default="1111111", help="7-character design vector for colonization model")
-parser$add_argument("-e", "--extdesign", default="1111111", help="7-character design vector for extinction model")
+library(GenSA)
+targetInterval = 5
+modType = "rf"
 
-
-argList = parser$parse_args()
-spName = argList$species
-targetInterval = argList$interval
-colDesign = sapply(1:nchar(argList$coldesign), function(i) as.integer(substr(argList$coldesign,i,i)))
-extDesign = sapply(1:nchar(argList$extdesign), function(i) as.integer(substr(argList$extdesign,i,i)))
+parameters = commandArgs(trailingOnly = TRUE)
+#parameters = scan("inp.txt", what=character())
+spName = parameters[1]
+tempVar = parameters[2]
+precipVar = parameters[3]
+# adding a one to the beginning for the intercept
+colDesign = c(1, sapply(1:nchar(parameters[4]), function(i) as.integer(substr(parameters[4],i,i))))
+extDesign = c(1, sapply(1:nchar(parameters[5]), function(i) as.integer(substr(parameters[5],i,i))))
 
 design_err = function(x)
 {
-	err = length(x) != 7 | setequal(x, c(0,1))
+	err = length(x) != 7 | (!setequal(x, c(0,1)) & !setequal(x, 1))
 }
 if(design_err(colDesign) | design_err(extDesign)) 
 	stop("Error in colonization or extinction design vectors: must be a vector of length 7 containing only 0 or 1")
@@ -73,52 +67,38 @@ minus_log_likelihood = function(params, dat, parlist)
 }
 
 
-transitionData = readRDS(paste("dat/", spName, "/", spName, "_transitions_projected.rds", sep=""))
+transitionData = readRDS(paste(spName, "_transitions_projected_subsample.rds", sep=""))
 
-NO! this doesnt work. need to subsample externally, so that all of the models use the SAME
-subsample within a given species. otherwise AIC is invalid
-
-# subsample data, if desired
-if(argList$fraction < 1)
-{
-	sel = sample(nrow(transitionData), as.integer(argList$fraction*nrow(transitionData)))
-	transitionData.subsample = transitionData[sel,]
+modelData = data.frame(state1 = transitionData$state1, 
+		state2 = transitionData$state2,
+		interval = (transitionData$year2 - transitionData$year1))
+		
+if(tempVar == "NA") {
+	modelData$env1 = 0
 } else {
-	transitionData.subsample = transitionData
+	modelData$env1 = transitionData[,tempVar]
 }
 
+if(precipVar == "NA") {
+	modelData$env2 = 0
+} else {
+	modelData$env2 = transitionData[,precipVar]
+}
 
-modelData = data.frame(state1 = transitionData.subsample$state1, 
-		state2 = transitionData.subsample$state2,
-		interval = (transitionData.subsample$year2 - transitionData.subsample$year1), 
-		env1 = transitionData.subsample[,argList$tempvar], 
-		env2 = transitionData.subsample[,argList$precipVar])
-
-if(argList$gam)
+if(modType == "gam")
 {
-	modelData$expectedPresence = transitionData.subsample$expectedGAM
+	modelData$expectedPresence = transitionData$expectedGAM
 	prevalenceVar = "GAM"
-} else if(argList$rf)
+} else if(modType == "rf")
 {
-	modelData$expectedPresence = transitionData.subsample$expectedRF
+	modelData$expectedPresence = transitionData$expectedRF
 	prevalenceVar = "RF"
 } else
 {
-	modelData$expectedPresence = transitionData.subsample$expectedGLM
+	modelData$expectedPresence = transitionData$expectedGLM
 	prevalenceVar = "GLM"
 }
 		
-modelData = within(modelData, 
-{
-	if(argList$gam)
-	{
-		expectedPresence = transitionData.subsample$expectedGAM
-	} else if(argList$rf) {
-		expectedPresence = transitionData.subsample$expectedRF
-	} else {
-		expectedPresence = transitionData.subsample$expectedGLM
-	}
-})
 
 # set up initial values for the parameters
 # calculate average colonization and extinction probability
@@ -131,33 +111,40 @@ parameters = rep(0, sum(colDesign)+sum(extDesign))
 if(colDesign[1] == 1) parameters[1] = pr.c
 if(extDesign[1] == 1) parameters[sum(colDesign)+1] = pr.e
 
-### perhaps try setting (in control)
-### nb.stop.improvement = n
-### how much for n? depends on how quickly the objective function runs
-### a few hundred? thousand? ten?
 
-library(GenSA)
-# controlPars =list(verbose = TRUE, max.time = (60*20), smooth=TRUE)
-controlPars =list(verbose = TRUE, nb.stop.improvement = (200), smooth=TRUE)
+print("Starting anneal with the following parameters:")
+print(paste("Species: ", spName, sep=""))
+print(paste("Env1: ", tempVar, sep=""))
+print(paste("Env2: ", precipVar, sep=""))
+print(paste("Model Design: ", paste(colDesign, collapse=""), " + ",
+		paste(extDesign, collapse=""), sep=""))
+
+
+controlPars =list(verbose = TRUE, max.time = (90*60), smooth=TRUE)
 annealParams = GenSA(par = parameters, fn = minus_log_likelihood, 
 		lower = rep(-50, length(parameters)), upper = rep(50, length(parameters)), 
 		 control = controlPars, dat = modelData, parlist=c(colDesign, extDesign))
+print("Anneal finished")
 
 mll = minus_log_likelihood(annealParams$par, modelData, c(colDesign, extDesign))
 annealResults = list(
 	params = annealParams$par,
 	AIC = 2*mll + 2*length(annealParams$par),
 	BIC = 2*mll + log(nrow(modelData))*length(annealParams$par),
-	env1 = argList$tempvar,
-	env2 = argList$precipVar,
+	env1 = tempVar,
+	env2 = precipVar,
 	colDesign = colDesign,
 	extDesign = extDesign,
 	species = spName,
 	prevalenceVar = prevalenceVar,
 	annealParams = annealParams)
 
-resultDir = paste("results/", spName, "/anneal", sep="")
-dir.create(resultDir, showWarnings=FALSE, recursive=TRUE)
-saveRDS(annealResults, paste(resultDir, "/", spName, "_", annealResults$env1, "_", 
-		annealResults$env2, "_", annealResults$colDesign, "_", annealResults$extDesign, 
-		".rds", sep=""))
+dir.create('out/', showWarnings=FALSE, recursive=TRUE)
+filename = paste(spName, annealResults$env1, annealResults$env2, 
+		paste(annealResults$colDesign, collapse=""), 
+		paste(annealResults$extDesign, collapse=""), sep="-")
+saveRDS(annealResults, paste('out/', filename, ".rds", sep=""))
+print(paste("Saved file ", paste(spName, annealResults$env1, annealResults$env2, 
+		paste(annealResults$colDesign, collapse=""), 
+		paste(annealResults$extDesign, collapse=""), sep="-"), sep=""))
+

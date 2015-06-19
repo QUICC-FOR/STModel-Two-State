@@ -38,7 +38,8 @@ scalefunc = function(sc_mean, sc_sd) {
 		means = sc_mean,
 		sds = sc_sd))
 }
-clim.scale = scalefunc(attr(stateData.clim.scaled, "scaled:center"), attr(stateData.clim.scaled, "scaled:scale"))
+clim.scale = scalefunc(attr(stateData.clim.scaled, "scaled:center"), 
+attr(stateData.clim.scaled, "scaled:scale"))
 
 stateData.scaled = cbind(stateData[,-climVars], stateData.clim.scaled)
 transitionData.scaled = clim.scale$scale(transitionData)
