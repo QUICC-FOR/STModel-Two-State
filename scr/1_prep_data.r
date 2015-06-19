@@ -1,13 +1,6 @@
 #!/usr/bin/Rscript
 
-library(argparse)
-# handle command line arguments
-parser = ArgumentParser()
-parser$add_argument("-s", "--species", default="28731-ACE-SAC", help="desired species code")
-argList = parser$parse_args()
-spName = argList$species
-# set seed - drawn from sample(1:1e6, 1)
-## set.seed(588533)
+
 
 #-------------------
 #  Load and prepare data
