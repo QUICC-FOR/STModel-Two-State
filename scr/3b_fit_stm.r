@@ -1,10 +1,4 @@
 
-## need to work this in to this script somewhere
-# remove extremely long sampling intervals from the dataset 
-# (to avoid the possibility of 2 transitions in the space we missed)
-intervals = transitionData.scaled$year2 - transitionData.scaled$year1
-indices = which(intervals <= 15)
-transitionData.scaled = transitionData.scaled[indices,]
 
 
 
@@ -14,7 +8,6 @@ transitionData.scaled = transitionData.scaled[indices,]
 #!/usr/bin/Rscript
 library(GenSA)
 targetInterval = 5
-modType = "rf"
 
 parameters = commandArgs(trailingOnly = TRUE)
 #parameters = scan("inp.txt", what=character())
@@ -80,11 +73,13 @@ minus_log_likelihood = function(params, dat, parlist)
 }
 
 
-transitionData = readRDS(paste(spName, "_transitions_projected_subsample.rds", sep=""))
+transitionData = readRDS(file.path('species', spName, 'dat', paste(spName, 'stm_calib.rds', sep='_')))
+
 
 modelData = data.frame(state1 = transitionData$state1, 
 		state2 = transitionData$state2,
-		interval = (transitionData$year2 - transitionData$year1))
+		interval = (transitionData$year2 - transitionData$year1),
+		expectedPresence = transitionData$prevalence)
 		
 if(tempVar == "NA") {
 	modelData$env1 = 0
@@ -96,20 +91,6 @@ if(precipVar == "NA") {
 	modelData$env2 = 0
 } else {
 	modelData$env2 = transitionData[,precipVar]
-}
-
-if(modType == "gam")
-{
-	modelData$expectedPresence = transitionData$expectedGAM
-	prevalenceVar = "GAM"
-} else if(modType == "rf")
-{
-	modelData$expectedPresence = transitionData$expectedRF
-	prevalenceVar = "RF"
-} else
-{
-	modelData$expectedPresence = transitionData$expectedGLM
-	prevalenceVar = "GLM"
 }
 		
 
@@ -149,15 +130,12 @@ annealResults = list(
 	colDesign = colDesign,
 	extDesign = extDesign,
 	species = spName,
-	prevalenceVar = prevalenceVar,
 	annealParams = annealParams)
 
-dir.create('out/', showWarnings=FALSE, recursive=TRUE)
 filename = paste(spName, annealResults$env1, annealResults$env2, 
 		paste(annealResults$colDesign, collapse=""), 
 		paste(annealResults$extDesign, collapse=""), sep="-")
-saveRDS(annealResults, paste('out/', filename, ".rds", sep=""))
-print(paste("Saved file ", paste(spName, annealResults$env1, annealResults$env2, 
-		paste(annealResults$colDesign, collapse=""), 
-		paste(annealResults$extDesign, collapse=""), sep="-"), sep=""))
+filepath = file.path('species', spName, 'res', 'anneal', paste(filename, '.rds', sep=''))
+saveRDS(annealResults, filepath)
+print(paste("Saved file ", filepath))
 
