@@ -1,9 +1,22 @@
+# step 1: data preparation
+s1: dat/climate_scaling.rds dat/climateGrid_scaled.rds dat/climateGrid_unscaled.rds \
+		dat/map_projections.rdata dat/plotClimate_scaled.rds 
+		dat/transitionClimate_scaled.rds
+dat/climate_scaling.rds: dat/map_projections.rdata
+dat/climateGrid_scaled.rds: dat/map_projections.rdata
+dat/climateGrid_unscaled.rds: dat/map_projections.rdata
+dat/plotClimate_scaled.rds: dat/map_projections.rdata
+dat/transitionClimate_scaled.rds: dat/map_projections.rdata
+
+dat/map_projections.rdata: scr/1_prep_data.r dat/raw/plotClimate_raw.rds \
+		dat/raw/transitionClimate_raw.rds dat/raw/SDMClimate_grid.csv
+	./scr/1_prep_data.r
+
 
 
 
 #all: results/$(SPECIES)/posterior.csv
 
-# step 1: data preparation
 #s1: dat/$(SPECIES)/$(SPECIES)_processed.rdata
 #dat/$(SPECIES)/$(SPECIES)_processed.rdata: scr/1_prep_data.r \
 #			dat/$(SPECIES)/transition_twostate_$(SPECIES).rdata dat/SDMClimate_grid.csv
