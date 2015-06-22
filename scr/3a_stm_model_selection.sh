@@ -3,6 +3,8 @@ if [ -z "$SPECIES" ]; then
     exit 1
 fi
 
+DIR=~/STModel-Two-State
+
 declare -a TempVars=(annual_mean_temp mean_diurnal_range mean_temp_wettest_quarter)
 declare -a PrecipVars=(tot_annual_pp pp_seasonality pp_warmest_quarter)
 declare -a AllVars=( ${TempVars[@]} ${PrecipVars[@]} )
@@ -17,7 +19,7 @@ MAXCORES=30
 TEMP=NA
 PRECIP=NA
 COL=000000
-Rscript ./scr/3b_fit_stm.r $SPECIES $TEMP $PRECIP $COL $COL &
+cd $DIR; Rscript ./scr/3b_fit_stm.r $SPECIES $TEMP $PRECIP $COL $COL &
 RUNNING=$((RUNNING + 1)) 
 
 # loop through all single variable models
@@ -25,7 +27,7 @@ for TEMP in ${AllVars[@]}
 do
     for COL in ${SingleVar[@]}
     do
-        Rscript ./scr/3b_fit_stm.r $SPECIES $TEMP $PRECIP $COL $COL &
+        cd $DIR; Rscript ./scr/3b_fit_stm.r $SPECIES $TEMP $PRECIP $COL $COL &
         RUNNING=$((RUNNING + 1))
     done
 done
@@ -36,7 +38,7 @@ do
     do
         for COL in ${DesignStrings[@]}
         do
-            Rscript ./scr/3b_fit_stm.r $SPECIES $TEMP $PRECIP $COL $COL &
+            cd $DIR; Rscript ./scr/3b_fit_stm.r $SPECIES $TEMP $PRECIP $COL $COL &
             RUNNING=$((RUNNING + 1))
             if [ "$RUNNING" -ge "$MAXCORES" ] ; then
                 wait
