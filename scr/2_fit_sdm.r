@@ -66,7 +66,15 @@ for(spName in speciesList)
 
 
 	# subset the transition data for use in the annealing
-	sel = sample(nrow(stmData), as.integer(annealFraction*nrow(stmData)))
+	# first, drop all intervals greater than 15 years
+	# then take half (or whatever fraction) of the remaining observed transitions
+	# along with the same fraction of non-transitions
+	intervals = stmData$year2 - stmData$year1
+	indices = which(intervals <= 15)
+	transitions = with(stmData[indices,], which(state1 != state2))
+	notTransitions = with(stmData[indices,], which(state1 == state2))
+	sel = c(sample(transitions, as.integer(annealFraction*length(transitions))),
+			sample(notTransitions, as.integer(annealFraction*length(notTransitions))))
 	stmData.subset = stmData[sel,]
 	stmData.unsubset = stmData[-sel,]
 	saveRDS(stmData.subset, file.path(baseDir, 'dat', paste(spName, 'stm', 'calib.rds', sep='_')))
