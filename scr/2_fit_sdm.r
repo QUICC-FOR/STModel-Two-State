@@ -42,7 +42,7 @@ for(spName in speciesList)
 
 	print("  Fitting RF model")
 	rf.mod = randomForest(as.factor(presence) ~ . , data = sdmDat.subset, ntree = 500)
-	saveRDS(rf.mod, file.path(baseDir, 'res', paste(spName, 'sdm.rds', sep='_'))
+	saveRDS(rf.mod, file.path(baseDir, 'res', paste(spName, 'sdm.rds', sep='_')))
 
 	# see how well the rf fits
 	print("  Computing ROC")
