@@ -63,20 +63,6 @@ trClim.scaled = cbind(transitionClimDat[,1:3], trClim.scaled)
 climGrid.unscaled = cbind(climGrid.raw[,1:2], climGrid.unscaled)
 climGrid.scaled = cbind(climGrid.raw[,1:2], climGrid.scaled)
 
-# make the climGrids into projected raster brick objects
-make_brick = function(x)
-{
-	coordinates(x) = c('lon', 'lat')
-	gridded(x) = TRUE
-	x.ras = brick(x)
-	setMinMax(x.ras)
-	proj4string(x.ras) = P4S.latlon
-	projectRaster(x.ras, crs=stmMapProjection)
-}
-climGrid.unscaled = make_brick(climGrid.unscaled)
-climGrid.scaled = make_brick(climGrid.scaled)
-
-
 ## save climate variables
 saveRDS(climVars.scaled, "dat/plotClimate_scaled.rds")
 saveRDS(trClim.scaled, "dat/transitionClimate_scaled.rds")
