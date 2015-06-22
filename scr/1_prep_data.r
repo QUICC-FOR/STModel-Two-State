@@ -1,11 +1,11 @@
 #!/usr/bin/Rscript
 library(ade4)
 library(raster)
-
+library(rgdal)
 
 # set up map projections
 P4S.latlon = CRS("+proj=longlat +datum=WGS84")
-stmMapProjection = CRS("+init=epsg:6350") # albers equal area conic NAD-83 north america
+stmMapProjection = CRS("+init=epsg:5070") # albers equal area conic NAD-83 north america
 save(P4S.latlon, stmMapProjection, file="dat/map_projections.rdata")
 
 

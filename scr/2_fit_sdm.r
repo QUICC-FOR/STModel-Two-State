@@ -20,8 +20,8 @@ climDat = readRDS("dat/plotClimate_scaled.rds")
 # subset the data for the SDM
 # select only a single row for each plot (to avoid too much spatial duplication)
 # note that all species get the same subset (will be applied during the species loop)
-rows = sapply(unique(sdmDat$plot_id), function(i) {
-	candidates = which(sdmDat$plot_id == i)
+rows = sapply(unique(climDat$plot_id), function(i) {
+	candidates = which(climDat$plot_id == i)
 	if(length(candidates) == 1) candidates else sample(candidates, 1)
 	})
 
