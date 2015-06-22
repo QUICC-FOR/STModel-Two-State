@@ -1,3 +1,16 @@
+
+## need to work this in to this script somewhere
+# remove extremely long sampling intervals from the dataset 
+# (to avoid the possibility of 2 transitions in the space we missed)
+intervals = transitionData.scaled$year2 - transitionData.scaled$year1
+indices = which(intervals <= 15)
+transitionData.scaled = transitionData.scaled[indices,]
+
+
+
+
+
+
 #!/usr/bin/Rscript
 library(GenSA)
 targetInterval = 5
