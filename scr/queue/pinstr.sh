@@ -5,5 +5,6 @@
 #PBS -r n
 #PBS -N pinstr
 
+DIR=~/STModel-Two-State
 SPECIES=183385-PIN-STR
-source scr/3a_stm_model_selection.sh
+source $DIR/scr/3a_stm_model_selection.sh

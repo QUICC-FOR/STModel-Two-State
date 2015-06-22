@@ -5,5 +5,6 @@
 #PBS -r n
 #PBS -N fraame
 
+DIR=~/STModel-Two-State
 SPECIES=32931-FRA-AME
-source scr/3a_stm_model_selection.sh
+source $DIR/scr/3a_stm_model_selection.sh

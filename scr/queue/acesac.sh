@@ -5,5 +5,6 @@
 #PBS -r n
 #PBS -N acesac
 
+DIR=~/STModel-Two-State
 SPECIES=28731-ACE-SAC
-source scr/3a_stm_model_selection.sh
+source $DIR/scr/3a_stm_model_selection.sh

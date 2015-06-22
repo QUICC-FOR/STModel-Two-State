@@ -5,5 +5,6 @@
 #PBS -r n
 #PBS -N picgla
 
+DIR=~/STModel-Two-State
 SPECIES=183295-PIC-GLA
-source scr/3a_stm_model_selection.sh
+source $DIR/scr/3a_stm_model_selection.sh

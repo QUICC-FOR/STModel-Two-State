@@ -5,5 +5,6 @@
 #PBS -r n
 #PBS -N betpap
 
+DIR=~/STModel-Two-State
 SPECIES=19489-BET-PAP
-source scr/3a_stm_model_selection.sh
+source $DIR/scr/3a_stm_model_selection.sh

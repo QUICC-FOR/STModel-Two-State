@@ -5,5 +5,6 @@
 #PBS -r n
 #PBS -N nyssyl
 
+DIR=~/STModel-Two-State
 SPECIES=27821-NYS-SYL
-source scr/3a_stm_model_selection.sh
+source $DIR/scr/3a_stm_model_selection.sh

@@ -5,5 +5,6 @@
 #PBS -r n
 #PBS -N ulmame
 
+DIR=~/STModel-Two-State
 SPECIES=19049-ULM-AME
-source scr/3a_stm_model_selection.sh
+source $DIR/scr/3a_stm_model_selection.sh

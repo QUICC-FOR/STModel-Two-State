@@ -5,5 +5,6 @@
 #PBS -r n
 #PBS -N poptre
 
+DIR=~/STModel-Two-State
 SPECIES=195773-POP-TRE
-source scr/3a_stm_model_selection.sh
+source $DIR/scr/3a_stm_model_selection.sh

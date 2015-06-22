@@ -5,5 +5,6 @@
 #PBS -r n
 #PBS -N quevel
 
+DIR=~/STModel-Two-State
 SPECIES=19447-QUE-VEL
-source scr/3a_stm_model_selection.sh
+source $DIR/scr/3a_stm_model_selection.sh

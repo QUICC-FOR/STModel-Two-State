@@ -5,5 +5,6 @@
 #PBS -r n
 #PBS -N acerub
 
+DIR=~/STModel-Two-State
 SPECIES=28728-ACE-RUB
-source scr/3a_stm_model_selection.sh
+source $DIR/scr/3a_stm_model_selection.sh

@@ -5,5 +5,6 @@
 #PBS -r n
 #PBS -N querub
 
+DIR=~/STModel-Two-State
 SPECIES=19408-QUE-RUB
-source scr/3a_stm_model_selection.sh
+source $DIR/scr/3a_stm_model_selection.sh

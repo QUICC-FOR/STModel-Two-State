@@ -5,5 +5,6 @@
 #PBS -r n
 #PBS -N pintae
 
+DIR=~/STModel-Two-State
 SPECIES=18037-PIN-TAE
-source scr/3a_stm_model_selection.sh
+source $DIR/scr/3a_stm_model_selection.sh

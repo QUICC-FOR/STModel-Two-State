@@ -5,5 +5,6 @@
 #PBS -r n
 #PBS -N quealb
 
+DIR=~/STModel-Two-State
 SPECIES=19290-QUE-ALB
-source scr/3a_stm_model_selection.sh
+source $DIR/scr/3a_stm_model_selection.sh

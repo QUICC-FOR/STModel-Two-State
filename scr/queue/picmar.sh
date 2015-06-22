@@ -5,5 +5,6 @@
 #PBS -r n
 #PBS -N picmar
 
+DIR=~/STModel-Two-State
 SPECIES=183302-PIC-MAR
-source scr/3a_stm_model_selection.sh
+source $DIR/scr/3a_stm_model_selection.sh

@@ -5,5 +5,6 @@
 #PBS -r n
 #PBS -N quenig
 
+DIR=~/STModel-Two-State
 SPECIES=19280-QUE-NIG
-source scr/3a_stm_model_selection.sh
+source $DIR/scr/3a_stm_model_selection.sh

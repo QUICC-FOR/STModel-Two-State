@@ -5,5 +5,6 @@
 #PBS -r n
 #PBS -N pinban
 
+DIR=~/STModel-Two-State
 SPECIES=183319-PIN-BAN
-source scr/3a_stm_model_selection.sh
+source $DIR/scr/3a_stm_model_selection.sh

@@ -5,5 +5,6 @@
 #PBS -r n
 #PBS -N abibal
 
+DIR=~/STModel-Two-State
 SPECIES=18032-ABI-BAL
-source scr/3a_stm_model_selection.sh
+source $DIR/scr/3a_stm_model_selection.sh
