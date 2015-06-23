@@ -5,6 +5,7 @@ library(raster)
 spList = readRDS('dat/speciesList.rds')
 for(spName in spList)
 {
+	cat(paste("Starting species", spName, "\n"))
 	baseDir = file.path('species', spName)
 	annealDir = file.path(baseDir, 'res', 'anneal')
 	modelFiles = list.files(annealDir)
