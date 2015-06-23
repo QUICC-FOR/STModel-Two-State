@@ -1,10 +1,4 @@
 
-
-
-
-
-
-
 #!/usr/bin/Rscript
 library(GenSA)
 targetInterval = 5
