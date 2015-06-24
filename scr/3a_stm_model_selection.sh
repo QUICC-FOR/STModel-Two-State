@@ -28,10 +28,11 @@ for TEMP in ${AllVars[@]}
 do
   for COL in ${SingleVar[@]}
   do
-    for COL in ${SingleVar[@]}
+    for EXT in ${SingleVar[@]}
     do
       cd $DIR; Rscript ./scr/3b_fit_stm.r $SPECIES $TEMP $PRECIP $COL $EXT &
       RUNNING=$((RUNNING + 1))
+    done
   done
 done
 
