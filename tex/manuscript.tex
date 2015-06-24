@@ -94,35 +94,43 @@
 %
 %% ----------------------------------
 
-%\section*{Introduction}
+\section*{Introduction}
+\subsection*{Objectives}
+\begin{itemize}
+	\item Describe the range limits at equilibrium of ecologically important trees in eastern North America as predicted by metapopulation theory
+	\item Evaluate the relationship between macroclimatic variables and colonization and extinction rates
+	\item Test quantitatively whether the equilibrium prediction matches the contemporary observed range
+	\item Compare among species the predicted resilience to environmental change 
+\end{itemize}
 
-\section*{Methods}
+Present and future rapidly changing global environmental conditions are likely to push many species to the limits of their ecological niches.
+Biogeographical theory and empirical work suggests that species can respond to these changes by adapting \emph{in situ} to the new conditions, geographically tracking ideal conditions (resulting in range shifts), and/or experiencing local extinction where conditions no longer support presence.
+Species distribution models (SDMs) are commonly-applied to understand the latter two options.
+Classical SDMs often use a bioclimatic modeling approach that statistically relates presence or absence of the species to climate.
+Such models are quite powerful when describing the present realized niche of a species, however they suffer from several drawbacks when predicting the future distribution of species, and they provide no insight into the mechanisms underlying a species' response to the environment.
+An alternative more mechanistic approach is to examine the colonization rate $c$ of unoccupied patches and the extinction rate $e$ of occupied patches.
+(here maybe briefly review the literature on the subject)
+In such a stochastic system, the long-term expectation is that presence will only be possible where $c > e$.
+It follows that, if these rates vary along an environmental gradient, the equilibrium position of the range limit on the gradient will be the point at which $c = e$.
 
-\subsection*{Model description}
+We designed a colonization-extinction model with a dynamic parameterization that allowed the colonization and extinction rates to vary as a function of climate.
+A major challenge to employing these models is the lack of time series data needed to estimate the parameters.
+We used a large database of permanent forest plots, containing repeated observations of xxx plots in eastern North America (n=xxx paired observations). 
+We selected the 21 most abundant species (based on the number of observations in the database) as the focus of this study.
+We performed model selection, using 6 macroclimatic variables, then parameterized the model using Markov Chain Monte Carlo (MCMC) sampling and addressed the following questions for each selected species:
+\begin{enumerate}
+	\item Are range limits driven by colonization-extinction dynamics?
+	\item To what extent are the species studied presently out of equilibrium with the environment?
+	\item How resilient are range limits to perturbations in the environment?
+	\item Which climatic variables best describe colonization and extinction rates?
+\end{enumerate}
 
-\subsection*{Prevalence model}
-We used the RF package in R to build models of regional prevalence for each species. 
-For predictors, we initially evaluated a set of xx environmental variables. 
-From these, we selected xx variables that were relatively uncorrelated to each other (pairwise Pearson correlation < xx) and that had high loadings in a principal components analysis (PCA) of all variables. 
-In this way, we reduced the risk of estimation problems due to correlations among the predictors while retaining variables that were representative of the available climatic space.
+%% here expand a bit on each question above and perhaps provide a testable hypothesis.
+We evaluated the model by reserving half of the observed sample pairs.
+We parameterized the model and performed model selection on the calibration half, then used the parameters to predict the second state as a function of the climate and the first state in the evaluation dataset.
+We then compared the predicted to the observed second state and computed TSS and ROC (explanation and citation?).
 
-\subsection*{Model selection}
-For each species, we evaluated a set of 145 colonization-extinction models. 
-Each model consisted of at most two environmental variables, one associated with temperature and the other precipitation\. 
-The model set was constructed from eight possible model forms (Table?) applied to all possible two-variable combinations of the four energy and four moisture variables (i.e., 16 possible variable combinations), along with two additional single-variable forms for each variable and an intercept-only model. 
-Because of the large number of models, fitting all models using MCMC was infeasible; therefore, we performed model selection by computing the Akaike Information Criterion (AIC) on maximum likelihood estimates for each model, fit using simulated annealing (package GenSA in R). 
-We then selected the model that minimized AIC for final parameterization.
 
-\subsection*{Parameterization}
-We used a Markov Chain Monte Carlo (MCMC) sampler employing a Metropolis-Hastings scheme to estimate posterior distributions for all parameters.
-This method has a number of advantages over the simulated annealing approach used for preliminary model selection.
-First, MCMC results in full joint posterior distributions of the parameters, allowing for a robust understanding of the uncertainty both in model parameters and predictions.
-Second, the use of a Bayesian framework allows the inclusion of prior information.
-As our parameters were all estimated on the logit scale, we used the weakly informative Cauchy priors suggested by (cite Gelman paper), with a mean of 0 and (variance?) of 10 for intercept parameters or 2.5 for slope parameters.
-Finally, having posterior distributions of the predictors allows for the information produced by our model to be incorporated in future meta-modeling efforts that can further improve our characterization of species' ranges and our understanding of model uncertainty (cite GEB paper).
-
-For each species, we obtained xxx posterior samples...
-We assessed convergence...
 
 %\section*{Results}
 
@@ -153,5 +161,32 @@ We assessed convergence...
 \input{table}
 
 
+\section*{Methods}
+
+\subsection*{Model description}
+
+\subsection*{Prevalence model}
+We used the RF package in R to build models of regional prevalence for each species. 
+For predictors, we initially evaluated a set of xx environmental variables. 
+From these, we selected xx variables that were relatively uncorrelated to each other (pairwise Pearson correlation < xx) and that had high loadings in a principal components analysis (PCA) of all variables. 
+In this way, we reduced the risk of estimation problems due to correlations among the predictors while retaining variables that were representative of the available climatic space.
+
+\subsection*{Model selection}
+For each species, we evaluated a set of 145 colonization-extinction models. 
+Each model consisted of at most two environmental variables, one associated with temperature and the other precipitation\. 
+The model set was constructed from eight possible model forms (Table?) applied to all possible two-variable combinations of the four energy and four moisture variables (i.e., 16 possible variable combinations), along with two additional single-variable forms for each variable and an intercept-only model. 
+Because of the large number of models, fitting all models using MCMC was infeasible; therefore, we performed model selection by computing the Akaike Information Criterion (AIC) on maximum likelihood estimates for each model, fit using simulated annealing (package GenSA in R). 
+We then selected the model that minimized AIC for final parameterization.
+
+\subsection*{Parameterization}
+We used a Markov Chain Monte Carlo (MCMC) sampler employing a Metropolis-Hastings scheme to estimate posterior distributions for all parameters.
+This method has a number of advantages over the simulated annealing approach used for preliminary model selection.
+First, MCMC results in full joint posterior distributions of the parameters, allowing for a robust understanding of the uncertainty both in model parameters and predictions.
+Second, the use of a Bayesian framework allows the inclusion of prior information.
+As our parameters were all estimated on the logit scale, we used the weakly informative Cauchy priors suggested by (cite Gelman paper), with a mean of 0 and (variance?) of 10 for intercept parameters or 2.5 for slope parameters.
+Finally, having posterior distributions of the predictors allows for the information produced by our model to be incorporated in future meta-modeling efforts that can further improve our characterization of species' ranges and our understanding of model uncertainty (cite GEB paper).
+
+For each species, we obtained xxx posterior samples...
+We assessed convergence...
 
 \end{document}

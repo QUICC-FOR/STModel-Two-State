@@ -19,7 +19,6 @@ compute_c = function(p, env1, env2)
 spList = readRDS('dat/speciesList.rds')
 for(spName in spList)
 {
-spName = '18032-ABI-BAL'
 	cat(paste("Starting species", spName, "\n"))
 	baseDir = file.path('species', spName)
 	annealDir = file.path(baseDir, 'res', 'anneal')
@@ -31,57 +30,63 @@ spName = '18032-ABI-BAL'
 	# compute AUC
 	calibrationSet = readRDS(file.path(baseDir, 'dat', paste(spName, 'stm_calib.rds', sep='_')))
 	validationSet = readRDS(file.path(baseDir, 'dat', paste(spName, 'stm_valid.rds', sep='_')))
+
+	prep_prediction = function(x, p, e1, e2)
+	{
+		if(e1 == "NA" | is.na(e1)) {
+			env1 = rep(0, nrow(x))
+		} else {
+			env1 = x[,e1]
+		}
+		if(e2 == "NA" | is.na(e2)) {
+			env2 = rep(0, nrow(x))
+		} else {
+			env2 = x[,e2]
+		}
+		
+		interval = x$year2 - x$year1
+		c.rate = compute_c(p, env1, env2)
+		e.rate = compute_e(p, env1, env2)
+		
+		# get the interval rates (duh!)
+		# the parameters were estimated for a 5 year interval
+		c.rate = 1 - (1 - c.rate)^(interval/5)
+		e.rate = 1 - (1 - e.rate)^(interval/5)
+
+		response = x$state2
+		prediction = rep(0, length(response))
+		
+		prediction[x$state1 == 0] = (c.rate * x$prevalence)[x$state1 == 0]
+		prediction[x$state1 == 1] = (1 - e.rate)[x$state1 == 1]
+		prediction = 1000*prediction # biomod expects data from 1 to 1000
+		
+		data.frame(response, prediction)
+	}
+
 	compute_valid = function(design, params, env1, env2)
 	{
-		if(env1 == "NA" | is.na(env1))
-		{
-			ce1= ve1 = rep(0, nrow(validationSet))
-		} else 
-		{
-			ce1 = calibrationSet[,env1]
-			ve1 = validationSet[,env1]
-		}
-		if(env2 == "NA" | is.na(env2)) {
-			ce2 = ve2 = rep(0, length(ce1))
-		} else {
-			ce2 = calibrationSet[,env2]
-			ve2 = validationSet[,env2]
-		}
 		p = rep(0, length(design))
 		p[design == 1] = params
 		
-		cResponse = calibrationSet$state2
-		cPrediction = rep(0, length(cResponse))
-		cPrediction[calibrationSet$state1 == 0] = compute_c(p, e1, e2)[calibrationSet$state1 == 0]
-		cPrediction[calibrationSet$state1 == 1] = 1 - compute_e(p, e1, e2)[calibrationSet$state1 == 1]
-		cPrediction = 1000 * cPrediction # biomod expects data from 1 to 1000
-		
-		vResponse = validationSet$state2
-		vPrediction = rep(0, length(vResponse))
-		vPrediction[validationSet$state1 == 0] = compute_c(p, e1, e2)[validationSet$state1 == 0]
-		vPrediction[validationSet$state1 == 1] = 1 - compute_e(p, e1, e2)[validationSet$state1 == 1]
-		vPrediction = 1000 * vPrediction # biomod expects data from 1 to 1000
+		calib = prep_prediction(calibrationSet, p, env1, env2)
+		valid = prep_prediction(validationSet, p, env1, env2)
 	
-		roc.calib = Find.Optim.Stat(Stat="ROC", Fit=cPrediction, Obs=cResponse)
-		roc.valid = Find.Optim.Stat(Stat="ROC", Fit=vPrediction, Obs=vResponse, Fixed.thresh=roc.calib[2])
-		tss.calib = Find.Optim.Stat(Stat="TSS", Fit=cPrediction, Obs=cResponse)
-		tss.valid = Find.Optim.Stat(Stat="TSS", Fit=vPrediction, Obs=vResponse, Fixed.thresh=tss.calib[2])
+		roc.calib = Find.Optim.Stat(Stat="ROC", Fit=calib$prediction, Obs=calib$response)
+		roc.valid = Find.Optim.Stat(Stat="ROC", Fit=valid$prediction, Obs=valid$response, Fixed.thresh=roc.calib[2])
+		tss.calib = Find.Optim.Stat(Stat="TSS", Fit=calib$prediction, Obs=calib$response)
+		tss.valid = Find.Optim.Stat(Stat="TSS", Fit=valid$prediction, Obs=valid$response, Fixed.thresh=tss.calib[2])
 		
 		data.frame(calibROC = roc.calib[1], validROC = roc.valid[1], 
 				calibTSS = tss.calib[1], validTSS = tss.valid[1])
 	}
 	
-
 	make_design = function(x, y) paste(paste(x, collapse=""), paste(y, collapse=""), sep="")
 	mRanks = do.call(rbind, lapply(models, function(x) data.frame(id = x$id, AIC = x$AIC, 
 			BIC = x$BIC, env1 = x$env1, env2 = x$env2, 
 			design = make_design(x$colDesign, x$extDesign), stringsAsFactors=FALSE)))
 			
-	mRanks2 = cbind(mRanks, do.call(rbind, lapply(models, function(x)
+	mRanks = cbind(mRanks, do.call(rbind, lapply(models, function(x)
 		compute_valid(c(x$colDesign, x$extDesign), x$annealParams$par, x$env1, x$env2))))
-	
-	subsel = which(substr(mRanks$design,4,4) == '1' | substr(mRanks$design,7,7) == '1')
-	mRanks2 = mRanks[-subsel,]
 	
 	mRanks = within(mRanks, {
 		dAIC = AIC - min(AIC)
