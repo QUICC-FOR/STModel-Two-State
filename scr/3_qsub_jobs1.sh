@@ -4,5 +4,5 @@ declare -a ScriptList=(abibal acesac picgla picmar ulmame fraame quealb querub f
 
 for scr in ${ScriptList[@]}
 do
-	cd $DIR; qsub ./scr/queue/"$scr".sh
+	cd $DIR; qsub ./scr/3_anneal_queue/"$scr".sh
 done
