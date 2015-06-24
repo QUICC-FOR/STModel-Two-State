@@ -1,10 +1,25 @@
 #!/usr/bin/Rscript
 library(rgdal)
 library(raster)
+library(biomod2) # for TSS and ROC
+
+compute_e = function(p, env1, env2)
+{
+	plogis(p[8] + env1*p[9] + env2*p[10] + env1^2*p[11] + env2^2*p[12] + env1^3*p[13] + env2^3*p[14])
+}
+
+
+compute_c = function(p, env1, env2)
+{
+	plogis(p[1] + env1*p[2] + env2*p[3] + env1^2*p[4] + env2^2*p[5] + env1^3*p[6] + env2^3*p[7])
+}
+
+
 
 spList = readRDS('dat/speciesList.rds')
 for(spName in spList)
 {
+spName = '18032-ABI-BAL'
 	cat(paste("Starting species", spName, "\n"))
 	baseDir = file.path('species', spName)
 	annealDir = file.path(baseDir, 'res', 'anneal')
@@ -13,9 +28,61 @@ for(spName in spList)
 	models = lapply(modelFiles, function(x) readRDS(file.path(annealDir, x)))
 	models = lapply(1:length(models), function(i) c(models[[i]], list(id=i)))
 
+	# compute AUC
+	calibrationSet = readRDS(file.path(baseDir, 'dat', paste(spName, 'stm_calib.rds', sep='_')))
+	validationSet = readRDS(file.path(baseDir, 'dat', paste(spName, 'stm_valid.rds', sep='_')))
+	compute_valid = function(design, params, env1, env2)
+	{
+		if(env1 == "NA" | is.na(env1))
+		{
+			ce1= ve1 = rep(0, nrow(validationSet))
+		} else 
+		{
+			ce1 = calibrationSet[,env1]
+			ve1 = validationSet[,env1]
+		}
+		if(env2 == "NA" | is.na(env2)) {
+			ce2 = ve2 = rep(0, length(ce1))
+		} else {
+			ce2 = calibrationSet[,env2]
+			ve2 = validationSet[,env2]
+		}
+		p = rep(0, length(design))
+		p[design == 1] = params
+		
+		cResponse = calibrationSet$state2
+		cPrediction = rep(0, length(cResponse))
+		cPrediction[calibrationSet$state1 == 0] = compute_c(p, e1, e2)[calibrationSet$state1 == 0]
+		cPrediction[calibrationSet$state1 == 1] = 1 - compute_e(p, e1, e2)[calibrationSet$state1 == 1]
+		cPrediction = 1000 * cPrediction # biomod expects data from 1 to 1000
+		
+		vResponse = validationSet$state2
+		vPrediction = rep(0, length(vResponse))
+		vPrediction[validationSet$state1 == 0] = compute_c(p, e1, e2)[validationSet$state1 == 0]
+		vPrediction[validationSet$state1 == 1] = 1 - compute_e(p, e1, e2)[validationSet$state1 == 1]
+		vPrediction = 1000 * vPrediction # biomod expects data from 1 to 1000
+	
+		roc.calib = Find.Optim.Stat(Stat="ROC", Fit=cPrediction, Obs=cResponse)
+		roc.valid = Find.Optim.Stat(Stat="ROC", Fit=vPrediction, Obs=vResponse, Fixed.thresh=roc.calib[2])
+		tss.calib = Find.Optim.Stat(Stat="TSS", Fit=cPrediction, Obs=cResponse)
+		tss.valid = Find.Optim.Stat(Stat="TSS", Fit=vPrediction, Obs=vResponse, Fixed.thresh=tss.calib[2])
+		
+		data.frame(calibROC = roc.calib[1], validROC = roc.valid[1], 
+				calibTSS = tss.calib[1], validTSS = tss.valid[1])
+	}
+	
 
+	make_design = function(x, y) paste(paste(x, collapse=""), paste(y, collapse=""), sep="")
 	mRanks = do.call(rbind, lapply(models, function(x) data.frame(id = x$id, AIC = x$AIC, 
-			BIC = x$BIC, env1 = x$env1, env2 = x$env2, design = paste(x$colDesign, collapse=""))))
+			BIC = x$BIC, env1 = x$env1, env2 = x$env2, 
+			design = make_design(x$colDesign, x$extDesign), stringsAsFactors=FALSE)))
+			
+	mRanks2 = cbind(mRanks, do.call(rbind, lapply(models, function(x)
+		compute_valid(c(x$colDesign, x$extDesign), x$annealParams$par, x$env1, x$env2))))
+	
+	subsel = which(substr(mRanks$design,4,4) == '1' | substr(mRanks$design,7,7) == '1')
+	mRanks2 = mRanks[-subsel,]
+	
 	mRanks = within(mRanks, {
 		dAIC = AIC - min(AIC)
 		dBIC = BIC - min(BIC)})
@@ -30,6 +97,7 @@ for(spName in spList)
 	saveRDS(theMod, file.path(baseDir, 'res', paste(spName, 'bestAnnealModel.rds', sep='_')))
 
 
+
 	# get mcmc files ready
 	transitions = rbind(readRDS(file.path(baseDir, 'dat', paste(spName, 'stm_calib.rds', sep='_'))),
 		readRDS(file.path(baseDir, 'dat', paste(spName, 'stm_valid.rds', sep='_'))))
@@ -41,7 +109,7 @@ for(spName in spList)
 		env1 = transitions[,theMod$env1],
 		env2 = transitions[,theMod$env2],
 		interval = transitions$year2-transitions$year1,
-		prevalence = transitions$prevalence)
+		prevalence1 = transitions$prevalence)
 
 
 
@@ -87,17 +155,6 @@ for(spName in spList)
 	# response curves
 	x1 = seq(-3, 3, 0.01)
 	x2 = seq(-3, 3, 0.01)
-	compute_e = function(p, env1, env2)
-	{
-		plogis(p[8] + env1*p[9] + env2*p[10] + env1^2*p[11] + env2^2*p[12] + env1^3*p[13] + env2^3*p[14])
-	}
-
-
-	compute_c = function(p, env1, env2)
-	{
-		plogis(p[1] + env1*p[2] + env2*p[3] + env1^2*p[4] + env2^2*p[5] + env1^3*p[6] + env2^3*p[7])
-	}
-
 
 	# find the point at which env1 maximizes lambda
 	env1.yc = compute_c(p, x1, rep(0, length(x1)))
