@@ -129,12 +129,51 @@ We performed model selection, using 6 macroclimatic variables, then parameterize
 We evaluated the model by reserving half of the observed sample pairs.
 We parameterized the model and performed model selection on the calibration half, then used the parameters to predict the second state as a function of the climate and the first state in the evaluation dataset.
 We then compared the predicted to the observed second state and computed TSS and ROC (explanation and citation?).
+This evaluation can be interpreted as a test of the model iteself, and thus of the hypothesis that range limits are determined by colonization-extinction dynamics.
+
+To test to what extent species were out of equilibrium with the environment, we employed an independent dataset from the same database.
+This dataset consisted of plots that were only sampled once, and thus were not useful in parameterizing the CE model.
+We used the posterior predictions from the CE model to compute the probability of presence at equilibrium; we then compared this with observed presences from the dataset and computed TSS and ROC.
+For comparison with a highly fit model, we also built an SDM using the Random Forests algorithm and computed the same statistics.
+Species that are in equilibrium with their environment will show high coherence between the two models, and thus should have high validation scores in for both the CE and SDM.
+Species out of equilibrium should perform poorly for the CE model and better for the SDM.
 
 
+\section*{Results}
+\begin{itemize}
+	\item response of C-E to env variables
+	\item validation of models w.r.t. reserved data (how good is the model)
+	\item ability of the model to predict the range (equilibrium)
+	\item rate of response to disequilibrium
+	\item ability of model to predict response to environmental change
+\end{itemize}
+\begin{figure}
+	\includegraphics[width=5in]{../img/response_curves.pdf}
+	\caption{
+		Response of colonization (blue) and extinction (red) rates of selected species to the environment.
+		Solid lines are the median predictions of xx posterior samples, and shaded regions show 95\% Bayesian credible intervals.
+		Species not shown here can be found in supporting information.
+	}
+	\label{fig:response_curves}
+\end{figure}
 
-%\section*{Results}
 
-%\section*{Discussion}
+\begin{figure}
+	\includegraphics[width=6.5in]{../img/posterior_maps.pdf}
+	\caption{
+		Maps showing the predicted colonization rate (blue, left column), extinction rate(red, second column), posterior probability of presence from the CE model (third column), and predicted probability of presence from a conventional SDM (right column).
+		Posterior probability of presence is computed as the proportion of posterior samples where colonization exceeds extinction for a given location.
+		Species not shown here can be found in supporting information.
+	}
+	\label{fig:response_curves}
+\end{figure}
+
+
+\section*{Discussion}
+
+This model enables us to more precisely define the niche in terms of the fundamental processes of colonization and extinction (fig..). 
+For example, the response of \emph(Acer saccharum) to temperature suggests that the southern range limit is a consequence of elevated extinction rates, whereas the northern limit is likely determined by low rates of colonization.
+The consequence of these two processes, when overlaid, is a range covering intermediate temperatures, bounded by low colonization in the north and high extinction in the south (fig - map).
 
 % can this apply to other organisms? animals prob not - dispersal is just too high
 % this deserves a paragraph here
@@ -149,12 +188,10 @@ We then compared the predicted to the observed second state and computed TSS and
 \end{itemize}
 
 
-\subsection*{List of figures}
+\subsection*{List of figures to make}
 \begin{itemize}
-	\item Fig 1: theoretical/introductory figure or diagram
-	\item Fig 2: posterior response curves for c and e w.r.t climate
 	\item Fig 3: maps for selected species (with remaining in appendix) - 4 panels - c; e; predicted range; SDM
-	\item Fig 4: eigenvalue maps
+	\item Fig 3: eigenvalue maps
 \end{itemize}
 
 \subsection*{Tables}
