@@ -8,8 +8,15 @@ DIR=~/STModel-Two-State
 declare -a TempVars=(annual_mean_temp mean_diurnal_range mean_temp_wettest_quarter)
 declare -a PrecipVars=(tot_annual_pp pp_seasonality pp_warmest_quarter)
 declare -a AllVars=( ${TempVars[@]} ${PrecipVars[@]} )
-declare -a DesignStrings=(110110 110100 100110)
-SingleVar=(110000 100000)
+
+# design strings are six characters, each a 1 or 0
+# 1 indicates the parameter will be fit
+# they alternate env1 then env2, in order of increasing power
+# so 110000 fits a first order eqn for env1 and env2
+# 111010 first third-order for env1 and first order for env2
+# the intercept is always included and added automatically
+declare -a DesignStrings=(110000 111000 111100)
+SingleVar=(101000 100000)
 
 RUNNING=0
 DONE=0
