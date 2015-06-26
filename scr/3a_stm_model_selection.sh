@@ -15,7 +15,7 @@ declare -a AllVars=( ${TempVars[@]} ${PrecipVars[@]} )
 # so 110000 fits a first order eqn for env1 and env2
 # 111010 first third-order for env1 and first order for env2
 # the intercept is always included and added automatically
-declare -a DesignStrings=(110000 111000 111100)
+declare -a DesignStrings=(110000 111000 111100 110100)
 SingleVar=(101000 100000)
 
 RUNNING=0
