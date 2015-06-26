@@ -107,7 +107,7 @@ print(paste("Model Design: ", paste(colDesign, collapse=""), " + ",
 		paste(extDesign, collapse=""), sep=""))
 
 
-controlPars =list(verbose = TRUE, max.time = (90*60), smooth=TRUE)
+controlPars =list(verbose = TRUE, max.time = (60*60), smooth=TRUE)
 annealParams = GenSA(par = parameters, fn = minus_log_likelihood, 
 		lower = rep(-50, length(parameters)), upper = rep(50, length(parameters)), 
 		 control = controlPars, dat = modelData, parlist=c(colDesign, extDesign))
