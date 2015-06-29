@@ -55,8 +55,8 @@ Scientific name               & Temperature Variable    & Precipitation Variable
 {\it Pinus banksiana}         &   &   & & \\
 {\it Pinus strobus}           &   &   & & \\
 {\it Pinus taeda}             &   &   & & \\
-{\it Populus tremuloides}     &   &   & & \\ 
-{\it Quercus alba}            &   &   & & \\
+{\it Populus tremuloides}     & Mean Annual Temperature & Mean Annual Precipitation & $T^2 + P$      & 0.65                 & 0.12        \\ 
+{\it Quercus alba}            & Mean Annual Temperature & Precip. Seasonality       & $T^2 + P^2$    & 0.15                 & 0.27            \\
 {\it Quercus nigra}           &   &   & & \\
 {\it Quercus rubra}           &   &   & & \\
 {\it Quercus velutina}        &   &   & & \\
@@ -64,7 +64,7 @@ Scientific name               & Temperature Variable    & Precipitation Variable
 \bottomrule
 \end{tabular}
 \begin{tablenotes}
-\item [1] Model specification shows whether temperature (T) and precipitation (P) variables were included as well as the order of polynomial used.
+\item [1] HEY PAY ATTENTION: this column will have to be split into two, one for C and one for E. Model specification shows whether temperature (T) and precipitation (P) variables were included as well as the order of polynomial used.
 \item [2] $\Delta$BIC refers to absolute BIC difference between the selected model and the next best model in the set.
 \item [3] BIC$_w$ can be interpreted as the probability that this model is the best model in the set (cite Burnham and Anderson).
 \end{tablenotes}
@@ -94,8 +94,8 @@ Scientific name               & Calibration ROC & Validation ROC & Calibration T
 {\it Pinus banksiana}         &   &   & & \\
 {\it Pinus strobus}           &   &   & & \\
 {\it Pinus taeda}             &   &   & & \\
-{\it Populus tremuloides}     &   &   & & \\ 
-{\it Quercus alba}            &   &   & & \\
+{\it Populus tremuloides}     & 0.9788          & 0.9769          & 0.8888         & 0.8830         \\ 
+{\it Quercus alba}            & 0.9901          & 0.9913          & 0.9382         & 0.9454         \\
 {\it Quercus nigra}           &   &   & & \\
 {\it Quercus rubra}           &   &   & & \\
 {\it Quercus velutina}        &   &   & & \\
