@@ -38,11 +38,11 @@ Scientific name               & English name   & Occurrences & Transitions \\
 \caption{Colonization-extinction model selected for each species studied}
 \begin{tabular}{llllll}
 \toprule
-Scientific name               & Temperature Variable & Precipitation Variable & Model\tnote{1} & $\Delta$BIC\tnote{2} & BIC$_w$\tnote{3} \\ 
+Scientific name               & Temperature Variable    & Precipitation Variable    & Model\tnote{1} & $\Delta$AIC\tnote{2} & AIC$_w$\tnote{3} \\ 
 \midrule
-{\it Abies balsamea}          & env1                 & env2                   & $T^3 + P^3$    & xxx                  &                  \\
+{\it Abies balsamea}          & Mean Annual Temperature & Mean Annual Precipitation & $T^2 + P^2$    & 2.15                 & 0.74             \\
 {\it Acer rubrum}             &   &   & & \\
-{\it Acer saccharum}          &   &   & & \\
+{\it Acer saccharum}          & Mean Annual Temperature & Precip. Seasonality       & $T^2 + P$      & 0.82                 & 0.36             \\
 {\it Betula alleghaniensis}   &   &   & & \\
 {\it Betula papyrifera}       &   &   & & \\
 {\it Fagus grandifolia}       &   &   & & \\
@@ -73,6 +73,39 @@ Scientific name               & Temperature Variable & Precipitation Variable & 
 
 
 \begin{table}[tb]
+\label{tab:model_selection}
+\caption{Model validation statistics}
+\begin{tabular}{lllll}
+\toprule
+Scientific name               & Calibration ROC & Validation ROC & Calibration TSS & Validation TSS \\ 
+\midrule
+{\it Abies balsamea}          & 0.9770          & 0.9740          & 0.8651         & 0.8545         \\
+{\it Acer rubrum}             &   &   &  \\
+{\it Acer saccharum}          & 0.9873          & 0.9876          & 0.9365         & 0.9377         \\
+{\it Betula alleghaniensis}   &   &   &  \\
+{\it Betula papyrifera}       &   &   &  \\
+{\it Fagus grandifolia}       &   &   &  \\
+{\it Fraxinus americana}      &   &   &  \\
+{\it Fraxinus pennsylvanica}  &   &   &  \\
+{\it Liquidambar styraciflua} &   &   &  \\
+{\it Liriodendron tulipifera} &   &   & & \\
+{\it Nyssa sylvatica}         &   &   & & \\
+{\it Picea glauca}            &   &   & & \\
+{\it Pinus banksiana}         &   &   & & \\
+{\it Pinus strobus}           &   &   & & \\
+{\it Pinus taeda}             &   &   & & \\
+{\it Populus tremuloides}     &   &   & & \\ 
+{\it Quercus alba}            &   &   & & \\
+{\it Quercus nigra}           &   &   & & \\
+{\it Quercus rubra}           &   &   & & \\
+{\it Quercus velutina}        &   &   & & \\
+{\it Ulmus americana}         &   &   & & \\ 
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[tb]
 \label{tab:parameterized_equations}
 \caption{Parameterized equations for colonization and extinction rate}
 \begin{tabular}{lll}
@@ -82,3 +115,5 @@ Species    & Colonization & Extinction  \\ \midrule
 \bottomrule
 \end{tabular}
 \end{table}
+
+
