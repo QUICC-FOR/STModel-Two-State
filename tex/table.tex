@@ -7,27 +7,27 @@
 \toprule
 Scientific name               & English name   & Occurrences & Transitions \\ 
 \midrule
-{\it Abies balsamea}          & Balsam fir     & 18961       &             \\
-{\it Acer rubrum}             & Red maple      & 36726       &             \\
-{\it Acer saccharum}          & Sugar maple    & 18634       &             \\
-{\it Betula alleghaniensis}   & Yellow birch   & 10371       &             \\
-{\it Betula papyrifera}       & Paper birch    & 15531       &             \\
-{\it Fagus grandifolia}       & American beech & 9619        &             \\
-{\it Fraxinus americana}      & White ash      & 10385       &             \\
-{\it Fraxinus pennsylvanica}  &                & 7662        &             \\
-{\it Liquidambar styraciflua} &                & 14778       &             \\
-{\it Liriodendron tulipifera} &                & 11045       &             \\
-{\it Nyssa sylvatica}         &                & 9209        &             \\
-{\it Picea glauca}            & White spruce   & 8526        &             \\
-{\it Pinus banksiana}         & Jack pine      & 3023        &             \\
-{\it Pinus strobus}           &                & 8182        &             \\
-{\it Pinus taeda}             &                & 16351       &             \\
-{\it Populus tremuloides}     & Quaking aspen  & 12736       &             \\ 
-{\it Quercus alba}            & White oak      & 17280       &             \\
-{\it Quercus nigra}           &                & 8291        &             \\
-{\it Quercus rubra}           &                & 14337       &             \\
-{\it Quercus velutina}        &                & 9997        &             \\
-{\it Ulmus americana}         & American elm   & 11597       &             \\ 
+{\it Abies balsamea}          & Balsam fir        & 18961       &             \\
+{\it Acer rubrum}             & Red maple         & 36726       &             \\
+{\it Acer saccharum}          & Sugar maple       & 18634       &             \\
+{\it Betula alleghaniensis}   & Yellow birch      & 10371       &             \\
+{\it Betula papyrifera}       & Paper birch       & 15531       &             \\
+{\it Fagus grandifolia}       & American beech    & 9619        &             \\
+{\it Fraxinus americana}      & White ash         & 10385       &             \\
+{\it Fraxinus pennsylvanica}  & Red ash           & 7662        &             \\
+{\it Liriodendron tulipifera} & American sweetgum & 11045       &             \\
+{\it Nyssa sylvatica}         & Blackgum          & 9209        &             \\
+{\it Picea glauca}            & White spruce      & 8526        &             \\
+{\it Picea mariana}           & Black spruce      &             &             \\
+{\it Pinus banksiana}         & Jack pine         & 3023        &             \\
+{\it Pinus strobus}           & White pine        & 8182        &             \\
+{\it Pinus taeda}             & Loblolly pine     & 16351       &             \\
+{\it Populus tremuloides}     & Quaking aspen     & 12736       &             \\ 
+{\it Quercus alba}            & White oak         & 17280       &             \\
+{\it Quercus nigra}           & Water oak         & 8291        &             \\
+{\it Quercus rubra}           & Northern red oak  & 14337       &             \\
+{\it Quercus velutina}        & Black oak         & 9997        &             \\
+{\it Ulmus americana}         & American elm      & 11597       &             \\ 
 \bottomrule
 \end{tabular}
 \end{table}
@@ -38,35 +38,34 @@ Scientific name               & English name   & Occurrences & Transitions \\
 \caption{Colonization-extinction model selected for each species studied}
 \begin{tabular}{llllll}
 \toprule
-Scientific name               & Temperature Variable    & Precipitation Variable    & Model\tnote{1} & $\Delta$AIC\tnote{2} & AIC$_w$\tnote{3} \\ 
+Scientific name               & Temperature Variable    & Precipitation Variable    & $\Delta$AIC\tnote{1} & AIC$_w$\tnote{2} \\ 
 \midrule
-{\it Abies balsamea}          & Mean Annual Temperature & Mean Annual Precipitation & $T^2 + P^2$    & 2.15                 & 0.74             \\
-{\it Acer rubrum}             &   &   & & \\
-{\it Acer saccharum}          & Mean Annual Temperature & Precip. Seasonality       & $T^2 + P$      & 0.82                 & 0.36             \\
-{\it Betula alleghaniensis}   &   &   & & \\
-{\it Betula papyrifera}       &   &   & & \\
-{\it Fagus grandifolia}       &   &   & & \\
-{\it Fraxinus americana}      &   &   & & \\
-{\it Fraxinus pennsylvanica}  &   &   & & \\
-{\it Liquidambar styraciflua} &   &   & & \\
-{\it Liriodendron tulipifera} &   &   & & \\
-{\it Nyssa sylvatica}         &   &   & & \\
-{\it Picea glauca}            &   &   & & \\
-{\it Pinus banksiana}         &   &   & & \\
-{\it Pinus strobus}           &   &   & & \\
-{\it Pinus taeda}             &   &   & & \\
-{\it Populus tremuloides}     & Mean Annual Temperature & Mean Annual Precipitation & $T^2 + P$      & 0.65                 & 0.12        \\ 
-{\it Quercus alba}            & Mean Annual Temperature & Precip. Seasonality       & $T^2 + P^2$    & 0.15                 & 0.27            \\
-{\it Quercus nigra}           &   &   & & \\
-{\it Quercus rubra}           &   &   & & \\
-{\it Quercus velutina}        &   &   & & \\
-{\it Ulmus americana}         &   &   & & \\ 
+{\it Abies balsamea}          & Mean Annual Temperature & Mean Annual Precipitation & 2.15                 & 0.74             \\
+{\it Acer rubrum}             & Mean Annual Temperature & Precip. Warmest Quarter   & 0.36                 & 0.27             \\
+{\it Acer saccharum}          & Mean Annual Temperature & Precip. Seasonality       & 0.82                 & 0.36             \\
+{\it Betula alleghaniensis}   & Mean Annual Temperature & Mean Annual Precipitation & 1.45                 & 0.35             \\
+{\it Betula papyrifera}       & Mean Annual Temperature & Precip. Seasonality       & 0.90                 & 0.32             \\
+{\it Fagus grandifolia}       & Mean Annual Temperature & Precip. Warmest Quarter   & 0.52                 & 0.41             \\
+{\it Fraxinus americana}      & Mean Annual Temperature & Mean Annual Precipitation & 0.28                 & 0.23             \\
+{\it Fraxinus pennsylvanica}  & Mean Annual Temperature & Mean Annual Precipitation & 1.80                 & 0.40             \\
+{\it Liriodendron tulipifera} & Mean Annual Temperature &  Precip. Warmest Quarter  & 0.75                 & 0.30             \\
+{\it Nyssa sylvatica}         & Mean Temp Wettest Q.    & Precip. Seasonality       & 0.35                 & 0.18             \\
+{\it Picea glauca}            & Mean Diurnal Range      & Precip. Seasonality       & 0.64                 & 0.12             \\
+{\it Picea mariana}           & Mean Annual Temperature & Precip. Warmest Quarter   & 1.39                 & 0.34             \\
+{\it Pinus banksiana}         & Mean Annual Temperature & Mean Annual Precipitation & 0.76                 & 0.22             \\
+{\it Pinus strobus}           & Mean Annual Temperature & Precip. Warmest Quarter   & 0.032                & 0.14             \\
+{\it Pinus taeda}             & Mean Annual Temperature & Mean Annual Precipitation & 0.99                 & 0.30             \\
+{\it Populus tremuloides}     & Mean Annual Temperature & Mean Annual Precipitation & 0.65                 & 0.12             \\ 
+{\it Quercus alba}            & Mean Annual Temperature & Precip. Seasonality       & 0.15                 & 0.27             \\
+{\it Quercus nigra}           & Mean Diurnal Range      & Precip. Warmest Quarter   & 0.34                 & 0.092            \\
+{\it Quercus rubra}           & Mean Annual Temperature & Mean Annual Precipitation & 1.81                 & 0.50             \\
+{\it Quercus velutina}        & Mean Annual Temperature & Precip. Warmest Quarter   & 1.11                 & 0.41             \\
+{\it Ulmus americana}         & Mean Annual Temperature & Precip. Seasonality       & 0.79                 & 0.13             \\ 
 \bottomrule
 \end{tabular}
 \begin{tablenotes}
-\item [1] HEY PAY ATTENTION: this column will have to be split into two, one for C and one for E. Model specification shows whether temperature (T) and precipitation (P) variables were included as well as the order of polynomial used.
-\item [2] $\Delta$BIC refers to absolute BIC difference between the selected model and the next best model in the set.
-\item [3] BIC$_w$ can be interpreted as the probability that this model is the best model in the set (cite Burnham and Anderson).
+\item [1] $\Delta$AIC refers to absolute AIC difference between the selected model and the next best model in the set.
+\item [2] AIC$_w$ can be interpreted as the probability that this model is the best model in the set (cite Burnham and Anderson).
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
@@ -80,26 +79,26 @@ Scientific name               & Temperature Variable    & Precipitation Variable
 Scientific name               & Calibration ROC & Validation ROC & Calibration TSS & Validation TSS \\ 
 \midrule
 {\it Abies balsamea}          & 0.9770          & 0.9740          & 0.8651         & 0.8545         \\
-{\it Acer rubrum}             &   &   &  \\
+{\it Acer rubrum}             & 0.9690          & 0.9684          & 0.8929         & 0.8854         \\
 {\it Acer saccharum}          & 0.9873          & 0.9876          & 0.9365         & 0.9377         \\
-{\it Betula alleghaniensis}   &   &   &  \\
-{\it Betula papyrifera}       &   &   &  \\
-{\it Fagus grandifolia}       &   &   &  \\
-{\it Fraxinus americana}      &   &   &  \\
-{\it Fraxinus pennsylvanica}  &   &   &  \\
-{\it Liquidambar styraciflua} &   &   &  \\
-{\it Liriodendron tulipifera} &   &   & & \\
-{\it Nyssa sylvatica}         &   &   & & \\
-{\it Picea glauca}            &   &   & & \\
-{\it Pinus banksiana}         &   &   & & \\
-{\it Pinus strobus}           &   &   & & \\
-{\it Pinus taeda}             &   &   & & \\
+{\it Betula alleghaniensis}   & 0.9886          & 0.9880          & 0.9193         & 0.9208         \\
+{\it Betula papyrifera}       & 0.9791          & 0.9780          & 0.8880         & 0.8856         \\
+{\it Fagus grandifolia}       & 0.9841          & 0.9865          & 0.9060         & 0.9135         \\
+{\it Fraxinus americana}      & 0.9787          & 0.9774          & 0.8817         & 0.8741         \\
+{\it Fraxinus pennsylvanica}  & 0.9691          & 0.9740          & 0.8255         & 0.8379         \\
+{\it Liriodendron tulipifera} & 0.9925          & 0.9930          & 0.9146         & 0.9162         \\
+{\it Nyssa sylvatica}         & 0.9824          & 0.9833          & 0.8674         & 0.8622         \\
+{\it Picea glauca}            & 0.9764          & 0.9748          & 0.8443         & 0.8405         \\
+{\it Picea mariana}           & 0.9906          & 0.9893          & 0.9208         & 0.9148         \\
+{\it Pinus banksiana}         & 0.9940          & 0.9952          & 0.9405         & 0.9466         \\
+{\it Pinus strobus}           & 0.9861          & 0.9844          & 0.9091         & 0.8978         \\
+{\it Pinus taeda}             & 0.9937          & 0.9937          & 0.9303         & 0.9278         \\
 {\it Populus tremuloides}     & 0.9788          & 0.9769          & 0.8888         & 0.8830         \\ 
 {\it Quercus alba}            & 0.9901          & 0.9913          & 0.9382         & 0.9454         \\
-{\it Quercus nigra}           &   &   & & \\
-{\it Quercus rubra}           &   &   & & \\
-{\it Quercus velutina}        &   &   & & \\
-{\it Ulmus americana}         &   &   & & \\ 
+{\it Quercus nigra}           & 0.9897          & 0.9907          & 0.8931         & 0.8927         \\
+{\it Quercus rubra}           & 0.9812          & 0.9807          & 0.9031         & 0.8980         \\
+{\it Quercus velutina}        & 0.9860          & 0.9860          & 0.9018         & 0.8940         \\
+{\it Ulmus americana}         & 0.9635          & 0.9646          & 0.8223         & 0.8168         \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -110,8 +109,28 @@ Scientific name               & Calibration ROC & Validation ROC & Calibration T
 \caption{Parameterized equations for colonization and extinction rate}
 \begin{tabular}{lll}
 \toprule
-Species    & Colonization & Extinction  \\ \midrule
-{\it Abies balsamea} & & \\ 
+Species                       & Colonization                               & Extinction                                  \\ \midrule
+{\it Abies balsamea}          & $x.xx + x.xxT + x.xxT^2 + x.xxP + x.xxP^2$ & $x.xx + x.xxT + x.xxT^2 + x.xxP + x.xxP^2$  \\
+{\it Acer rubrum}             & $x.xx + x.xxT + x.xxP + x.xxP^2$           & $x.xx + x.xxT + x.xxT^2 + x.xxP$            \\
+{\it Acer saccharum}          & $x.xx + x.xxT + x.xxT^2 + x.xxP$           & $x.xx + x.xxT + x.xxT^2 + x.xxP$            \\
+{\it Betula alleghaniensis}   & $x.xx + x.xxT + x.xxT^2 + x.xxP$           & $x.xx + x.xxT + x.xxP$                      \\
+{\it Betula papyrifera}       & $x.xx + x.xxT + x.xxT^2 + x.xxP + x.xxP^2$ & $x.xx + x.xxT + x.xxP$                      \\
+{\it Fagus grandifolia}       & $x.xx + x.xxT + x.xxT^2 + x.xxP$           & $x.xx + x.xxT + x.xxT^2 + x.xxP + x.xxP^2$  \\
+{\it Fraxinus americana}      & $x.xx + x.xxT + x.xxT^2 + x.xxP$           & $x.xx + x.xxT + x.xxT^2 + x.xxP + x.xxP^2$  \\
+{\it Fraxinus pennsylvanica}  & $x.xx + x.xxT + x.xxT^2 + x.xxP + x.xxP^2$ & $x.xx + x.xxT + x.xxT^2 + x.xxP + x.xxP^2$  \\
+{\it Liriodendron tulipifera} & $x.xx + x.xxT + x.xxT^2 + x.xxP$           & $x.xx + x.xxT + x.xxT^2 + x.xxP$            \\
+{\it Nyssa sylvatica}         & $x.xx + x.xxT + x.xxT^2 + x.xxP + x.xxP^2$ & $x.xx + x.xxT + x.xxP + x.xxP^2$            \\
+{\it Picea glauca}            & $x.xx + x.xxT + x.xxT^2 + x.xxP + x.xxP^2$ & $x.xx + x.xxT + x.xxP + x.xxP^2$            \\
+{\it Picea mariana}           & $x.xx + x.xxT + x.xxP$                     & $x.xx + x.xxT + x.xxT^2 + x.xxP$            \\
+{\it Pinus banksiana}         & $x.xx + x.xxT + x.xxP$                     & $x.xx + x.xxT + x.xxT^2 + x.xxP$            \\
+{\it Pinus strobus}           & $x.xx + x.xxT + x.xxP$                     & $x.xx + x.xxT + x.xxT^2 + x.xxP + x.xxP^2$  \\
+{\it Pinus taeda}             & $x.xx + x.xxT + x.xxT^2 + x.xxP$           & $x.xx + x.xxT + x.xxT^2 + x.xxP$            \\
+{\it Populus tremuloides}     & $x.xx + x.xxT + x.xxT^2 + x.xxP$           & $x.xx + x.xxT + x.xxP$                      \\ 
+{\it Quercus alba}            & $x.xx + x.xxT + x.xxT^2 + x.xxP$           & $x.xx + x.xxT + x.xxT^2 + x.xxP$            \\
+{\it Quercus nigra}           & $x.xx + x.xxT + x.xxP$                     & $x.xx + x.xxT + x.xxT^2 + x.xxP$            \\
+{\it Quercus rubra}           & $x.xx + x.xxT + x.xxT^2 + x.xxP + x.xxP^2$ & $x.xx + x.xxT + x.xxT^2 + x.xxP + x.xxP^2$  \\
+{\it Quercus velutina}        & $x.xx + x.xxT + x.xxT^2 + x.xxP + x.xxP^2$ & $x.xx + x.xxT + x.xxT^2 + x.xxP$            \\
+{\it Ulmus americana}         & $x.xx + x.xxT + x.xxP$                     & $x.xx + x.xxT + x.xxT^2 + x.xxP$            \\ 
 \bottomrule
 \end{tabular}
 \end{table}
