@@ -1,0 +1,121 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{pdflscape}
+
+% use proper unicode fonts
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+\usepackage{amsmath} % for better display of equations
+
+\usepackage{caption}
+%\captionsetup{labelsep=none,textformat=empty} % for final
+\captionsetup{labelformat=simple} % for drafts
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage[flushleft]{threeparttable}
+
+\begin{document}
+
+%\newgeometry{margin=1cm}
+%\begin{landscape}
+
+\newcommand{\ts}{\scriptsize}
+\begin{table}[tb]
+\small
+\begin{threeparttable}
+\label{tab:model_selection}
+\caption{Parameterized colonization model selected for each species studied}
+\begin{tabular}{lccccccc}
+\toprule
+\multirow{2}{*}{Scientific name} & \multirow{2}{2cm}{\centering Temperature variable\tnote{*}} & 
+\multirow{2}{2cm}{\centering Precipitation variable\tnote{\textdagger}} & \multicolumn{5}{c}{Parameters\tnote{\textdaggerdbl}} \\
+& & & $c_0$ & $c_1$ & $c_2$ & $c_3$ & $c_4$ \\ 
+\midrule
+
+\multirow{2}{*}{\it Abies balsamea} & \multirow{2}{*}{MAT} & \multirow{2}{*}{MAP} & x.xx\tnote{\textsection} & x.xx & x.xx & x.xx & x.xx \\
+ &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} \\
+
+\multirow{2}{*}{\it Acer rubrum} & \multirow{2}{*}{MAT} & \multirow{2}{*}{MPWQ} & x.xx & x.xx & x.xx &  & x.xx \\
+ &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} &  & {\ts (x.xx, x.xx)} \\
+
+\multirow{2}{*}{\it Acer saccharum} & \multirow{2}{*}{MAT} & \multirow{2}{*}{PS} & x.xx & x.xx & x.xx & x.xx &  \\
+ &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} &  \\
+
+\multirow{2}{*}{\it Betula alleghaniensis} & \multirow{2}{*}{MAT} & \multirow{2}{*}{MAP} & x.xx & x.xx & x.xx & x.xx & \\
+ &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & \\
+
+\multirow{2}{*}{\it Betula papyrifera} & \multirow{2}{*}{MAT} & \multirow{2}{*}{PS} & x.xx & x.xx & x.xx & x.xx & x.xx \\
+ &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} \\
+
+\multirow{2}{*}{\it Fagus grandifolia} & \multirow{2}{*}{MAT} & \multirow{2}{*}{MPWQ} & x.xx & x.xx & x.xx & x.xx &  \\
+ &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} &  \\
+
+\multirow{2}{*}{\it Fraxinus americana} & \multirow{2}{*}{MAT} & \multirow{2}{*}{MAP} & x.xx & x.xx & x.xx & x.xx &  \\
+ &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} &  \\
+
+\multirow{2}{*}{\it Fraxinus pennsylvanica} & \multirow{2}{*}{MAT} & \multirow{2}{*}{MAP} & x.xx & x.xx & x.xx & x.xx & x.xx \\
+ &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} \\
+
+\multirow{2}{*}{\it Liriodendron tulipifera} & \multirow{2}{*}{MAT} & \multirow{2}{*}{MPWQ} & x.xx & x.xx & x.xx & x.xx &  \\
+ &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & \\
+
+\multirow{2}{*}{\it Nyssa sylvatica} & \multirow{2}{*}{MTWQ} & \multirow{2}{*}{PS} & x.xx & x.xx & x.xx & x.xx & x.xx \\
+ &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} \\
+
+\multirow{2}{*}{\it Picea glauca} & \multirow{2}{*}{MDR} & \multirow{2}{*}{PS} & x.xx & x.xx & x.xx & x.xx & x.xx \\
+ &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} \\
+
+\multirow{2}{*}{\it Picea mariana} & \multirow{2}{*}{MAT} & \multirow{2}{*}{MPWQ} & x.xx & x.xx & x.xx &  &  \\
+ &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} &  &  \\
+
+\multirow{2}{*}{\it Pinus banksiana} & \multirow{2}{*}{MAT} & \multirow{2}{*}{MAP} & x.xx & x.xx & x.xx &  &  \\
+ &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} &  &  \\
+
+\multirow{2}{*}{\it Pinus strobus} & \multirow{2}{*}{MAT} & \multirow{2}{*}{MPWQ} & x.xx & x.xx & x.xx &  &  \\
+ &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} &  &  \\
+
+\multirow{2}{*}{\it Pinus taeda} & \multirow{2}{*}{MAT} & \multirow{2}{*}{MAP} & x.xx & x.xx & x.xx & x.xx &  \\
+ &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & \\
+
+\multirow{2}{*}{\it Populus tremuloides} & \multirow{2}{*}{MAT} & \multirow{2}{*}{MAP} & x.xx & x.xx & x.xx & x.xx &  \\
+ &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} &  \\
+
+\multirow{2}{*}{\it Quercus alba} & \multirow{2}{*}{MAT} & \multirow{2}{*}{PS} & x.xx & x.xx & x.xx & x.xx &  \\
+ &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} &  \\
+
+\multirow{2}{*}{\it Quercus nigra} & \multirow{2}{*}{MDR} & \multirow{2}{*}{MPWQ} & x.xx & x.xx & x.xx & &  \\
+ &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} &  &  \\
+
+\multirow{2}{*}{\it Quercus rubra} & \multirow{2}{*}{MAT} & \multirow{2}{*}{MAP} & x.xx & x.xx & x.xx & x.xx & x.xx \\
+ &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} \\
+
+\multirow{2}{*}{\it Quercus velutina} & \multirow{2}{*}{MAT} & \multirow{2}{*}{MPWQ} & x.xx & x.xx & x.xx & x.xx & x.xx \\
+ &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} \\
+
+\multirow{2}{*}{\it Ulmus americana} & \multirow{2}{*}{MAT} & \multirow{2}{*}{PS} & x.xx & x.xx & x.xx &  & \\
+ &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & & \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\item [*] {\ts Temperature variable abbreviations: MAT: Mean annual temperature;
+		MTWQ: Mean temperature wettest quarter; MDR: Mean diurnal range}
+\item [\textdagger] {\ts Precipitation variable abbreviations: MAP: Mean annual precipitation; 
+MPWQ: Mean precipitation, warmest quarter; PS: Precipitation seasonality}
+\item [\textdaggerdbl] {\ts The parameters fit the following equation for $\gamma$, the 
+		colonization rate: $log \left( \frac{\gamma}{1-\gamma} \right) = c_0 + c_1T + c_2P + c_3T^2 + c_4P^2$;
+		where $T$ and $P$ are the selected temperature and precipitation variables, 
+		respectively, and where a blank cell indicates a parameter that was not included 
+		in the best-supported model}
+\item [\textsection] {\ts Values are the median values from the posterior distribution with 5 and 95\% quantiles}
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+%\end{landscape}
+%\restoregeometry
+
+\end{document}
+
+

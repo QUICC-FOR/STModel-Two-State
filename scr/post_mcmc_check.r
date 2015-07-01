@@ -2,16 +2,43 @@ library(coda)
 
 # temporary
 setwd("~/Dropbox/work/projects/STModel-Two-State_git/")
-spName = '28731-ACE-SAC'
+spName = '32931-FRA-AME'
 
 p1.raw = read.csv(file.path('species', spName, 'res', 'mcmc1', 'posterior.csv'))
-p2.raw = read.csv(file.path('species', spName, 'res', 'mcmc2', 'posterior.csv'))
-p3.raw = read.csv(file.path('species', spName, 'res', 'mcmc3', 'posterior.csv'))
-
-p1 = mcmc(p1.raw)
-p2 = mcmc(p2.raw)
-p3 = mcmc(p3.raw)
-
-posterior = mcmc.list(p1, p2, p3)
+posterior = mcmc(p1.raw)
 
 plot(posterior, ask=T)
+summary(posterior)
+
+pquant = summary(posterior)$quantiles
+minpar = which(pquant[,1] == min(pquant[,1]))
+maxpar = which(pquant[,5] == max(pquant[,5]))
+
+minsamp = posterior[posterior[,minpar] == min(posterior[,minpar]),]
+maxsamp = posterior[posterior[,maxpar] == min(posterior[,maxpar]),]
+
+findsum = function(x, fun)
+{
+	if(length(dim(x)) == 2)
+		return(x[which(apply(x, 1, sum) == fun(apply(x, 1, sum))),])
+	if(is.vector(x))
+		return(x)
+	stop("Need a vector or matrix-like object")
+}
+	
+
+initMax = findsum(maxsamp, max)
+initMin = findsum(minsamp, min)
+plot(initMax, col='blue', ylim=c(min(initMin), max(initMax)), pch=16)
+points(initMin, col='red', pch=16)
+abline(h=0)
+
+i2path = file.path('species', spName, 'dat', 'mcmc_inits2.txt')
+i2 = read.csv(i2path)
+i2$initialValue = initMax
+write.csv(i2, i2path, row.names=FALSE)
+
+i2path = file.path('species', spName, 'dat', 'mcmc_inits3.txt')
+i2 = read.csv(i2path)
+i2$initialValue = initMin
+write.csv(i2, i2path, row.names=FALSE)
