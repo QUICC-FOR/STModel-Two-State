@@ -4,21 +4,10 @@ library(raster)
 library(rgdal)
 
 # temporary
-spName = '18032-ABI-BAL'
-spText = expression(italic(Abies~balsamifera))
-env1 = 'annual_mean_temp'
-env2 = 'tot_annual_pp'
+#spText = expression(italic(Abies~balsamifera))
+
 
 load('dat/map_projections.rdata')
-
-prj.ras = function(x)
-{
-	coordinates(x) = 1:2
-	gridded(x) = TRUE
-	x = raster(x)
-	proj4string(x) = P4S.latlon
-	projectRaster(x, crs=stmMapProjection)
-}
 
 ocean = readOGR(dsn="dat/ne_50m_ocean", layer="ne_50m_ocean")
 ocean = spTransform(ocean, stmMapProjection)
@@ -52,42 +41,9 @@ plotbg = function(txt="", rangeMap=T)
 }
 
 
-compute_e = function(p, env1, env2)
-{
-	plogis(p[8] + env1*p[9] + env2*p[10] + env1^2*p[11] + env2^2*p[12] + env1^3*p[13] + env2^3*p[14])
-}
 
 
-compute_c = function(p, env1, env2)
-{
-	plogis(p[1] + env1*p[2] + env2*p[3] + env1^2*p[4] + env2^2*p[5] + env1^3*p[6] + env2^3*p[7])
-}
 
-
-rawPosterior = readRDS(file.path('species', spName, 'res', paste(spName, 'posterior.rds', sep='_')))
-posterior = rawPosterior[sample(nrow(rawPosterior), 500),]
-climGrid = readRDS('dat/climateGrid_scaled.rds')
-
-posterior.c = sapply(1:nrow(posterior), function(x)
-{
-	params = c(posterior[x,1:5], 0, 0, posterior[x,6:10], 0, 0)
-	compute_c(params, climGrid[,env1], climGrid[,env2])
-})
-posterior.e = sapply(1:nrow(posterior), function(x)
-{
-	params = c(posterior[x,1:5], 0, 0, posterior[x,6:10], 0, 0)
-	compute_e(params, climGrid[,env1], climGrid[,env2])
-})
-posterior.lam = posterior.c - posterior.e
-
-grid.c = data.frame(lon=climGrid$lon, lat=climGrid$lat, c=rowMeans(posterior.c))
-grid.e = data.frame(lon=climGrid$lon, lat=climGrid$lat, e=rowMeans(posterior.e))
-grid.lam = data.frame(lon=climGrid$lon, lat=climGrid$lat, lam=apply(posterior.lam, 1, function(x) sum(x > 0)/ncol(posterior.lam)))
-grid.sdm = readRDS(file.path('species', spName, 'res', paste(spName, 'sdm_grid_projection.rds', sep='_')))
-grid.c = prj.ras(grid.c)
-grid.e = prj.ras(grid.e)
-grid.lam = prj.ras(grid.lam)
-grid.sdm = prj.ras(grid.sdm)
 
 pdf(w=6.5, h=8.2, file="img/posterior_maps.pdf")
 par(mfrow=c(5,4), mar=c(2,2,2,1), oma=c(0,0,0,2))

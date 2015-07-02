@@ -1,87 +1,11 @@
-library(coda)
-
-# temporary
-spName = '18032-ABI-BAL'
-env1 = 'annual_mean_temp'
-env2 = 'tot_annual_pp'
-
-compute_e = function(p, env1, env2)
-{
-	plogis(p[8] + env1*p[9] + env2*p[10] + env1^2*p[11] + env2^2*p[12] + env1^3*p[13] + env2^3*p[14])
-}
-
-
-compute_c = function(p, env1, env2)
-{
-	plogis(p[1] + env1*p[2] + env2*p[3] + env1^2*p[4] + env2^2*p[5] + env1^3*p[6] + env2^3*p[7])
-}
-
-
-posterior = readRDS(file.path('species', spName, 'res', paste(spName, 'posterior.rds', sep='_')))
-climGrid = readRDS('dat/climateGrid_scaled.rds')
-
-
-x1 = seq(min(climGrid[,env1]), max(climGrid[,env1]), length.out=100)
-x2 = seq(min(climGrid[,env2]), max(climGrid[,env2]), length.out=100)
-
-# now compute the y values for each x value for every posterior sample
-# first we have to choose a value at which to fix the second environmental variable
-# do this with the mean values of the parameters
-meanParams = colMeans(posterior)
-meanParams = c(meanParams[1:5], 0, 0, meanParams[6:10], 0, 0)
-# find the point at which env1 maximizes lambda
-env1.yc = compute_c(meanParams, x1, rep(0, length(x1)))
-env1.ye = compute_e(meanParams, x1, rep(0, length(x1)))
-env1.lam = env1.yc - env1.ye
-env1.maxx = x1[which(env1.lam == max(env1.lam))[1]]
-
-# find the point at which env2 maximizes lambda with the max from the prev step
-env2.yc = compute_c(meanParams, rep(env1.maxx, length(x2)), x2)
-env2.ye = compute_e(meanParams, rep(env1.maxx, length(x2)), x2)
-env2.lam = env2.yc - env2.ye
-env2.maxx = x2[which(env2.lam == max(env2.lam))[1]]
-
-# re-do the computation of x1 with the new max from x2
-env1.yc = compute_c(params, x1, rep(env2.maxx, length(x1)))
-env1.ye = compute_e(params, x1, rep(env2.maxx, length(x1)))
-env1.lam = env1.yc - env1.ye
-env1.maxx = x1[which(env1.lam == max(env1.lam))[1]]
-
-
-y1.c = sapply(1:nrow(posterior), function(x)
-{
-	
-	params = c(posterior[x,1:5], 0, 0, posterior[x,6:10], 0, 0)
-	compute_c(params, x1, rep(env2.maxx, length(x1)))
-})
-y1.e = sapply(1:nrow(posterior), function(x)
-{
-	params = c(posterior[x,1:5], 0, 0, posterior[x,6:10], 0, 0)
-	compute_e(params, x1, rep(env2.maxx, length(x1)))
-})
-y2.c = sapply(1:nrow(posterior), function(x)
-{
-	params = c(posterior[x,1:5], 0, 0, posterior[x,6:10], 0, 0)
-	compute_c(params, rep(env1.maxx, length(x2)), x2)
-})
-y2.e = sapply(1:nrow(posterior), function(x)
-{
-	params = c(posterior[x,1:5], 0, 0, posterior[x,6:10], 0, 0)
-	compute_e(params, rep(env1.maxx, length(x2)), x2)
-})
 
 
 
-env1.yc = cbind(rowMeans(y1.c), apply(y1.c, 1, quantile, 0.025), apply(y1.c, 1, quantile, 0.975))
-env1.ye = cbind(rowMeans(y1.e), apply(y1.e, 1, quantile, 0.025), apply(y1.e, 1, quantile, 0.975))
-env2.yc = cbind(rowMeans(y2.c), apply(y2.c, 1, quantile, 0.025), apply(y2.c, 1, quantile, 0.975))
-env2.ye = cbind(rowMeans(y2.e), apply(y2.e, 1, quantile, 0.025), apply(y2.e, 1, quantile, 0.975))
 
 
-# now put the x variables back on their original scales
-climScale = readRDS("dat/climate_scaling.rds")
-x1.us = (x1 * climScale$scale[env1]) + climScale$center[env1]
-x2.us = (x2 * climScale$scale[env2]) + climScale$center[env2]
+
+
+
 
 varNames = readRDS("dat/climVariableNames.rds")
 e1.lab = varNames[which(varNames[,1] == env1),2]
