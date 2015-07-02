@@ -143,32 +143,40 @@ prj.ras = function(x)
 }
 
 
-map.c = t(do.call(cbind, lapply(posterior, function(x)
+# these are quite heavy, so they have to be done one grid cell at a time to conserve memory
+# the intermediate data structures are much larger than the result
+map_data = function(pos.list, e1, e2)
 {
-	sapply(1:nrow(x), function(i)
-	{
-		params = parBase
-		params[design == 1] = x[i,]
-		compute_c(params, climGrid[,env1], climGrid[,env2])
+	# note that pos.list should be an mcmc list with equal-sized chunks of parallel chains
+	# e1 and e2 should be scalars - we are doing this just for a single point on the grid
 	
-	})
-})))
-
-map.e = t(do.call(cbind, lapply(posterior, function(x)
-{
-	sapply(1:nrow(x), function(i)
+	pos = do.call(rbind(post.list))
+	md = as.data.frame(t(sapply(1:nrow(pos), function(i)
 	{
-		params = parBase
-		params[design == 1] = x[i,]
-		compute_e(params, climGrid[,env1], climGrid[,env2])
-	})
-})))
-map.lam = map.c - map.e
+			params = parBase
+			params[design == 1] = pos[i,]
+			c(c=compute_c(params, e1, e2),
+				e=compute_e(params, e1, e2))
+	})))
 
-mapData.c = data.frame(lon=climGrid$lon, lat=climGrid$lat, c=colMeans(map.c))
-mapData.e = data.frame(lon=climGrid$lon, lat=climGrid$lat, e=colMeans(map.e))
-mapData.lam = data.frame(lon=climGrid$lon, lat=climGrid$lat, e=colMeans(map.e))
-mapData.pres = data.frame(lon=climGrid$lon, lat=climGrid$lat, lam=apply(map.lam, 2, function(x) sum(x > 0)/nrow(map.lam))
+	md$lam = md$c - md$e
+
+	c(c=mean(md$c), e=mean(md$e), lam = mean(md$lam), pres = sum(md$lam > 0)/nrow(md))
+}
+
+mapData = matrix(NA, nrow=nrow(climGrid), ncol = 6)
+mapData[,1] = climGrid$lon
+mapData[,2] = climGrid$lat
+for(i in 1:nrow(climGrid))
+{
+	mapData[i,3:6] = map_data(posterior, climGrid[i,env1], climGrid[i,env2])
+}
+
+
+mapData.c = data.frame(lon = mapData[,1], lat = mapData[,2], c = mapData[,3])
+mapData.e = data.frame(lon = mapData[,1], lat = mapData[,2], e = mapData[,4])
+mapData.lam = data.frame(lon = mapData[,1], lat = mapData[,2], lam = mapData[,5])
+mapData.pres = data.frame(lon = mapData[,1], lat = mapData[,2], pres = mapData[,6])
 mapData.sdm = readRDS(file.path('species', spName, 'res', paste(spName, 'sdm_grid_projection.rds', sep='_')))
 		
 grid.c = prj.ras(mapData.c)
