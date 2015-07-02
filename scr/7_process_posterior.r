@@ -150,7 +150,7 @@ map_data = function(pos.list, e1, e2)
 	# note that pos.list should be an mcmc list with equal-sized chunks of parallel chains
 	# e1 and e2 should be scalars - we are doing this just for a single point on the grid
 	
-	pos = do.call(rbind(post.list))
+	pos = do.call(rbind, post.list)
 	md = as.data.frame(t(sapply(1:nrow(pos), function(i)
 	{
 			params = parBase
