@@ -152,7 +152,7 @@ map.c = t(do.call(cbind, lapply(posterior, function(x)
 		compute_c(params, climGrid[,env1], climGrid[,env2])
 	
 	})
-})
+})))
 
 map.e = t(do.call(cbind, lapply(posterior, function(x)
 {
@@ -162,7 +162,7 @@ map.e = t(do.call(cbind, lapply(posterior, function(x)
 		params[design == 1] = x[i,]
 		compute_e(params, climGrid[,env1], climGrid[,env2])
 	})
-})
+})))
 map.lam = map.c - map.e
 
 mapData.c = data.frame(lon=climGrid$lon, lat=climGrid$lat, c=colMeans(map.c))
