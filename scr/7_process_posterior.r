@@ -145,7 +145,7 @@ prj.ras = function(x)
 
 # these are quite heavy, so they have to be done one grid cell at a time to conserve memory
 # the intermediate data structures are much larger than the result
-map_data = function(pos.list, e1, e2)
+map_data = function(post.list, e1, e2)
 {
 	# note that pos.list should be an mcmc list with equal-sized chunks of parallel chains
 	# e1 and e2 should be scalars - we are doing this just for a single point on the grid
