@@ -171,7 +171,7 @@ mapData[,2] = climGrid$lat
 for(i in 1:nrow(climGrid))
 {
 	mapData[i,3:6] = map_data(posterior, climGrid[i,env1], climGrid[i,env2])
-	if(i %% 1000 == 0) cat(paste("Finished", i, "replicates\n"))
+	if(i %% 1000 == 0) cat(paste("Finished", i, "of", nrow(climDat), "map cells\n"))
 }
 
 
