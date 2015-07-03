@@ -26,5 +26,6 @@ stm2_mcmc*
 *.pdf
 *.log
 *.aux
+*.blg
 *.bbl
 *.xls*

@@ -1,6 +1,6 @@
 \documentclass[11pt]{article}
 
-\usepackage[margin=1in]{geometry}
+\usepackage[margin=0.5in]{geometry}
 \usepackage{pdflscape}
 
 % use proper unicode fonts
@@ -34,14 +34,14 @@
 & & & $c_0$ & $c_1$ & $c_2$ & $c_3$ & $c_4$ \\ 
 \midrule
 
-\multirow{2}{*}{\it Abies balsamea} & \multirow{2}{*}{MAT} & \multirow{2}{*}{MAP} & x.xx\tnote{\textsection} & x.xx & x.xx & x.xx & x.xx \\
- &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} \\
+\multirow{2}{*}{\it Abies balsamea} & \multirow{2}{*}{MAT} & \multirow{2}{*}{MAP} & -2.53\tnote{\textsection} & -2.46 & 0.07 & -1.26 & 0.03 \\
+ &  &  & {\ts (-2.86, -2.18)} & {\ts (-3.08, -1.81)} & {\ts (-0.01, 0.16)} & {\ts (-1.55, -0.98)} & {\ts (-0.03, 0.09)} \\
 
 \multirow{2}{*}{\it Acer rubrum} & \multirow{2}{*}{MAT} & \multirow{2}{*}{MPWQ} & x.xx & x.xx & x.xx &  & x.xx \\
  &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} &  & {\ts (x.xx, x.xx)} \\
 
-\multirow{2}{*}{\it Acer saccharum} & \multirow{2}{*}{MAT} & \multirow{2}{*}{PS} & x.xx & x.xx & x.xx & x.xx &  \\
- &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} &  \\
+\multirow{2}{*}{\it Acer saccharum} & \multirow{2}{*}{MAT} & \multirow{2}{*}{PS} & -2.10 & 0.47 & 0.09 & -0.34 &  \\
+ &  &  & {\ts (-2.22, -1.99)} & {\ts (0.34, 0.59)} & {\ts (0.01, 0.17)} & {\ts (-0.55, -0.12)} &  \\
 
 \multirow{2}{*}{\it Betula alleghaniensis} & \multirow{2}{*}{MAT} & \multirow{2}{*}{MAP} & x.xx & x.xx & x.xx & x.xx & \\
  &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & \\
@@ -79,8 +79,8 @@
 \multirow{2}{*}{\it Pinus taeda} & \multirow{2}{*}{MAT} & \multirow{2}{*}{MAP} & x.xx & x.xx & x.xx & x.xx &  \\
  &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & \\
 
-\multirow{2}{*}{\it Populus tremuloides} & \multirow{2}{*}{MAT} & \multirow{2}{*}{MAP} & x.xx & x.xx & x.xx & x.xx &  \\
- &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} &  \\
+\multirow{2}{*}{\it Populus tremuloides} & \multirow{2}{*}{MAT} & \multirow{2}{*}{MAP} & -2.15 & -0.75 & -0.11 & -0.86 &  \\
+ &  &  & {\ts (-2.44, -1.86)} & {\ts (-1.48, -0.05)} & {\ts (-0.20, -0.03)} & {\ts (-1.32, -0.43)} &  \\
 
 \multirow{2}{*}{\it Quercus alba} & \multirow{2}{*}{MAT} & \multirow{2}{*}{PS} & x.xx & x.xx & x.xx & x.xx &  \\
  &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} &  \\
@@ -107,8 +107,9 @@ MPWQ: Mean precipitation, warmest quarter; PS: Precipitation seasonality}
 		colonization rate: $log \left( \frac{\gamma}{1-\gamma} \right) = c_0 + c_1T + c_2P + c_3T^2 + c_4P^2$;
 		where $T$ and $P$ are the selected temperature and precipitation variables, 
 		respectively, and where a blank cell indicates a parameter that was not included 
-		in the best-supported model}
-\item [\textsection] {\ts Values are the median values from the posterior distribution with 5 and 95\% quantiles}
+		in the best-supported model. 
+		All parameters were fit to data scaled to 0 mean and unit variance.}
+\item [\textsection] {\ts Values are the mean values from the posterior distribution with 5 and 95\% quantiles}
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

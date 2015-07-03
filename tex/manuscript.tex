@@ -9,7 +9,7 @@
 \usepackage{amsmath} % for better display of equations
 
 \usepackage{setspace}
-\usepackage{natbib} 
+%\usepackage{natbib} 
 
 \usepackage{titling} % controls the way the title information is displayed
 \pretitle{\begin{flushleft}\Large}
@@ -171,12 +171,19 @@ Species out of equilibrium should perform poorly for the CE model and better for
 
 \section*{Discussion}
 
+Fisichelli and colleagues reported recruitement of temperate trees into boreal ecosystems, supporting our conclusion that colonization of temperature trees varies as a function of temperature \cite{Fisichelli2014}.
+
+
+
 This model enables us to more precisely define the niche in terms of the fundamental processes of colonization and extinction (fig..). 
 For example, the response of \emph(Acer saccharum) to temperature suggests that the southern range limit is a consequence of elevated extinction rates, whereas the northern limit is likely determined by low rates of colonization.
 The consequence of these two processes, when overlaid, is a range covering intermediate temperatures, bounded by low colonization in the north and high extinction in the south (fig - map).
 
 % can this apply to other organisms? animals prob not - dispersal is just too high
 % this deserves a paragraph here
+Our model is particularly appropriate for forest trees, which are sessile, disperse relatively short distances, and are long-lived. 
+Unique challenges confront applying such a model without these characteristics, such as most animals. 
+Animals in highly patchy environments, with local populations linked by moderate dispersal rates, are likely to be the most appropriate species for use with our model.
 
 \subsection*{Conclusions}
 \begin{itemize}
@@ -225,5 +232,9 @@ Finally, having posterior distributions of the predictors allows for the informa
 
 For each species, we obtained xxx posterior samples...
 We assessed convergence...
+
+\renewcommand\refname{Literature Cited}
+\bibliography{2state}{}
+\bibliographystyle{pnas}
 
 \end{document}
