@@ -2,7 +2,7 @@ library(coda)
 
 # temporary
 setwd("~/Dropbox/work/projects/STModel-Two-State_git/")
-spName = '183302-PIC-MAR'
+spName = '28728-ACE-RUB'
 
 p1.raw = read.csv(file.path('species', spName, 'res', 'mcmc1', 'posterior.csv'))
 posterior = mcmc(p1.raw)
