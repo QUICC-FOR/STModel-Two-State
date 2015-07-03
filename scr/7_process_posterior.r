@@ -60,72 +60,72 @@ env1.ye = compute_e(meanParams, x1, rep(env2.maxx, length(x1)))
 env1.lam = env1.yc - env1.ye
 env1.maxx = x1[which(env1.lam == max(env1.lam))[1]]
 
-## y1.c = t(do.call(cbind, lapply(posterior, function(x)
-## {
-## 	sapply(1:nrow(x), function(i)
-## 	{
-## 		params = parBase
-## 		params[design == 1] = x[i,]
-## 		compute_c(params, x1, rep(env2.maxx, length(x1)))
-## 	})
-## })))
-## 
-## 
-## y1.e = t(do.call(cbind, lapply(posterior, function(x)
-## {
-## 	sapply(1:nrow(x), function(i)
-## 	{
-## 		params = parBase
-## 		params[design == 1] = x[i,]
-## 		compute_e(params, x1, rep(env2.maxx, length(x1)))
-## 	})
-## })))
-## 
-## 
-## y2.c = t(do.call(cbind, lapply(posterior, function(x)
-## {
-## 	sapply(1:nrow(x), function(i)
-## 	{
-## 		params = parBase
-## 		params[design == 1] = x[i,]
-## 		compute_c(params, rep(env1.maxx, length(x2)), x2)
-## 	})
-## })))
-## 
-## 
-## y2.e = t(do.call(cbind, lapply(posterior, function(x)
-## {
-## 	sapply(1:nrow(x), function(i)
-## 	{
-## 		params = parBase
-## 		params[design == 1] = x[i,]
-## 		compute_e(params, rep(env1.maxx, length(x2)), x2)
-## 	})
-## })))
+y1.c = t(do.call(cbind, lapply(posterior, function(x)
+{
+	sapply(1:nrow(x), function(i)
+	{
+		params = parBase
+		params[design == 1] = x[i,]
+		compute_c(params, x1, rep(env2.maxx, length(x1)))
+	})
+})))
+
+
+y1.e = t(do.call(cbind, lapply(posterior, function(x)
+{
+	sapply(1:nrow(x), function(i)
+	{
+		params = parBase
+		params[design == 1] = x[i,]
+		compute_e(params, x1, rep(env2.maxx, length(x1)))
+	})
+})))
+
+
+y2.c = t(do.call(cbind, lapply(posterior, function(x)
+{
+	sapply(1:nrow(x), function(i)
+	{
+		params = parBase
+		params[design == 1] = x[i,]
+		compute_c(params, rep(env1.maxx, length(x2)), x2)
+	})
+})))
+
+
+y2.e = t(do.call(cbind, lapply(posterior, function(x)
+{
+	sapply(1:nrow(x), function(i)
+	{
+		params = parBase
+		params[design == 1] = x[i,]
+		compute_e(params, rep(env1.maxx, length(x2)), x2)
+	})
+})))
 
 # now put the x variables back on their original scales
-## climScale = readRDS("dat/climate_scaling.rds")
-## x1.us = (x1 * climScale$scale[env1]) + climScale$center[env1]
-## x2.us = (x2 * climScale$scale[env2]) + climScale$center[env2]
-## 
-## responseCurves = data.frame(
-## 	env1 = x1.us,
-## 	env2 = x2.us,
-## 	col1.mean = colMeans(y1.c),
-## 	col1.lo = apply(y1.c, 2, quantile, 0.025),
-## 	col1.up = apply(y1.c, 2, quantile, 0.975),
-## 	ext1.mean = colMeans(y1.e),
-## 	ext1.lo = apply(y1.e, 2, quantile, 0.025),
-## 	ext1.up = apply(y1.e, 2, quantile, 0.975),
-## 	col2.mean = colMeans(y2.c),
-## 	col2.lo = apply(y2.c, 2, quantile, 0.025),
-## 	col2.up = apply(y2.c, 2, quantile, 0.975),
-## 	ext2.mean = colMeans(y2.e), 
-## 	ext2.lo = apply(y2.e, 2, quantile, 0.025),
-## 	ext2.up = apply(y2.e, 2, quantile, 0.975))
-## 	
-## saveRDS(responseCurves, file.path('species', spName, 'res', paste(spName, 'responseCurves.rds', sep='_')))
-## 
+climScale = readRDS("dat/climate_scaling.rds")
+x1.us = (x1 * climScale$scale[env1]) + climScale$center[env1]
+x2.us = (x2 * climScale$scale[env2]) + climScale$center[env2]
+
+responseCurves = data.frame(
+	env1 = x1.us,
+	env2 = x2.us,
+	col1.mean = colMeans(y1.c),
+	col1.lo = apply(y1.c, 2, quantile, 0.025),
+	col1.up = apply(y1.c, 2, quantile, 0.975),
+	ext1.mean = colMeans(y1.e),
+	ext1.lo = apply(y1.e, 2, quantile, 0.025),
+	ext1.up = apply(y1.e, 2, quantile, 0.975),
+	col2.mean = colMeans(y2.c),
+	col2.lo = apply(y2.c, 2, quantile, 0.025),
+	col2.up = apply(y2.c, 2, quantile, 0.975),
+	ext2.mean = colMeans(y2.e), 
+	ext2.lo = apply(y2.e, 2, quantile, 0.025),
+	ext2.up = apply(y2.e, 2, quantile, 0.975))
+	
+saveRDS(responseCurves, file.path('species', spName, 'res', paste(spName, 'responseCurves.rds', sep='_')))
+
 
 
 
@@ -165,15 +165,13 @@ map_data = function(post.list, e1, e2)
 	c(c=mean(md$c), e=mean(md$e), lam = mean(md$lam), pres = sum(md$lam > 0)/nrow(md))
 }
 
-## reducing the size just for the moment for testing
-climGrid = climGrid[1:10,]
-
 mapData = matrix(NA, nrow=nrow(climGrid), ncol = 6)
 mapData[,1] = climGrid$lon
 mapData[,2] = climGrid$lat
 for(i in 1:nrow(climGrid))
 {
 	mapData[i,3:6] = map_data(posterior, climGrid[i,env1], climGrid[i,env2])
+	if(i %% 1000 == 0) cat(paste("Finished", i, "replicates\n"))
 }
 
 
