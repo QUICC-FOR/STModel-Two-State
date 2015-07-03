@@ -3,9 +3,8 @@ library(sp)
 library(raster)
 library(rgdal)
 
-# temporary
-#spText = expression(italic(Abies~balsamifera))
-
+spNames = c('28731-ACE-SAC', '195773-POP-TRE')
+spInfoAll = read.csv('dat/speciesInfo.csv', stringsAsFactors=FALSE, colClasses='character')
 
 load('dat/map_projections.rdata')
 
@@ -45,32 +44,44 @@ plotbg = function(txt="", rangeMap=T)
 
 
 
+
+col.colors = colorRampPalette(c('#eff3ff', '#6baed6', '#08519c'), space="rgb")
+ext.colors = colorRampPalette(c('#fee5d9', '#fb6a4a', '#a50f15'))
+pres.colors = colorRampPalette(c("#ffffff", "#bdc9e1", "#045a8d", "#33338d", "#ffff88"), 
+		interpolate='spline', bias=2, space="rgb")
+sdm.colors = pres.colors
+#sdm.colors = colorRampPalette(c("#ffffff" "#bdc9e1", "#045a8d", "#33338d", "#cc99ff"), 
+#			interpolate='spline', space="rgb")
+
+
 pdf(w=6.5, h=8.2, file="img/posterior_maps.pdf")
 par(mfrow=c(5,4), mar=c(2,2,2,1), oma=c(0,0,0,2))
 cex.title = 0.5
 leg.args = list(cex.axis=0.6)
-for(i in 1:5)
+i = 1
+for(spName in spNames)
 {
-	col.colors = colorRampPalette(c('#eff3ff', '#6baed6', '#08519c'), space="rgb")
-	ext.colors = colorRampPalette(c('#fee5d9', '#fb6a4a', '#a50f15'))
-	pres.colors = colorRampPalette(c("#ffffff", "#bdc9e1", "#045a8d", "#33338d", "#ffff88"), 
-			interpolate='spline', bias=2, space="rgb")
-	sdm.colors = colorRampPalette(c("#ffffff", "#bdc9e1", "#045a8d", "#33338d", "#cc99ff"), 
-			interpolate='spline', bias=1, space="rgb")
+
+	spInfo = spInfoAll[spInfoAll$spName == spName,]
+	spLab = bquote(italic(.(spInfo$genus)~.(spInfo$species)))
+	load(file.path('species', spName, 'res', paste(spName, 'mapRasters.rdata', sep='_')))
+
 
 	plot(grid.c, col=col.colors(100), xaxt='n', yaxt='n', axis.args=leg.args)
 	plotbg()
 	if(i == 1) mtext("colonization probability", cex=cex.title)
-	mtext(spText, side=2, cex=cex.title)
+	mtext(spLab, side=2, cex=cex.title)
 	plot(grid.e, col=ext.colors(100), xaxt='n', yaxt='n', axis.args=leg.args)
 	plotbg()
 	if(i == 1) 	mtext("extinction probability", cex=cex.title)
-	plot(grid.lam, col=pres.colors(100), xaxt='n', yaxt='n', axis.args=leg.args)
+	plot(grid.pres, col=sdm.colors(100), xaxt='n', yaxt='n', zlim=c(0,1), axis.args=leg.args)
 	plotbg()
 	if(i == 1) 	mtext("Probability of presence (CE Model)", cex=cex.title)
-	plot(grid.sdm, col=sdm.colors(100), xaxt='n', yaxt='n', axis.args=leg.args)
+	plot(grid.sdm, col=sdm.colors(100), xaxt='n', yaxt='n', zlim=c(0,1), axis.args=leg.args)
 	plotbg()
 	if(i == 1) 	mtext("Probability of presence (SDM)", cex=cex.title)
+	
+	i = i+1
 
 }
 dev.off()
