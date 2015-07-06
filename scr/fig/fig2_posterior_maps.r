@@ -3,7 +3,7 @@ library(sp)
 library(raster)
 library(rgdal)
 
-spNames = c('28731-ACE-SAC', '195773-POP-TRE')
+spNames = c('18032-ABI-BAL', '28731-ACE-SAC', '32931-FRA-AME', '183385-PIN-STR', '195773-POP-TRE', '19290-QUE-ALB')
 spInfoAll = read.csv('dat/speciesInfo.csv', stringsAsFactors=FALSE, colClasses='character')
 
 load('dat/map_projections.rdata')

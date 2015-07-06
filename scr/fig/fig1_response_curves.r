@@ -1,6 +1,6 @@
 #!/usr/bin/Rscript
 varNames = readRDS("dat/climVariableNames.rds")
-spNames = c('28731-ACE-SAC', '195773-POP-TRE')
+spNames = c('18032-ABI-BAL', '28731-ACE-SAC', '32931-FRA-AME', '183385-PIN-STR', '195773-POP-TRE', '19290-QUE-ALB')
 spInfoAll = read.csv('dat/speciesInfo.csv', stringsAsFactors=FALSE, colClasses='character')
 
 pdf(w=6.5, h=8, file="img/response_curves.pdf")
@@ -12,6 +12,8 @@ for(spName in spNames)
 	spInfo = spInfoAll[spInfoAll$spName == spName,]
 	e1 = spInfo$env1
 	e2 = spInfo$env2
+	ylim1 = as.numeric(spInfo$rylim1)
+	ylim2 = as.numeric(spInfo$rylim2)
 	spLab = bquote(italic(.(spInfo$genus)~.(spInfo$species)))
 
 	e1.lab = varNames[which(varNames[,1] == e1),2]
@@ -22,12 +24,12 @@ for(spName in spNames)
 
 	with(resp,
 	{
-		plot(env1, col1.mean, xlab=e1.lab, ylab="Probability", ylim=c(0,0.25), col='blue', type='l')
+		plot(env1, col1.mean, xlab=e1.lab, ylab="Probability", ylim=c(0,ylim1), col='blue', type='l')
 		polygon(c(env1, rev(env1)), c(col1.lo, rev(col1.up)), col="#0000FF22", border=NA)
 		lines(env1, ext1.mean, col='red')
 		polygon(c(env1, rev(env1)), c(ext1.lo, rev(ext1.up)), col="#FF000022", border=NA)
 
-		plot(env2, col2.mean, xlab=e2.lab, ylab="", ylim=c(0,0.25), col='blue', type='l')
+		plot(env2, col2.mean, xlab=e2.lab, ylab="", ylim=c(0,ylim2), col='blue', type='l')
 		polygon(c(env2, rev(env2)), c(col2.lo, rev(col2.up)), col="#0000FF22", border=NA)
 		lines(env2, ext2.mean, col='red')
 		polygon(c(env2, rev(env2)), c(ext2.lo, rev(ext2.up)), col="#FF000022", border=NA)
