@@ -2,9 +2,9 @@ library(coda)
 
 # temporary
 setwd("~/Dropbox/work/projects/STModel-Two-State_git/")
-spName = '19481-BET-ALL'
+spName = '19049-ULM-AME'
 
-design = '11110001110000'
+design = '11100001111000'
 design = sapply(1:nchar(design), function(i) as.integer(substr(design, i, i)))
 constCols = which(design == 0)
 
