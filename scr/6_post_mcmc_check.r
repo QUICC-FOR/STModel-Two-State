@@ -2,8 +2,11 @@ library(coda)
 
 # temporary
 setwd("~/Dropbox/work/projects/STModel-Two-State_git/")
-spName = '183385-PIN-STR'
-constCols = c(4:7,13,14)
+spName = '183295-PIC-GLA'
+
+design = '11111001110100'
+design = sapply(1:nchar(design), function(i) as.integer(substr(design, i, i)))
+constCols = which(design == 0)
 
 p1 = read.csv(file.path('species', spName, 'res', 'mcmc1', 'posterior.csv'))[,-constCols]
 p2 = read.csv(file.path('species', spName, 'res', 'mcmc2', 'posterior.csv'))[,-constCols]
