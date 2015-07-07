@@ -1,6 +1,6 @@
 #!/bin/sh
 #PBS -q default
-#PBS -l walltime=24:00:00
+#PBS -l walltime=48:00:00
 #PBS -l nodes=1:ppn=40
 #PBS -r n
 #PBS -N betpap1
@@ -14,6 +14,6 @@ SRC=~/STModel-MCMC/bin
 
 SPECIES=19489-BET-PAP
 DIR=~/STModel-Two-State/species/$SPECIES
-cd $DIR; $SRC/stm2_mcmc -r res/mcmc1/resumeData.txt -t dat/mcmc_data.txt -i 20000 2>mcmc_log1.txt &
+cd $DIR; $SRC/stm2_mcmc -r res/mcmc1/resumeData.txt -t dat/mcmc_data.txt -i 40000 2>mcmc_log1.txt &
 
 wait
