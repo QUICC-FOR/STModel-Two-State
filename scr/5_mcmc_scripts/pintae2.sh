@@ -14,6 +14,6 @@ SRC=~/STModel-MCMC/bin
 
 SPECIES=18037-PIN-TAE
 DIR=~/STModel-Two-State/species/$SPECIES
-cd $DIR; $SRC/stm2_mcmc -r res/mcmc2/resumeData.txt -t dat/mcmc_data.txt -i 20000 2>mcmc_log2.txt &
+cd $DIR; $SRC/stm2_mcmc -r res/mcmc2/resumeData.txt -t dat/mcmc_data.txt -i 40000 2>mcmc_log2.txt &
 
 wait

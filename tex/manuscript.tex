@@ -113,6 +113,22 @@ An alternative more mechanistic approach is to examine the colonization rate $c$
 In such a stochastic system, the long-term expectation is that presence will only be possible where $c > e$.
 It follows that, if these rates vary along an environmental gradient, the equilibrium position of the range limit on the gradient will be the point at which $c = e$.
 
+We built a dynamic state-and-transition model (STM) using classic metapopulation theory \citep{Levins1969, Nee1992} and the foundation.
+The classical formulation of this model is inappropriate for modeling range dynamics at large scales, as it assumes colonization and extinction rates are constant in space and time and treats prevalence as a global variable.
+Holt and Keitt extended the Levins model to a scale appropriate for range dynamics by varying the parameters along an environmental gradient, showing that, under metapopulation dynamics, range limits of a theoretical species arise when an environmental gradient causes an increase in the extinction rate, a decrease in the colonization rate, or a decrease in available habitat \cite{Holt2000}.
+
+We applied a model similar to the Holt model \cite{Holt2000} to 21 forest tree species that are abundant in eastern North American temperate and boreal forests.
+Our model, which is discrete in space and time, treats the landscape as a series of patches, where the state $Y_{x,t}$ of patch $x$ at time $t$ is a function of the colonization ($c_{x,t}$) and extinction ($e_{x,t}$) rates, as well as the prevalence of the species ($phi_{x,t}$).
+Both the colonization and extinction rates were parameterized as a function of two environmental variables, one related to temperature and one precipitation, thus $c_x = f(T_x, P_x); e_x = g(T_X, P_x)$ (see \emph{Methods} for descriptions of the specific variables used).
+As our objectives concern equilibrial dynamics and the role of CE dynamics in determining species ranges, for the present we ignore temporal dynamics and focus instead on spatial variation in the model parameters.
+
+Our model is a first order Markov chain that is dynamic in space and time (though we fix the time dimension for this paper). The state of a patch depends on the state of local patches at the previous time step and the transition rates. Range boundaries emerge at equilibrium due to the effect of environmental gradients on the transition rates
+
+We apply our model exclusively to forest trees, and because our model is parameterized using forest plot data, we treat all patches as potential habitat, thus setting $k=1$ from the Levins model.
+Following this simplification, the equilibrium condition for the presence of a species on the environmental gradient is any point $x$ such that $c_x > e_x$ \citep{Holt2000}.
+It follows that the range limit of the species will occur where $c_x = e_x$.
+
+
 We designed a colonization-extinction model with a dynamic parameterization that allowed the colonization and extinction rates to vary as a function of climate.
 A major challenge to employing these models is the lack of time series data needed to estimate the parameters.
 We used a large database of permanent forest plots, containing repeated observations of xxx plots in eastern North America (n=xxx paired observations). 
@@ -178,6 +194,10 @@ Fisichelli and colleagues reported recruitement of temperate trees into boreal e
 This model enables us to more precisely define the niche in terms of the fundamental processes of colonization and extinction (fig..). 
 For example, the response of \emph(Acer saccharum) to temperature suggests that the southern range limit is a consequence of elevated extinction rates, whereas the northern limit is likely determined by low rates of colonization.
 The consequence of these two processes, when overlaid, is a range covering intermediate temperatures, bounded by low colonization in the north and high extinction in the south (fig - map).
+A further advantage of the model, particularly when compared to static correlative SDMs, is the ability to investigate the resilience of the system at the range margin.
+At the range boundary, the dominant eigenvalue, representing the response of the system to small perturbations (i.e., recovery after disturbance or the acquisition of the new equilibrium following climate change) approaches zero \cite{Scheffer2009}.
+The rate at which this value approaches zero (i.e., the relative slopes of $c$ and $e$ along the environmental gradient -- ref response curves) indicates the degree to which the range margin will respond to changes in the gradient.
+Thus, "fast" species with steep slopes along the gradient (e.g., list some species) will respond quickly to climate change, while "slow" species may lag behind climate change, producing instability and potentially promoting catastrophic changes (e.g., widespread and rapid local extinctions along the range margin) \cite{Scheffer2009, Scheffer2012}. %% NOTE - this may be a paper in itself - worth considering. It could be cool to actually measure this and then investigate clim change scenarios via simulating this model. could easily measure both the variance and the autocorrelation in such sims
 
 % can this apply to other organisms? animals prob not - dispersal is just too high
 % this deserves a paragraph here
@@ -227,11 +247,15 @@ We used a Markov Chain Monte Carlo (MCMC) sampler employing a Metropolis-Hasting
 This method has a number of advantages over the simulated annealing approach used for preliminary model selection.
 First, MCMC results in full joint posterior distributions of the parameters, allowing for a robust understanding of the uncertainty both in model parameters and predictions.
 Second, the use of a Bayesian framework allows the inclusion of prior information.
-As our parameters were all estimated on the logit scale, we used the weakly informative Cauchy priors suggested by (cite Gelman paper), with a mean of 0 and (variance?) of 10 for intercept parameters or 2.5 for slope parameters.
+As our parameters were all estimated on the logit scale, we used the weakly informative Cauchy priors suggested by Gelman and colleagues \cite{Gelman2008}, with a center of 0 and scale of 10 for intercept parameters or 2.5 for slope parameters.
 Finally, having posterior distributions of the predictors allows for the information produced by our model to be incorporated in future meta-modeling efforts that can further improve our characterization of species' ranges and our understanding of model uncertainty (cite GEB paper).
 
 For each species, we obtained xxx posterior samples...
-We assessed convergence...
+
+We assessed convergence using the multivariate potential scale reduction factor (MPSR) \cite{Brooks1998}.
+This method compares the variance within and among multiple parallel MCMC chains, where a value of 1 indicates perfect convergence (i.e., the chains are from indistinguishable distributions), and values approximately \textgreater1.1 indicate a lack of convergence.
+
+For climate variables, we used regional climate models at xx resolution \cite{McKenney2011}.
 
 \renewcommand\refname{Literature Cited}
 \bibliography{2state}{}
