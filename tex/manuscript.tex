@@ -109,11 +109,12 @@ Species distribution models (SDMs) are commonly-applied to understand the latter
 Classical SDMs often use a bioclimatic modeling approach that statistically relates presence or absence of the species to climate.
 Such models are quite powerful when describing the present realized niche of a species, however they suffer from several drawbacks when predicting the future distribution of species, and they provide no insight into the mechanisms underlying a species' response to the environment.
 An alternative more mechanistic approach is to examine the colonization rate $c$ of unoccupied patches and the extinction rate $e$ of occupied patches.
+Theoretical studies have suggested that range limits can arise due to spatial variation in these two rates \cite{Holt2000, Holt2005}.
 (here maybe briefly review the literature on the subject)
 In such a stochastic system, the long-term expectation is that presence will only be possible where $c > e$.
 It follows that, if these rates vary along an environmental gradient, the equilibrium position of the range limit on the gradient will be the point at which $c = e$.
 
-We built a dynamic state-and-transition model (STM) using classic metapopulation theory \citep{Levins1969, Nee1992} and the foundation.
+We built a dynamic state-and-transition model (STM) using classic metapopulation theory \citep{Levins1969} as the foundation.
 The classical formulation of this model is inappropriate for modeling range dynamics at large scales, as it assumes colonization and extinction rates are constant in space and time and treats prevalence as a global variable.
 Holt and Keitt extended the Levins model to a scale appropriate for range dynamics by varying the parameters along an environmental gradient, showing that, under metapopulation dynamics, range limits of a theoretical species arise when an environmental gradient causes an increase in the extinction rate, a decrease in the colonization rate, or a decrease in available habitat \cite{Holt2000}.
 

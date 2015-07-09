@@ -4,9 +4,10 @@ library(sp)
 library(raster)
 library(rgdal)
 
-spNames = c('18032-ABI-BAL', '28728-ACE-RUB', '28731-ACE-SAC', '19462-FAG-GRA', 
-		'32931-FRA-AME', '183295-PIC-GLA', '183385-PIN-STR', '195773-POP-TRE', 
-		'19290-QUE-ALB', '19447-QUE-VEL')
+spNames = c('18032-ABI-BAL', '28728-ACE-RUB', '28731-ACE-SAC', '19489-BET-PAP',
+		'19462-FAG-GRA', '32931-FRA-AME', '32929-FRA-PEN', '183295-PIC-GLA', 
+		'183319-PIN-BAN', '183385-PIN-STR', '195773-POP-TRE', '19290-QUE-ALB', 
+		'19447-QUE-VEL', '19049-ULM-AME')
 spInfoAll = read.csv('dat/speciesInfo.csv', stringsAsFactors=FALSE, colClasses='character')
 
 load('dat/map_projections.rdata')
