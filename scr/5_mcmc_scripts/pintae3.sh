@@ -1,6 +1,6 @@
 #!/bin/sh
 #PBS -q default
-#PBS -l walltime=24:00:00
+#PBS -l walltime=72:00:00
 #PBS -l nodes=1:ppn=40
 #PBS -r n
 #PBS -N pintae3
@@ -14,6 +14,6 @@ SRC=~/STModel-MCMC/bin
 
 SPECIES=18037-PIN-TAE
 DIR=~/STModel-Two-State/species/$SPECIES
-cd $DIR; $SRC/stm2_mcmc -r res/mcmc3/resumeData.txt -t dat/mcmc_data.txt -i 40000 2>mcmc_log3.txt &
+cd $DIR; $SRC/stm2_mcmc -r res/mcmc3/resumeData.txt -t dat/mcmc_data.txt -i 80000 2>mcmc_log3.txt &
 
 wait

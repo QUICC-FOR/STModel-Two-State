@@ -106,17 +106,18 @@
 Present and future rapidly changing global environmental conditions are likely to push many species to the limits of their ecological niches.
 Biogeographical theory and empirical work suggests that species can respond to these changes by adapting \emph{in situ} to the new conditions, geographically tracking ideal conditions (resulting in range shifts), and/or experiencing local extinction where conditions no longer support presence.
 Species distribution models (SDMs) are commonly-applied to understand the latter two options.
-Classical SDMs often use a bioclimatic modeling approach that statistically relates presence or absence of the species to climate.
+Classical SDMs often use a bioclimatic modeling approach that statistically relates presence or absence of the species to climate \cite{Guisan2005}.
 Such models are quite powerful when describing the present realized niche of a species, however they suffer from several drawbacks when predicting the future distribution of species, and they provide no insight into the mechanisms underlying a species' response to the environment.
-An alternative more mechanistic approach is to examine the colonization rate $c$ of unoccupied patches and the extinction rate $e$ of occupied patches.
+An alternative more mechanistic approach is to examine the colonization rate $c$ of unoccupied patches and the extinction rate $e$ of occupied patches \cite{Yackulic2015}.
 Theoretical studies have suggested that range limits can arise due to spatial variation in these two rates \cite{Holt2000, Holt2005}.
 (here maybe briefly review the literature on the subject)
 In such a stochastic system, the long-term expectation is that presence will only be possible where $c > e$.
 It follows that, if these rates vary along an environmental gradient, the equilibrium position of the range limit on the gradient will be the point at which $c = e$.
 
-We built a dynamic state-and-transition model (STM) using classic metapopulation theory \citep{Levins1969} as the foundation.
+We built a dynamic state-and-transition model (STM) using classic metapopulation theory \cite{Levins1969} as the foundation.
 The classical formulation of this model is inappropriate for modeling range dynamics at large scales, as it assumes colonization and extinction rates are constant in space and time and treats prevalence as a global variable.
 Holt and Keitt extended the Levins model to a scale appropriate for range dynamics by varying the parameters along an environmental gradient, showing that, under metapopulation dynamics, range limits of a theoretical species arise when an environmental gradient causes an increase in the extinction rate, a decrease in the colonization rate, or a decrease in available habitat \cite{Holt2000}.
+Similar models have been applied to investigate whether species distributions are at equilibrium with climate \cite{Garcia2013}.
 
 We applied a model similar to the Holt model \cite{Holt2000} to 21 forest tree species that are abundant in eastern North American temperate and boreal forests.
 Our model, which is discrete in space and time, treats the landscape as a series of patches, where the state $Y_{x,t}$ of patch $x$ at time $t$ is a function of the colonization ($c_{x,t}$) and extinction ($e_{x,t}$) rates, as well as the prevalence of the species ($phi_{x,t}$).
@@ -126,7 +127,7 @@ As our objectives concern equilibrial dynamics and the role of CE dynamics in de
 Our model is a first order Markov chain that is dynamic in space and time (though we fix the time dimension for this paper). The state of a patch depends on the state of local patches at the previous time step and the transition rates. Range boundaries emerge at equilibrium due to the effect of environmental gradients on the transition rates
 
 We apply our model exclusively to forest trees, and because our model is parameterized using forest plot data, we treat all patches as potential habitat, thus setting $k=1$ from the Levins model.
-Following this simplification, the equilibrium condition for the presence of a species on the environmental gradient is any point $x$ such that $c_x > e_x$ \citep{Holt2000}.
+Following this simplification, the equilibrium condition for the presence of a species on the environmental gradient is any point $x$ such that $c_x > e_x$ \cite{Holt2000}.
 It follows that the range limit of the species will occur where $c_x = e_x$.
 
 
@@ -190,21 +191,23 @@ Species out of equilibrium should perform poorly for the CE model and better for
 
 Fisichelli and colleagues reported recruitement of temperate trees into boreal ecosystems, supporting our conclusion that colonization of temperature trees varies as a function of temperature \cite{Fisichelli2014}.
 
-
+Non-equilibrium dynamics are likely to become increasingly important in understanding the response of many species to global change \cite{Araujo2005, Svenning2013}, and many systems will likely experience significant time lags \cite{Garcia2013, Wu2015}. 
+Thus, it is crucial to develop models capable of relaxing the equilibrium assumption. 
+Models of colonization and extinction allow species distribution to emerge from the underlying processes, thereby relaxing the equilibrium assumption \cite{Holt2000, Yackulic2015}.
 
 This model enables us to more precisely define the niche in terms of the fundamental processes of colonization and extinction (fig..). 
-For example, the response of \emph(Acer saccharum) to temperature suggests that the southern range limit is a consequence of elevated extinction rates, whereas the northern limit is likely determined by low rates of colonization.
+For example, the response of \emph{Acer saccharum} to temperature suggests that the southern range limit is a consequence of elevated extinction rates, whereas the northern limit is likely determined by low rates of colonization.
 The consequence of these two processes, when overlaid, is a range covering intermediate temperatures, bounded by low colonization in the north and high extinction in the south (fig - map).
 A further advantage of the model, particularly when compared to static correlative SDMs, is the ability to investigate the resilience of the system at the range margin.
 At the range boundary, the dominant eigenvalue, representing the response of the system to small perturbations (i.e., recovery after disturbance or the acquisition of the new equilibrium following climate change) approaches zero \cite{Scheffer2009}.
 The rate at which this value approaches zero (i.e., the relative slopes of $c$ and $e$ along the environmental gradient -- ref response curves) indicates the degree to which the range margin will respond to changes in the gradient.
-Thus, "fast" species with steep slopes along the gradient (e.g., list some species) will respond quickly to climate change, while "slow" species may lag behind climate change, producing instability and potentially promoting catastrophic changes (e.g., widespread and rapid local extinctions along the range margin) \cite{Scheffer2009, Scheffer2012}. %% NOTE - this may be a paper in itself - worth considering. It could be cool to actually measure this and then investigate clim change scenarios via simulating this model. could easily measure both the variance and the autocorrelation in such sims
+Thus, “fast” species with steep slopes along the gradient (e.g., list some species) will respond quickly to climate change, while “slow” species may lag behind climate change, producing instability and potentially promoting catastrophic changes (e.g., widespread and rapid local extinctions along the range margin) \cite{Scheffer2009, Scheffer2012}. %% NOTE - this may be a paper in itself - worth considering. It could be cool to actually measure this and then investigate clim change scenarios via simulating this model. could easily measure both the variance and the autocorrelation in such sims
 
-% can this apply to other organisms? animals prob not - dispersal is just too high
-% this deserves a paragraph here
-Our model is particularly appropriate for forest trees, which are sessile, disperse relatively short distances, and are long-lived. 
-Unique challenges confront applying such a model without these characteristics, such as most animals. 
-Animals in highly patchy environments, with local populations linked by moderate dispersal rates, are likely to be the most appropriate species for use with our model.
+Our model is particularly appropriate for forest trees, which are sessile, disperse relatively short distances, and are long-lived.
+For these organisms, the model can easily be applied in relatively continuous landscapes, as we have done, as well as in more heterogeneous landscapes \cite{Garcia2013}.
+Unique challenges confront applying such a model without these characteristics, such as most animals.
+However, similar models have been successful in describing dynamics of animal introductions \cite{Yackulic2015} and in describing occupancy in highly patchy environments \cite{Ovaskainen2004, Harrison2011}.
+
 
 \subsection*{Conclusions}
 \begin{itemize}

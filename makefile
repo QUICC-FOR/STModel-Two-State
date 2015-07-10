@@ -5,7 +5,7 @@ bibliography: tex/2state.bib
 manuscript: manuscript.pdf
 
 tex/2state.bib: /Users/mtalluto/Dropbox/work/papers/master_db.bib
-	bibtally.py tex/manuscript.tex | bibextract.py /Users/mtalluto/Dropbox/work/papers/master_db.bib >tex/2state.bib
+	bibtally.py tex/manuscript.tex | bibextract.py /Users/mtalluto/Dropbox/work/papers/master_db.bib | bibabbrev.py >tex/2state.bib
 	
 manuscript.pdf: tex/manuscript.tex tex/2state.bib tex/pnas.bst
 	cd tex; pdflatex manuscript; bibtex manuscript; pdflatex manuscript; pdflatex manuscript
