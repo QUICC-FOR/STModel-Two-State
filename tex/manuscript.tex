@@ -96,52 +96,55 @@
 
 \section*{Introduction}
 \subsection*{Objectives}
-\begin{itemize}
-	\item Describe the range limits at equilibrium of ecologically important trees in eastern North America as predicted by metapopulation theory
-	\item Evaluate the relationship between macroclimatic variables and colonization and extinction rates
-	\item Test quantitatively whether the equilibrium prediction matches the contemporary observed range
-	\item Compare among species the predicted resilience to environmental change 
-\end{itemize}
-
-Present and future rapidly changing global environmental conditions are likely to push many species to the limits of their ecological niches.
-Biogeographical theory and empirical work suggests that species can respond to these changes by adapting \emph{in situ} to the new conditions, geographically tracking ideal conditions (resulting in range shifts), and/or experiencing local extinction where conditions no longer support presence.
-Species distribution models (SDMs) are commonly-applied to understand the latter two options.
-Classical SDMs often use a bioclimatic modeling approach that statistically relates presence or absence of the species to climate \cite{Guisan2005}.
-Such models are quite powerful when describing the present realized niche of a species, however they suffer from several drawbacks when predicting the future distribution of species, and they provide no insight into the mechanisms underlying a species' response to the environment.
-An alternative more mechanistic approach is to examine the colonization rate $c$ of unoccupied patches and the extinction rate $e$ of occupied patches \cite{Yackulic2015}.
-Theoretical studies have suggested that range limits can arise due to spatial variation in these two rates \cite{Holt2000, Holt2005}.
-(here maybe briefly review the literature on the subject)
-In such a stochastic system, the long-term expectation is that presence will only be possible where $c > e$.
-It follows that, if these rates vary along an environmental gradient, the equilibrium position of the range limit on the gradient will be the point at which $c = e$.
-
-We built a dynamic state-and-transition model (STM) using classic metapopulation theory \cite{Levins1969} as the foundation.
-The classical formulation of this model is inappropriate for modeling range dynamics at large scales, as it assumes colonization and extinction rates are constant in space and time and treats prevalence as a global variable.
-Holt and Keitt extended the Levins model to a scale appropriate for range dynamics by varying the parameters along an environmental gradient, showing that, under metapopulation dynamics, range limits of a theoretical species arise when an environmental gradient causes an increase in the extinction rate, a decrease in the colonization rate, or a decrease in available habitat \cite{Holt2000}.
-Similar models have been applied to investigate whether species distributions are at equilibrium with climate \cite{Garcia2013}.
-
-We applied a model similar to the Holt model \cite{Holt2000} to 21 forest tree species that are abundant in eastern North American temperate and boreal forests.
-Our model, which is discrete in space and time, treats the landscape as a series of patches, where the state $Y_{x,t}$ of patch $x$ at time $t$ is a function of the colonization ($c_{x,t}$) and extinction ($e_{x,t}$) rates, as well as the prevalence of the species ($phi_{x,t}$).
-Both the colonization and extinction rates were parameterized as a function of two environmental variables, one related to temperature and one precipitation, thus $c_x = f(T_x, P_x); e_x = g(T_X, P_x)$ (see \emph{Methods} for descriptions of the specific variables used).
-As our objectives concern equilibrial dynamics and the role of CE dynamics in determining species ranges, for the present we ignore temporal dynamics and focus instead on spatial variation in the model parameters.
-
-Our model is a first order Markov chain that is dynamic in space and time (though we fix the time dimension for this paper). The state of a patch depends on the state of local patches at the previous time step and the transition rates. Range boundaries emerge at equilibrium due to the effect of environmental gradients on the transition rates
-
-We apply our model exclusively to forest trees, and because our model is parameterized using forest plot data, we treat all patches as potential habitat, thus setting $k=1$ from the Levins model.
-Following this simplification, the equilibrium condition for the presence of a species on the environmental gradient is any point $x$ such that $c_x > e_x$ \cite{Holt2000}.
-It follows that the range limit of the species will occur where $c_x = e_x$.
+%%% STRUCTURE AHEAD
+% P1: general outline of the story, including the basics of the theory so the reader can grok the main point
+% P2: first sentence is the headline - the big result. Follow with a general description of the dataset, some of the cool bits of our study, and end with the main objectives/questions
+% P3: what is the state of the art with resepct to north american forests? why do we care about this? this is completely lacking from what I have below. Can probably glean something from the NSERC grant to start
+% P4: some details about the model and how it adds to what has been done
+% P5 (or end of P4): A summary of how we went about our study and how the pieces addressed the questions
+%% NOTE - keep ALL of the specifics about the methods out of the intro. Put just as much as is needed into the results, and rest in methods or appendix
 
 
-We designed a colonization-extinction model with a dynamic parameterization that allowed the colonization and extinction rates to vary as a function of climate.
+
+% this paragraph might be a bit too modeling focused - find and focus on the STORY
+Present and future rapidly changing global environmental conditions are likely to push many species to the limits of their ecological niches and lead to mismatches between species ranges and local environmental conditions (cite).
+A comprehensive understanding of the mechanisms producing species range boundaries is thus a crucial aspect of predicting the response to global change.
+A prediction of niche theory (cite) is that species will occur where environmental conditions permit positive population growth rates.
+Species distribution models (SDMs) are a common application of niche theory; often these models use a bioclimatic modeling approach that statistically relates presence or absence of the species to climate \cite{Guisan2005}.
+Such models are quite powerful when describing the present realized niche of a species, however they are largely phenomenological and thus may fail when projecting into the future due to nonlinear responses to environmental conditions and non-equilibrial dynamics.
+A related drawback is that such models offer little insight into the mechanisms driving the response to the environment.
+Metapopulation theory \cite{Levins1969} offers an appealing more mechanistic alternative, where subpopulations in a landscape are linked by dispersal and occupancy is governed by stochastic colonizations and extinctions.
+When the rate of colonization ($c$) and extinction ($e$) vary with environmental gradients at large scales, metapopulation theory predicts that colonization-extinction (herefter C-E) dynamics can generate range limits \cite{Holt2000, Holt2005}.
+Because the fundamental rates $c$ and $e$ vary with climate, this framework is coherent with the predictions of niche theory, but it offers a compromise between highly detailed individual-based models and phenomenological SDMs \cite{Harrison2011, Yackulic2015}.
+
+We applied a spatially heterogenous state-and-transition model (STM) based on classic metapopulation theory \cite{Levins1969, Holt2000} to show that variation in colonization and extinction rates along climatic gradients produces range limits for several abundant North American tree species.
+
+
 A major challenge to employing these models is the lack of time series data needed to estimate the parameters.
 We used a large database of permanent forest plots, containing repeated observations of xxx plots in eastern North America (n=xxx paired observations). 
-We selected the 21 most abundant species (based on the number of observations in the database) as the focus of this study.
-We performed model selection, using 6 macroclimatic variables, then parameterized the model using Markov Chain Monte Carlo (MCMC) sampling and addressed the following questions for each selected species:
+Our main objectives were to address the following questions:
 \begin{enumerate}
-	\item Are range limits driven by colonization-extinction dynamics?
-	\item To what extent are the species studied presently out of equilibrium with the environment?
-	\item How resilient are range limits to perturbations in the environment?
-	\item Which climatic variables best describe colonization and extinction rates?
+	\item Do colonization and extinction rates vary as a function of climate?
+	\item Are range limits of the species studied governed by C-E dynamics?
+	\item Are presently observed species ranges at equilibrium with current climatic conditions?
 \end{enumerate}
+
+The classical Levins model is inappropriate for modeling range dynamics at large scales, as it assumes colonization and extinction rates are constant in space and time and allows global dispersal from anywhere in the metapopulation. 
+We built a model similar to Holt's extension of the Levins model \cite{Holt2000}, where colonization and extinction rates vary along an environmental gradient, with the addition of local, rather than global dispersal.
+Our model, which is discrete in space and time, treats the landscape as a series of patches, where the state $Y_{x,t}$ of patch $x$ at time $t$ can take one of two states: 1 (species is present) or 0 (absence).
+Empty patches are colonized based on the spatially heterogeneous colonization rate $c_x$ and the local prevalence $\phi_{x}$ (i.e., the proportion of patches in the local neighborhood that are occupied):
+\begin{equation}
+	Pr(Y_{x,t+1} = 1 \given Y_{x,t} = 0) = c_{x}\phi_{x,t}
+\end{equation}
+Occupied patches go extinct stochastically based on the extinction rate $e_x$:
+\begin{equation}
+	Pr(Y_{x,t+1} = 0 \given Y_{x,t} = 1) = e_{x}
+\end{equation}
+In this system, the equilibrium condition for the presence of a species on the environmental gradient is any point $x$ such that $c_x > e_x$ \cite{Holt2000}.
+It follows that the range limit of the species will occur where $c_x = e_x$.
+We parameterized the colonization and extinction rates as a function of two environmental variables, one related to temperature and one precipitation, thus $c_x = f(T_x, P_x); e_x = g(T_X, P_x)$, where $T_x$ and $P_x$ are the temperature and precipitation at location $x$ (see \emph{Methods} for descriptions of the specific climate variables used).
+
+
 
 %% here expand a bit on each question above and perhaps provide a testable hypothesis.
 We evaluated the model by reserving half of the observed sample pairs.
@@ -158,19 +161,38 @@ Species out of equilibrium should perform poorly for the CE model and better for
 
 
 \section*{Results}
-\begin{itemize}
-	\item response of C-E to env variables
-	\item validation of models w.r.t. reserved data (how good is the model)
-	\item ability of the model to predict the range (equilibrium)
-	\item rate of response to disequilibrium
-	\item ability of model to predict response to environmental change
-\end{itemize}
+
+\subsection*{Model Validation}
+We first obtained maximum likelihood estimates for all model parameters using the best-supported model, estimated via simulated annealing and fit using half of the data.
+We then used the parameters to predict the transition probabilities for the reserved half of the data.
+To determine how well the model predicted observed colonizations and extinctions, we computed two common validation statistics, xxxx (TSS) and the area under the receiver operating curve (RSS) (CITE).
+For all species, the models performed well, with ROC > 0.96 and TSS > 0.81 (Table \ref{tab:validation}).
+
+\subsection*{Response of colonization and extinction rate to climate}
+Colonization and/or extinction rates of most species (xx of 21) showed strong responses to either temperature or precipitation gradients (Fig. \ref{fig:response_curves}, Appendix xx).
+The major exceptions to this pattern were the conifers \emph{Abies balsamea}, \emph{Picea glauca}, \emph{Pinus banksiana}, and (others??).
+Extinction rates in these species were flat with respect to climate, and colonization rates showed weak responses with high posterior variance.
+
+Temperature was a significant limiting factor for many species, as demonstrated by colonization and extinction curves that crossed, indicating the range limit as determined by CE dynamics.
+xx of xx broadleaf trees (\emph{Acer rubrum}, \emph{A. saccharum}, \emph{Fagus grandifolia}, \emph{Populous tremuloides}, \emph{Quercus alba}, \emph{Q. velutina}, and \emph{Ulmus americana}) and xx of xx conifers(\emph{Pinus strobus}) (and others??) were limited by CE dynamics at both the warm and cold end of their ranges.
+An additional xx broadleaf trees (\emph{Betuyla papyrifera}, \emph{Fraxinus americana} were limited by CE dynamics at the warm but not the cold end of the range, and \emph{F. pennsylvanica} was limited at the cold end of the range.
+xx conifers (\emph{Abies balsamea}, \emph{Picea glauca}, \emph{Pinus banksiana}) were not limited by CE dynamics with respect to temperature.
+
+In addition to temperature dependence, xx of xx species showed range limits with respect to precipitation, consisting of \emph{A. saccharum} (limited by greater seasonality), \emph{Fagus grandifolia} (limited by wet and dry summers), and \emph{Quercus alba} and \emph{Ulmus americana} (limited by low seasonality).
+
+\subsection*{Model predictions of range limits}
+Here we compare the STM to the SDM in its ability to predict presence/absence at equilibrium in the temporary plots.
+Waiting for the temp plot data from Steve before I do this.
+
+\subsection*{Resilience/Rate of response to perturbation}
+
 \begin{figure}
 	\includegraphics[width=5in]{../img/response_curves.pdf}
 	\caption{
-		Response of colonization (blue) and extinction (red) rates of selected species to the environment.
-		Solid lines are the median predictions of xx posterior samples, and shaded regions show 95\% Bayesian credible intervals.
+		Response of colonization (blue) and extinction (red) rates of two broadleaf trees (top two rows) and two conifers (bottom two rows) to temperature (left column) and precipitation (right column).
+		Solid lines are the median posterior predictions, and shaded regions show 95\% credible intervals.
 		Species not shown here can be found in supporting information.
+		NOTE: so far, I like Acer saccharum, Betula papyrifera, Abies balsamea, and Quercus alba for the 4 species to use here and in the second figure
 	}
 	\label{fig:response_curves}
 \end{figure}
@@ -189,6 +211,14 @@ Species out of equilibrium should perform poorly for the CE model and better for
 
 \section*{Discussion}
 
+\subsection*{Colonization-extinction dynamics as the determinant of range limits}
+
+
+\subsection*{disorganized stuff}
+Holt and Keitt extended the Levins model to a scale appropriate for range dynamics by varying the parameters along an environmental gradient, showing that, under metapopulation dynamics, range limits of a theoretical species arise when an environmental gradient causes an increase in the extinction rate, a decrease in the colonization rate, or a decrease in available habitat \cite{Holt2000}.
+Similar models have been applied to investigate whether species distributions are at equilibrium with climate \cite{Garcia2013}.
+
+
 Fisichelli and colleagues reported recruitement of temperate trees into boreal ecosystems, supporting our conclusion that colonization of temperature trees varies as a function of temperature \cite{Fisichelli2014}.
 
 Non-equilibrium dynamics are likely to become increasingly important in understanding the response of many species to global change \cite{Araujo2005, Svenning2013}, and many systems will likely experience significant time lags \cite{Garcia2013, Wu2015}. 
@@ -196,7 +226,7 @@ Thus, it is crucial to develop models capable of relaxing the equilibrium assump
 Models of colonization and extinction allow species distribution to emerge from the underlying processes, thereby relaxing the equilibrium assumption \cite{Holt2000, Yackulic2015}.
 
 This model enables us to more precisely define the niche in terms of the fundamental processes of colonization and extinction (fig..). 
-For example, the response of \emph{Acer saccharum} to temperature suggests that the southern range limit is a consequence of elevated extinction rates, whereas the northern limit is likely determined by low rates of colonization.
+For example, the response of \emph{Acer saccharum} to temperature suggests that the northern range limit is likely determined by the dispersal and establishment of seedlings, whereas the southern range limit is a consequence of elevated extinction rates despite much higher colonization rates compared to the northern limit (Fig. \ref{fig:response_curves}).
 The consequence of these two processes, when overlaid, is a range covering intermediate temperatures, bounded by low colonization in the north and high extinction in the south (fig - map).
 A further advantage of the model, particularly when compared to static correlative SDMs, is the ability to investigate the resilience of the system at the range margin.
 At the range boundary, the dominant eigenvalue, representing the response of the system to small perturbations (i.e., recovery after disturbance or the acquisition of the new equilibrium following climate change) approaches zero \cite{Scheffer2009}.

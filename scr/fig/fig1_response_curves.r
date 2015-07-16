@@ -1,9 +1,17 @@
 #!/usr/bin/Rscript
 varNames = readRDS("dat/climVariableNames.rds")
-spNames = c('18032-ABI-BAL', '28728-ACE-RUB', '28731-ACE-SAC', '19489-BET-PAP',
-		'19462-FAG-GRA', '32931-FRA-AME', '32929-FRA-PEN', '183295-PIC-GLA', 
-		'183319-PIN-BAN', '183385-PIN-STR', '195773-POP-TRE', '19290-QUE-ALB', 
-		'19447-QUE-VEL', '19049-ULM-AME')
+
+# ugly ones
+spNames = c('18032-ABI-BAL', '28728-ACE-RUB', '183295-PIC-GLA', '183302-PIC-MAR', '183319-PIN-BAN')
+
+# nice ones
+spNames = c('28731-ACE-SAC', '19481-BET-ALL', '19489-BET-PAP', '195773-POP-TRE', '19290-QUE-ALB')
+
+## spNames = c('18032-ABI-BAL', '28728-ACE-RUB', '28731-ACE-SAC', '19481-BET-ALL', 
+## 		'19489-BET-PAP', '19462-FAG-GRA', '32931-FRA-AME', '32929-FRA-PEN', 
+## 		'18086-LIR-TUL', '27821-NYS-SYL', '183295-PIC-GLA', '183302-PIC-MAR',  
+## 		'183319-PIN-BAN', '183385-PIN-STR', '195773-POP-TRE', '19290-QUE-ALB', 
+## 		'19280-QUE-NIG', '19408-QUE-RUB', '19447-QUE-VEL', '19049-ULM-AME')
 spInfoAll = read.csv('dat/speciesInfo.csv', stringsAsFactors=FALSE, colClasses='character')
 
 pdf(w=6.5, h=8, file="img/response_curves.pdf")
