@@ -1,20 +1,23 @@
 #!/usr/bin/Rscript
 varNames = readRDS("dat/climVariableNames.rds")
 
-# ugly ones
-spNames = c('18032-ABI-BAL', '28728-ACE-RUB', '183295-PIC-GLA', '183302-PIC-MAR', '183319-PIN-BAN')
-
-# nice ones
-spNames = c('28731-ACE-SAC', '19481-BET-ALL', '19489-BET-PAP', '195773-POP-TRE', '19290-QUE-ALB')
+## species chosen as the 4 example species
+spNames = c('19481-BET-ALL', '183295-PIC-GLA', '195773-POP-TRE', '19408-QUE-RUB')
 
 ## spNames = c('18032-ABI-BAL', '28728-ACE-RUB', '28731-ACE-SAC', '19481-BET-ALL', 
 ## 		'19489-BET-PAP', '19462-FAG-GRA', '32931-FRA-AME', '32929-FRA-PEN', 
 ## 		'18086-LIR-TUL', '27821-NYS-SYL', '183295-PIC-GLA', '183302-PIC-MAR',  
-## 		'183319-PIN-BAN', '183385-PIN-STR', '195773-POP-TRE', '19290-QUE-ALB', 
+## 		'183385-PIN-STR', '195773-POP-TRE', '19290-QUE-ALB', 
 ## 		'19280-QUE-NIG', '19408-QUE-RUB', '19447-QUE-VEL', '19049-ULM-AME')
 spInfoAll = read.csv('dat/speciesInfo.csv', stringsAsFactors=FALSE, colClasses='character')
 
-pdf(w=6.5, h=8, file="img/response_curves.pdf")
+paperwidth = 6.5
+dpi = 600
+hToWRatio = 1.5
+width = as.integer(dpi*paperwidth)
+height = as.integer(width * hToWRatio)
+fontsize = 15
+png(w=width, h=height, file="img/response_curves.png", pointsize=fontsize, res = dpi)
 par(mfrow=c(4,2), bty='n', mar=c(3,3,0.5,0.5), oma=c(0,0,0,2), mgp=c(2,0.5,0), tck=-0.03)
 for(spName in spNames)
 {

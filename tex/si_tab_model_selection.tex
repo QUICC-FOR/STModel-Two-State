@@ -1,0 +1,37 @@
+\begin{table}[tb]
+\begin{threeparttable}
+\label{tab:model_selection}
+\caption{Model selection statistics for the best model selected for each species}
+\begin{tabular}{llllll}
+\toprule
+Scientific name    & Number of parameters & $\Delta$AIC\tnote{1} & AIC$_w$\tnote{2} & TSS\tnote{2} \\ 
+\midrule
+{\it Abies balsamea}          &   & 2.15      & 0.74   & 0.8545  \\
+{\it Acer rubrum}             &   & 0.36      & 0.27   & 0.8854  \\
+{\it Acer saccharum}          &   & 0.82      & 0.36   & 0.9377  \\
+{\it Betula alleghaniensis}   &   & 1.45      & 0.35   & 0.9208  \\
+{\it Betula papyrifera}       &   & 0.90      & 0.32   & 0.8856  \\
+{\it Fagus grandifolia}       &   & 0.52      & 0.41   & 0.9135  \\
+{\it Fraxinus americana}      &   & 0.28      & 0.23   & 0.8741  \\
+{\it Fraxinus pennsylvanica}  &   & 1.80      & 0.40   & 0.8379  \\
+{\it Liriodendron tulipifera} &   & 0.75      & 0.30   & 0.9162  \\
+{\it Nyssa sylvatica}         &   & 0.35      & 0.18   & 0.8622  \\
+{\it Picea glauca}            &   & 0.64      & 0.12   & 0.8405  \\
+{\it Picea mariana}           &   & 1.39      & 0.34   & 0.9148  \\
+{\it Pinus strobus}           &   & 0.032     & 0.14   & 0.8978  \\
+{\it Pinus taeda}             &   & 0.99      & 0.30   & 0.9278  \\
+{\it Populus tremuloides}     &   & 0.65      & 0.12   & 0.8830  \\ 
+{\it Quercus alba}            &   & 0.15      & 0.27   & 0.9454  \\
+{\it Quercus nigra}           &   & 0.34      & 0.092  & 0.8927  \\
+{\it Quercus rubra}           &   & 1.81      & 0.50   & 0.8980  \\
+{\it Quercus velutina}        &   & 1.11      & 0.41   & 0.8940  \\
+{\it Ulmus americana}         &   & 0.79      & 0.13   & 0.8168  \\ 
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\item [1] $\Delta$AIC refers to absolute AIC difference between the selected model and the next best model in the set.
+\item [2] AIC$_w$ can be interpreted as the probability that this model is the best model in the set (cite Burnham and Anderson).
+\item [3] TSS is a measure of the ability of the model to predict observed colonizations and extinctions that were reserved (i.e., not used in parameter estimation). A value of 1 indicates perfect prediction.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}

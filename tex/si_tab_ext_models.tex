@@ -1,27 +1,4 @@
-\documentclass[11pt]{article}
 
-\usepackage[margin=0.5in]{geometry}
-\usepackage{pdflscape}
-
-% use proper unicode fonts
-\usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
-
-\usepackage{amsmath} % for better display of equations
-
-\usepackage{caption}
-%\captionsetup{labelsep=none,textformat=empty} % for final
-\captionsetup{labelformat=simple} % for drafts
-\usepackage{booktabs}
-\usepackage{multirow}
-\usepackage[flushleft]{threeparttable}
-
-\begin{document}
-
-%\newgeometry{margin=1cm}
-%\begin{landscape}
-
-\newcommand{\ts}{\scriptsize}
 \begin{table}[tb]
 \small
 \begin{threeparttable}
@@ -70,9 +47,6 @@
 \multirow{2}{*}{\it Picea mariana} & \multirow{2}{*}{MAT} & \multirow{2}{*}{MPWQ} & x.xx & x.xx & x.xx & x.xx &  \\
 &  &  & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} & {\ts (x.xx, x.xx)} &  \\
 
-\multirow{2}{*}{\it Pinus banksiana} & \multirow{2}{*}{MAT} & \multirow{2}{*}{MAP} & -3.30 & -1.32 & -0.62 & -1.17 &  \\
-&  &  & {\ts (-4.09 -2.58)} & {\ts (-2.72 -0.02)} & {\ts (-0.86 -0.37)} & {\ts (-1.87 -0.50)} &  \\
-
 \multirow{2}{*}{\it Pinus strobus} & \multirow{2}{*}{MAT} & \multirow{2}{*}{MPWQ} & -3.29 & 0.16 & 0.15 & 0.81 & -0.19 \\
 &  &  & {\ts (-3.50 -3.08)} & {\ts (-0.15  0.44)} & {\ts (-0.06  0.36)} & {\ts (0.46  1.16)} & {\ts (-0.39  0.00)} \\
 
@@ -113,10 +87,3 @@ MPWQ: Mean precipitation, warmest quarter; PS: Precipitation seasonality}
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
-
-%\end{landscape}
-%\restoregeometry
-
-\end{document}
-
-

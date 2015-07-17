@@ -4,13 +4,16 @@ library(sp)
 library(raster)
 library(rgdal)
 
-spNames = c('18032-ABI-BAL', '28728-ACE-RUB', '28731-ACE-SAC', '19481-BET-ALL', 
-		'19489-BET-PAP', '19462-FAG-GRA', '32931-FRA-AME', '32929-FRA-PEN', 
-		'18086-LIR-TUL', '27821-NYS-SYL', '183295-PIC-GLA', '183302-PIC-MAR',  
-		'183385-PIN-STR', '195773-POP-TRE', '19290-QUE-ALB', 
-		'19280-QUE-NIG', '19408-QUE-RUB', '19447-QUE-VEL', '19049-ULM-AME')
+## species chosen as the 4 example species
+spNames = c('19481-BET-ALL', '183295-PIC-GLA', '195773-POP-TRE', '19408-QUE-RUB')
+
+## spNames = c('18032-ABI-BAL', '28728-ACE-RUB', '28731-ACE-SAC', '19481-BET-ALL', 
+## 		'19489-BET-PAP', '19462-FAG-GRA', '32931-FRA-AME', '32929-FRA-PEN', 
+## 		'18086-LIR-TUL', '27821-NYS-SYL', '183295-PIC-GLA', '183302-PIC-MAR',  
+## 		'183385-PIN-STR', '195773-POP-TRE', '19290-QUE-ALB', 
+## 		'19280-QUE-NIG', '19408-QUE-RUB', '19447-QUE-VEL', '19049-ULM-AME')
 		
-spNames = c('28731-ACE-SAC', '19481-BET-ALL', '19489-BET-PAP', '195773-POP-TRE', '19290-QUE-ALB')
+
 spInfoAll = read.csv('dat/speciesInfo.csv', stringsAsFactors=FALSE, colClasses='character')
 
 load('dat/map_projections.rdata')
@@ -42,13 +45,22 @@ sdm.colors = pres.colors
 exp.colors = colorRampPalette(c('#ffffff', '#eff3ff', '#6baed6', '#08519c'))
 con.colors = colorRampPalette(c('#ffffff', '#fee5d9', '#fb6a4a', '#a50f15'))
 stay.colors = colorRampPalette(c('#ffffff', '#efedf5', '#bcbddc', '#756bb1'))
-cat.colors = c('#1f78b4', '#b2df8a', '#fb9a99')
+cat.3colors = c('#1f78b4', '#b2df8a', '#fb9a99')
+cat.co.colors = c('#1f78b4', '#fb9a99')
+cat.ex.colors = c('#1f78b4', '#b2df8a')
 cex.title = 0.5
 leg.args = list(cex.axis=0.6)
 i = 1
 thresh = 0.1
-png(w=4750, h=6000, file="img/posterior_maps.png", pointsize=12*(6000/480)*.65)
-par(mfrow=c(5,3), mar=c(2,2,2,1), oma=c(0,0,0,2))
+
+paperwidth = 6.5
+dpi = 600
+hToWRatio = 1
+width = as.integer(dpi*paperwidth)
+height = as.integer(width * hToWRatio)
+fontsize = 15
+png(w=width, h=height, file="img/posterior_maps.png", pointsize=fontsize, res = dpi)
+par(mfrow=c(4,3), mar=c(0.5,0,0,0.5), oma=c(0,1,1,0))
 
 for(spName in spNames)
 {
@@ -83,15 +95,17 @@ for(spName in spNames)
 	grid.cat[contract] = 2
 	grid.cat[absent] = NA
 	
-## 	plot(grid.expand, col=exp.colors(100), xaxt='n', yaxt='n', axis.args=leg.args)
-## 	plot(grid.contract, col=con.colors(100), xaxt='n', yaxt='n', axis.args=leg.args, add=TRUE)
-## 	plot(grid.stay, col=stay.colors(100), xaxt='n', yaxt='n', axis.args=leg.args, add=TRUE)
-## 	plotbg()
-## 	if(i == 1) 	mtext("STM - SDM", cex=cex.title)
-	
+	if(length(contract) == 0) {
+		cat.colors = cat.ex.colors
+	} else if(length(expand) == 0) {
+		cat.colors = cat.co.colors
+	} else {
+		cat.colors = cat.3colors
+	}
+		
 	plot(grid.cat, col=cat.colors, xaxt='n', yaxt='n', legend=FALSE)
 	plotbg()
-
+	if(i == 1) 	mtext("Range disequilibrium", cex=cex.title)
 
 	i = i+1
 }
