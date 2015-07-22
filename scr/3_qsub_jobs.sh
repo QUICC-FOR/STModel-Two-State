@@ -1,6 +1,6 @@
 #!/bin/sh
 DIR=~/STModel-Two-State
-declare -a ScriptList=(abibal acesac picgla picmar ulmame fraame quealb querub faggra poptre betpap)
+declare -a ScriptList=(liqsty caralb queste cargla quefal tsucan junvir pinech thuocc picrub)
 
 for scr in ${ScriptList[@]}
 do
