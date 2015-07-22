@@ -7,7 +7,10 @@ library(rgdal)
 print("Setting up variables and reading files")
 annealFraction = 0.5
 
-speciesList = readRDS('dat/speciesList.rds')
+# speciesList = readRDS('dat/speciesList.rds')
+speciesList = c('19027-LIQ-STY','NA-CAR-ALB','19422-QUE-STE','19231-CAR-GLA','19277-QUE-FAL',
+		'183397-TSU-CAN','18048-JUN-VIR','183335-PIN-ECH','505490-THU-OCC','18034-PIC-RUB')
+
 transitionClimate = readRDS('dat/transitionClimate_scaled.rds')
 load('dat/map_projections.rdata')
 

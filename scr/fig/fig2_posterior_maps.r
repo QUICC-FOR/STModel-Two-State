@@ -5,7 +5,8 @@ library(raster)
 library(rgdal)
 
 ## species chosen as the 4 example species
-spNames = c('19481-BET-ALL', '183295-PIC-GLA', '195773-POP-TRE', '19408-QUE-RUB')
+#spNames = c('19481-BET-ALL', '183295-PIC-GLA', '195773-POP-TRE', '19408-QUE-RUB')
+spNames = c('19481-BET-ALL', '18037-PIN-TAE', '195773-POP-TRE', '19408-QUE-RUB')
 
 ## spNames = c('18032-ABI-BAL', '28728-ACE-RUB', '28731-ACE-SAC', '19481-BET-ALL', 
 ## 		'19489-BET-PAP', '19462-FAG-GRA', '32931-FRA-AME', '32929-FRA-PEN', 
