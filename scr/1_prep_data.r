@@ -1,70 +1,70 @@
 #!/usr/bin/Rscript
+library(ade4)
+library(raster)
+library(rgdal)
 
-library(argparse)
-# handle command line arguments
-parser = ArgumentParser()
-parser$add_argument("-s", "--species", default="28731-ACE-SAC", help="desired species code")
-argList = parser$parse_args()
-spName = argList$species
-# set seed - drawn from sample(1:1e6, 1)
-## set.seed(588533)
-
-#-------------------
-#  Load and prepare data
-#-------------------
-
-infile = paste("dat/", spName, "/transition_twostate_", spName, ".rdata", sep="")
-load(infile)
-
-# get and scale the climate variables
-colnames(stateData)[which(colnames(stateData) == spName)] = "presence"
-climVars = which(!(colnames(stateData) %in% c('presence', 'plot_id', 'year_measured', 'lat', 'lon')))
-climVarNames = colnames(stateData)[climVars]
-stateData.clim.scaled = scale(stateData[,climVars])
-
-# save the transformation as a function
-scalefunc = function(sc_mean, sc_sd) {
-	return(list(
-		scale = function(dat)
-		{
-			for(nm in names(sc_mean)) dat[,nm] = (dat[,nm] - sc_mean[nm])/sc_sd[nm]
-			return(dat)
-		},
-		unscale = function(dat)
-		{
-			for(nm in names(sc_mean)) dat[,nm] = dat[,nm]*sc_sd[nm] + sc_mean[nm]
-			return(dat)
-		},
-		means = sc_mean,
-		sds = sc_sd))
-}
-clim.scale = scalefunc(attr(stateData.clim.scaled, "scaled:center"), attr(stateData.clim.scaled, "scaled:scale"))
-
-stateData.scaled = cbind(stateData[,-climVars], stateData.clim.scaled)
-transitionData.scaled = clim.scale$scale(transitionData)
-
-# remove extremely long sampling intervals from the dataset 
-# (to avoid the possibility of 2 transitions in the space we missed)
-intervals = transitionData.scaled$year2 - transitionData.scaled$year1
-indices = which(intervals <= 15)
-transitionData.scaled = transitionData.scaled[indices,]
+# set up map projections
+P4S.latlon = CRS("+proj=longlat +datum=WGS84")
+stmMapProjection = CRS("+init=epsg:5070") # albers equal area conic NAD-83 north america
+save(P4S.latlon, stmMapProjection, file="dat/map_projections.rdata")
 
 
-# subset the data for the SDM
-# select only a single row for each plot (to avoid too much spatial duplication)
-rows = sapply(unique(stateData.scaled$plot_id), function(i) {
-	candidates = which(stateData.scaled$plot_id == i)
-	if(length(candidates) == 1) candidates else sample(candidates, 1)
-	})
-stateData.subset = stateData.scaled[rows,]
-
-
-save(stateData.subset, transitionData.scaled, spName, climVars, 
-		climVarNames, clim.scale, file=paste("dat/", spName, "/", spName, "_processed.rdata", sep=""))
-
-
-climGrid.raw = read.csv("dat/SDMClimate_grid.csv")
+climDat = readRDS('dat/raw/plotClimate_raw.rds')
+transitionClimDat = readRDS('dat/raw/transitionClimate_raw.rds')
+climGrid.raw = read.csv("dat/raw/SDMClimate_grid.csv")
 climGrid.raw = climGrid.raw[complete.cases(climGrid.raw),]
-# apply transformation to the climate grid
-climGrid.scaled = clim.scale$scale(climGrid.raw)
-saveRDS(climGrid.scaled, file = paste("dat/", spName, "/", spName, "_climGrid_scaled.rds", sep=""))
+
+# drop the variable that is causing problems (gdd period 2)
+# inspection of the data suggested that this variable is corrupted; it is NOT GDD
+climDat = climDat[,-7]
+
+# PCA
+var.pca = dudi.pca(climDat, scannf=FALSE, nf = 5)
+print("PCA cumulative variance explained:")
+print(var.pca$eig / sum(var.pca$eig))
+varCor = cor(climDat[-c(1,2)])
+contrib = inertia.dudi(var.pca, row = FALSE, col = TRUE)$col.abs
+
+# procedure:
+# select variables that are relatively uncorrelated to each other
+# use PCA to find variables that explain unique variance
+# start with mean annual pp and temp (as overall representative)
+# in practice, there are 3 uncorrelated temp and 4 precip variables
+# we drop one precip variable to have 3 of each
+nonCorVars = intersect(names(varCor[which(abs(varCor[,"annual_mean_temp"])<0.7),
+		"annual_mean_temp"]), names(varCor[which(abs(varCor[,"tot_annual_pp"])<0.7),
+		"tot_annual_pp"]))
+print(contrib[nonCorVars,])
+
+selectedVars = c('annual_mean_temp', 'mean_diurnal_range', 'mean_temp_wettest_quarter',
+		'tot_annual_pp', 'pp_seasonality', 'pp_warmest_quarter')
+		
+# extract only the climate variables we need
+climCols = which(colnames(climDat) %in% selectedVars)
+climDatVars = climDat[, climCols]
+trClimCols = which(colnames(transitionClimDat) %in% selectedVars)
+transClimDatVars = transitionClimDat[, trClimCols]
+cgDatCols = which(colnames(climGrid.raw) %in% selectedVars)
+climGrid.unscaled = climGrid.raw[,cgDatCols]
+
+## scale the variables and save the scaling
+climVars.scaled = scale(climDatVars)
+trClim.scaled = scale(transClimDatVars, center = attr(climVars.scaled, "scaled:center"),
+		scale = attr(climVars.scaled, "scaled:scale"))
+climGrid.scaled = scale(climGrid.unscaled, center = attr(climVars.scaled, "scaled:center"),
+		scale = attr(climVars.scaled, "scaled:scale"))
+climScaling = list(center = attr(climVars.scaled, "scaled:center"),
+		scale = attr(climVars.scaled, "scaled:scale"))
+saveRDS(climScaling, "dat/climate_scaling.rds")
+
+## add plot and year information back into the dataframes
+climVars.scaled = cbind(climDat[,c(1,2)], climVars.scaled)
+trClim.scaled = cbind(transitionClimDat[,1:3], trClim.scaled)
+climGrid.unscaled = cbind(climGrid.raw[,1:2], climGrid.unscaled)
+climGrid.scaled = cbind(climGrid.raw[,1:2], climGrid.scaled)
+
+## save climate variables
+saveRDS(climVars.scaled, "dat/plotClimate_scaled.rds")
+saveRDS(trClim.scaled, "dat/transitionClimate_scaled.rds")
+saveRDS(climGrid.unscaled, "dat/climateGrid_unscaled.rds")
+saveRDS(climGrid.scaled, "dat/climateGrid_scaled.rds")
