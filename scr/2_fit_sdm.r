@@ -8,8 +8,8 @@ print("Setting up variables and reading files")
 annealFraction = 0.5
 
 # speciesList = readRDS('dat/speciesList.rds')
-speciesList = c('19027-LIQ-STY','NA-CAR-ALB','19422-QUE-STE','19231-CAR-GLA','19277-QUE-FAL',
-		'183397-TSU-CAN','18048-JUN-VIR','183335-PIN-ECH','505490-THU-OCC','18034-PIC-RUB')
+speciesList = c('19051-ULM-ALA', 'NA-QUE-PRI', '19242-CAR-OVA', '19288-QUE-COC', 
+		'22463-POP-GRA', '19254-JUG-NIG', '19050-ULM-RUB', '23690-OXY-ARB', '19511-OST-VIR', '32945-FRA-NIG')
 
 transitionClimate = readRDS('dat/transitionClimate_scaled.rds')
 load('dat/map_projections.rdata')
