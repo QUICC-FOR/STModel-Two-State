@@ -21,7 +21,7 @@ for(sp in spList)
 	for(subD in subDirs)
 		dir.create(file.path('species', sp, subD), recursive=TRUE)
 	for(subD in resDirs)
-		dir.create(file.path('species', sp, subD), recursive=TRUE)
+		dir.create(file.path('species', sp, 'res', subD), recursive=TRUE)
 }
 
 # directories for global data and results
