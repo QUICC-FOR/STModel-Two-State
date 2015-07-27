@@ -15,13 +15,13 @@ spList = c('18032-ABI-BAL', '18037-PIN-TAE', '18086-LIR-TUL', '19049-ULM-AME',
 		'19288-QUE-COC', '22463-POP-GRA', '19254-JUG-NIG', '19050-ULM-RUB', 
 		'23690-OXY-ARB', '19511-OST-VIR', '32945-FRA-NIG')
 subDirs = c('dat', 'img', 'res')
+resDirs = c('anneal', 'mcmc1', 'mcmc2', 'mcmc3')
 for(sp in spList)
 {
 	for(subD in subDirs)
-	{
 		dir.create(file.path('species', sp, subD), recursive=TRUE)
-	}
-	dir.create(file.path('species', sp, "res", "anneal"), recursive=TRUE)
+	for(subD in resDirs)
+		dir.create(file.path('species', sp, subD), recursive=TRUE)
 }
 
 # directories for global data and results

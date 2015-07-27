@@ -3,7 +3,7 @@
 #PBS -l walltime=24:00:00
 #PBS -l nodes=1:ppn=40
 #PBS -r n
-#PBS -N liqsty
+#PBS -N liqsty1
 
 module load gcc/4.9.2
 module load openmpi/1.8.3
@@ -14,6 +14,6 @@ SRC=~/STModel-MCMC/bin
 
 SPECIES=19027-LIQ-STY
 DIR=~/STModel-Two-State/species/$SPECIES
-cd $DIR; $SRC/stm2_mcmc -p dat/mcmc_inits1.txt -t dat/mcmc_data.txt -o res/mcmc2 -n 1 -b 0 -i 10000 -c 40 -l 5 -v 2 2>mcmc_log1.txt &
+cd $DIR; $SRC/stm2_mcmc -p dat/mcmc_inits1.txt -t dat/mcmc_data.txt -o res/mcmc1 -n 1 -b 0 -i 10000 -c 40 -l 5 -v 2 2>mcmc_log1.txt &
 
 wait
