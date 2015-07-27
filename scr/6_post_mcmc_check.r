@@ -1,9 +1,13 @@
 library(coda)
 
 setwd("~/Dropbox/work/projects/STModel-Two-State_git/")
-spName = '18037-PIN-TAE'
+spName = '19422-QUE-STE'
 
-design = '11110001111000'
+modSel = readRDS(file.path('species', spName, 'res', paste(spName, 'modelSelection.rds', sep='_')))
+print(modSel[1,])
+
+design = modSel[1,'design']
+
 design = sapply(1:nchar(design), function(i) as.integer(substr(design, i, i)))
 constCols = which(design == 0)
 
