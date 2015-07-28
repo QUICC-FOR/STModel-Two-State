@@ -2,13 +2,13 @@ library(coda)
 
 # temporary
 setwd("~/Dropbox/work/projects/STModel-Two-State_git/")
-spName = '19422-QUE-STE'
+spName = '18034-PIC-RUB'
 
 p1.raw = read.csv(file.path('species', spName, 'res', 'mcmc1', 'posterior.csv'))
 posterior = mcmc(p1.raw)
 
-plot(posterior, ask=T)
-summary(posterior)
+## plot(posterior, ask=T)
+## summary(posterior)
 
 pquant = summary(posterior)$quantiles
 minpar = which(pquant[,1] == min(pquant[,1]))
