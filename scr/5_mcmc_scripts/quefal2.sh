@@ -14,6 +14,6 @@ SRC=~/STModel-MCMC/bin
 
 SPECIES=19277-QUE-FAL
 DIR=~/STModel-Two-State/species/$SPECIES
-cd $DIR; $SRC/stm2_mcmc -p dat/mcmc_inits2.txt -t dat/mcmc_data.txt -o res/mcmc2 -n 1 -b 0 -i 10000 -c 40 -l 5 -v 2 2>mcmc_log2.txt &
+cd $DIR; $SRC/stm2_mcmc -p dat/mcmc_inits2.txt -t dat/mcmc_data.txt -o res/mcmc2 -n 1 -b 0 -i 60000 -c 40 -l 5 -v 2 2>mcmc_log2.txt &
 
 wait
