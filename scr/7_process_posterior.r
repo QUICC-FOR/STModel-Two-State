@@ -10,6 +10,7 @@ library(raster)
 ## 	curvePrecision = 500
 ## }
 
+curvePrecision = 500
 spList = c('19231-CAR-GLA', '19277-QUE-FAL', '183397-TSU-CAN', '18048-JUN-VIR', '505490-THU-OCC')
 speciesInfo = read.csv('dat/speciesInfo.csv', stringsAsFactors=FALSE, colClasses='character')
 load('dat/map_projections.rdata')
