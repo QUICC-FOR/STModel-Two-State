@@ -1,7 +1,7 @@
 library(coda)
 
 setwd("~/Dropbox/work/projects/STModel-Two-State_git/")
-spName = 'NA-CAR-ALB'
+spName = '505490-THU-OCC'
 
 modSel = readRDS(file.path('species', spName, 'res', paste(spName, 'modelSelection.rds', sep='_')))
 print(modSel[1,])
@@ -11,20 +11,9 @@ design = modSel[1,'design']
 design = sapply(1:nchar(design), function(i) as.integer(substr(design, i, i)))
 constCols = which(design == 0)
 
-st1 = st2 = st3 = 1
-# special instructions for individual species due to poor starts
-if(spName == '19408-QUE-RUB')
-	st2 = 14001
-if(spName == '27821-NYS-SYL')
-	st2 = 17001
-if(spName == '19280-QUE-NIG')
-	st3 = 19001
-
 p1 = read.csv(file.path('species', spName, 'res', 'mcmc1', 'posterior.csv'))[,-constCols]
 p2 = read.csv(file.path('species', spName, 'res', 'mcmc2', 'posterior.csv'))[,-constCols]
-p2 = p2[st2:nrow(p2),]
 p3 = read.csv(file.path('species', spName, 'res', 'mcmc3', 'posterior.csv'))[,-constCols]
-p3 = p3[st3:nrow(p3),]
 posterior = mcmc.list(mcmc(p1), mcmc(p2), mcmc(p3))
 lapply(posterior, nrow)
 
