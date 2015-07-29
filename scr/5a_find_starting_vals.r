@@ -1,8 +1,9 @@
+#!/usr/bin/Rscript
 library(coda)
 
-# temporary
-setwd("~/Dropbox/work/projects/STModel-Two-State_git/")
-spName = '18034-PIC-RUB'
+
+parameters = commandArgs(trailingOnly = TRUE)
+spName = parameters[1]
 
 p1.raw = read.csv(file.path('species', spName, 'res', 'mcmc1', 'posterior.csv'))
 posterior = mcmc(p1.raw)
@@ -34,9 +35,9 @@ findsum = function(x, fun)
 initMax = findsum(maxsamp, max)
 initMin = findsum(minsamp, min)
 ylim=c(min(c(initMin, initMax)), max(c(initMin, initMax)))
-plot(initMax, col='blue', ylim=ylim, pch=16)
-points(initMin, col='red', pch=16)
-abline(h=0)
+## plot(initMax, col='blue', ylim=ylim, pch=16)
+## points(initMin, col='red', pch=16)
+## abline(h=0)
 
 i2path = file.path('species', spName, 'dat', 'mcmc_inits2.txt')
 i2 = read.csv(i2path)
