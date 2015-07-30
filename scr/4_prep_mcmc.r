@@ -17,8 +17,7 @@ compute_c = function(p, env1, env2)
 
 
 #spList = readRDS('dat/speciesList.rds')
-spList = c('19051-ULM-ALA', 'NA-QUE-PRI', '19242-CAR-OVA', '19288-QUE-COC', 
-		'22463-POP-GRA', '19254-JUG-NIG', '19050-ULM-RUB', '23690-OXY-ARB', '19511-OST-VIR', '32945-FRA-NIG')
+spList = c('19254-JUG-NIG', '19050-ULM-RUB', '23690-OXY-ARB', '19511-OST-VIR', '32945-FRA-NIG')
 for(spName in spList)
 {
 	cat(paste("Starting species", spName, "\n"))
