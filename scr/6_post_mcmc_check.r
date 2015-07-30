@@ -1,7 +1,7 @@
 library(coda)
 
 setwd("~/Dropbox/work/projects/STModel-Two-State_git/")
-spName = '19511-OST-VIR'
+spName = '32945-FRA-NIG'
 
 modSel = readRDS(file.path('species', spName, 'res', paste(spName, 'modelSelection.rds', sep='_')))
 print(modSel[1,])
