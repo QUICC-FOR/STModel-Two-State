@@ -7,6 +7,7 @@ spList = readRDS("dat/speciesList.rds")
 speciesInfo = read.csv('dat/speciesInfo.csv', stringsAsFactors=FALSE, colClasses='character')
 load('dat/map_projections.rdata')
 climGrid = readRDS('dat/climateGrid_scaled.rds')
+climScale = readRDS("dat/climate_scaling.rds")
 
 compute_e = function(p, env1, env2)
 {
@@ -25,7 +26,7 @@ for(spName in spList)
 	spInfo = speciesInfo[speciesInfo$spName == spName,]
 	if(nrow(spInfo) == 0)
 	{
-		print("  No data in speciesInfo.csv; skipping")
+		cat("  No data in speciesInfo.csv; skipping\n")
 		next
 	}
 
@@ -34,7 +35,7 @@ for(spName in spList)
 	mapRasters.filename = file=file.path('species', spName, 'res', paste(spName, 'mapRasters.rdata', sep='_'))
 	if(file.exists(responseCurves.filename) & file.exists(mapRasters.filename))
 	{
-		print("  Post-processing already done; skipping")
+		cat("  Post-processing already done; skipping\n")
 		next
 	}
 	
@@ -42,7 +43,9 @@ for(spName in spList)
 	err = tryCatch({
 		posterior = readRDS(file.path('species', spName, 'res', 
 				paste(spName, 'posterior_thinned.rds', sep='_')))},
-		error=function(e) e)
+		error=function(e) {
+			cat("  Cannot read posterior data; skipping\n")
+			e})
 	if(inherits(err, "error")) next
 	
 	
@@ -124,7 +127,6 @@ for(spName in spList)
 	})))
 
 	# now put the x variables back on their original scales
-	climScale = readRDS("dat/climate_scaling.rds")
 	x1.us = (x1 * climScale$scale[env1]) + climScale$center[env1]
 	x2.us = (x2 * climScale$scale[env2]) + climScale$center[env2]
 
