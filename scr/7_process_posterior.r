@@ -2,20 +2,11 @@
 library(coda)
 library(raster)
 
-## parameters = commandArgs(trailingOnly = TRUE)
-## spName = parameters[1]
-## if(length(parameters) > 1) {
-## 	curvePrecision = parameters[2]
-## } else {
-## 	curvePrecision = 500
-## }
-
 curvePrecision = 500
-spList = c('19422-QUE-STE', '183335-PIN-ECH', '19051-ULM-ALA', 'NA-QUE-PRI',
-	'19242-CAR-OVA', '19288-QUE-COC', '22463-POP-GRA', '19254-JUG-NIG', '19050-ULM-RUB',
-	'19511-OST-VIR')
+spList = readRDS("dat/speciesList.rds")
 speciesInfo = read.csv('dat/speciesInfo.csv', stringsAsFactors=FALSE, colClasses='character')
 load('dat/map_projections.rdata')
+climGrid = readRDS('dat/climateGrid_scaled.rds')
 
 compute_e = function(p, env1, env2)
 {
@@ -32,15 +23,34 @@ for(spName in spList)
 {
 	cat(paste("\nStarting", spName, "\n"))
 	spInfo = speciesInfo[speciesInfo$spName == spName,]
+	if(nrow(spInfo) == 0)
+	{
+		print("  No data in speciesInfo.csv; skipping")
+		next
+	}
+
+	# check to see if we have already done it
+	responseCurves.filename = file.path('species', spName, 'res', paste(spName, 'responseCurves.rds', sep='_'))
+	mapRasters.filename = file=file.path('species', spName, 'res', paste(spName, 'mapRasters.rdata', sep='_'))
+	if(file.exists(responseCurves.filename) & file.exists(mapRasters.filename))
+	{
+		print("  Post-processing already done; skipping")
+		next
+	}
+	
+	# read the data we will need
+	err = tryCatch({
+		posterior = readRDS(file.path('species', spName, 'res', 
+				paste(spName, 'posterior_thinned.rds', sep='_')))},
+		error=function(e) e)
+	if(inherits(possibleError, "error")) next
+	
+	
 	env1 = spInfo$env1
 	env2 = spInfo$env2
 	design = spInfo$design
 	design = sapply(1:nchar(design), function(i) as.integer(substr(design, i, i)))
 
-
-
-	posterior = readRDS(file.path('species', spName, 'res', paste(spName, 'posterior_thinned.rds', sep='_')))
-	climGrid = readRDS('dat/climateGrid_scaled.rds')
 	parBase = rep(0, length(design))
 
 	x1 = seq(min(climGrid[,env1]), max(climGrid[,env1]), length.out=curvePrecision)
@@ -134,7 +144,8 @@ for(spName in spList)
 		ext2.lo = apply(y2.e, 2, quantile, 0.025),
 		ext2.up = apply(y2.e, 2, quantile, 0.975))
 	
-	saveRDS(responseCurves, file.path('species', spName, 'res', paste(spName, 'responseCurves.rds', sep='_')))
+	tryCatch(saveRDS(responseCurves, responseCurves.filename), warning=function(w) w,
+			error=function(e) e)
 
 
 
@@ -196,6 +207,6 @@ for(spName in spList)
 	grid.pres = prj.ras(mapData.pres)
 	grid.sdm = prj.ras(mapData.sdm)
 
-	save(grid.c, grid.e, grid.lam, grid.pres, grid.sdm, 
-			file=file.path('species', spName, 'res', paste(spName, 'mapRasters.rdata', sep='_')))
+	tryCatch(save(grid.c, grid.e, grid.lam, grid.pres, grid.sdm, file=mapRasters.filename),
+		warning=function(w) w, error=function(e) e)
 }
