@@ -43,7 +43,7 @@ for(spName in spList)
 		posterior = readRDS(file.path('species', spName, 'res', 
 				paste(spName, 'posterior_thinned.rds', sep='_')))},
 		error=function(e) e)
-	if(inherits(possibleError, "error")) next
+	if(inherits(err, "error")) next
 	
 	
 	env1 = spInfo$env1
