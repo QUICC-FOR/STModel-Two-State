@@ -4,12 +4,65 @@ library(pROC)
 library(raster)
 library(rgdal)
 
-print("Setting up variables and reading files")
+overwrite = FALSE
+
+arg = commandArgs(trailingOnly = TRUE)
+if('--overwrite' %in% arg | '-o' %in% arg) overwrite = TRUE
+
+speciesList = readRDS('dat/speciesList.rds')
+
+
+
+
+get_sdm_dat = function(sp, baseDir)
+{
+	spPath = file.path(baseDir, 'dat', paste(sp, 'presence.rds', sep='_'))
+	spData = readRDS(spPath)
+	colnames(spData)[3] = 'presence'
+	sdmDat = merge(spData, climDat)
+
+	# apply the subset, and drop the plot ID and year measured columns also
+	sdmDat.subset = sdmDat[rows,-c(1,2)]
+	sdmDat.unsubset = sdmDat[-rows,-c(1,2)]
+
+	list(selected = sdmDat.subset, unselected = sdmDat.unsubset)
+}
+
+
+#######
+# MAIN LOOP ACROSS SPECIES
+#######
+
+for(spName in speciesList)
+{
+	print(paste("Starting species", spName))
+
+	baseDir = file.path('species', spName)
+	rfModFilename = file.path(baseDir, 'res', paste(spName, 'sdm.rds', sep='_'))
+
+	if(file.exists(rfModFilename) & !overwrite)
+	{
+		warning(paste("Output file" rfModFilename, 
+				"already exists; skipping. Use --overwrite or -o to redo all species"))
+	} else {
+		sdmDat = get_sdm_dat(spName, baseDir)
+		
+		## run RF
+		print("  Fitting random forest")
+		rf.mod = randomForest(as.factor(presence) ~ . , data = sdmDat$subset, ntree = 500)
+		saveRDS(rf.mod, rfModFilename)
+	}
+}
+
+
+
+
+
+
+## start here
+
 annealFraction = 0.5
 
-# speciesList = readRDS('dat/speciesList.rds')
-speciesList = c('19051-ULM-ALA', 'NA-QUE-PRI', '19242-CAR-OVA', '19288-QUE-COC', 
-		'22463-POP-GRA', '19254-JUG-NIG', '19050-ULM-RUB', '23690-OXY-ARB', '19511-OST-VIR', '32945-FRA-NIG')
 
 transitionClimate = readRDS('dat/transitionClimate_scaled.rds')
 load('dat/map_projections.rdata')
@@ -31,21 +84,8 @@ rows = sapply(unique(climDat$plot_id), function(i) {
 
 for(spName in speciesList)
 {
-	print(paste("Starting species", spName))
-	baseDir = file.path('species', spName)
 
-	spPath = file.path(baseDir, 'dat', paste(spName, 'presence.rds', sep='_'))
-	spData = readRDS(spPath)
-	colnames(spData)[3] = 'presence'
-	sdmDat = merge(spData, climDat)
 
-	# apply the subset, and drop the plot ID and year measured columns also
-	sdmDat.subset = sdmDat[rows,-c(1,2)]
-	sdmDat.unsubset = sdmDat[-rows,-c(1,2)]
-
-	print("  Fitting RF model")
-	rf.mod = randomForest(as.factor(presence) ~ . , data = sdmDat.subset, ntree = 500)
-	saveRDS(rf.mod, file.path(baseDir, 'res', paste(spName, 'sdm.rds', sep='_')))
 
 	# see how well the rf fits
 	print("  Computing ROC")
