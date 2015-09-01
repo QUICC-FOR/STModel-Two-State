@@ -1,12 +1,45 @@
 #!/usr/bin/Rscript
 library(GenSA)
+
+# constants/settings
+# annealFraction: what fraction of data will be used in the anneal
+# targetInterval: what is the standardized interval between observations
+#		observations not on this interval will be transformed
+annealFraction = 0.5
 targetInterval = 5
 
-parameters = commandArgs(trailingOnly = TRUE)
-#parameters = scan("inp.txt", what=character())
-spName = parameters[1]
-tempVar = parameters[2]
-precipVar = parameters[3]
+# read required command line arguments
+# there should be three arguments - the species name, the temperature variable, and
+# the precipitation variable
+clArgs = commandArgs(trailingOnly = TRUE)
+if(length(clArgs) < 3) 
+	stop("Script must be run with 3 arguments: speciesName tempVar precipVar")
+spName = clArgs[1]
+tempVar = clArgs[2]
+precipVar = clArgs[3]
+
+
+## here is some code that used to be in 2
+## it will have to be re-implemented here, because the data from which to select
+## will change with each variable combination
+## 	# subset the transition data for use in the annealing
+## 	# first, drop all intervals greater than 15 years
+## 	# then take half (or whatever fraction) of the remaining observed transitions
+## 	# along with the same fraction of non-transitions
+## 	intervals = stmData$year2 - stmData$year1
+## 	indices = which(intervals <= 15)
+## 	transitions = with(stmData[indices,], which(state1 != state2))
+## 	notTransitions = with(stmData[indices,], which(state1 == state2))
+## 	sel = c(sample(transitions, as.integer(annealFraction*length(transitions))),
+## 			sample(notTransitions, as.integer(annealFraction*length(notTransitions))))
+## 	stmData.subset = stmData[sel,]
+## 	stmData.unsubset = stmData[-sel,]
+## 	saveRDS(stmData.subset, file.path(baseDir, 'dat', paste(spName, 'stm', 'calib.rds', sep='_')))
+## 	saveRDS(stmData.unsubset, file.path(baseDir, 'dat', paste(spName, 'stm', 'valid.rds', sep='_')))
+
+
+
+
 # adding a one to the beginning for the intercept
 colDesign = c(1, sapply(1:nchar(parameters[4]), function(i) as.integer(substr(parameters[4],i,i))))
 extDesign = c(1, sapply(1:nchar(parameters[5]), function(i) as.integer(substr(parameters[5],i,i))))
