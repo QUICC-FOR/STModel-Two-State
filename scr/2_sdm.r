@@ -257,7 +257,7 @@ for(spName in speciesList)
 		rf.mod = randomForest(as.factor(presence) ~ . , data = sdmDat$selected, ntree = 500)
 		saveRDS(rf.mod, rfModFilename)
 		
-		print("  Computing ROC")
+		cat("  Computing ROC\n")
 		cat("Area under the ROC curve: ", get_auc(rf.mod, sdmDat$unselected), "\n", 
 			file=file.path(baseDir, 'res', 'sdm_roc.txt'))
 			

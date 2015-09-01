@@ -2,10 +2,8 @@
 library(GenSA)
 
 # constants/settings
-# annealFraction: what fraction of data will be used in the anneal
 # targetInterval: what is the standardized interval between observations
 #		observations not on this interval will be transformed
-annealFraction = 0.5
 targetInterval = 5
 
 # read required command line arguments
@@ -13,36 +11,19 @@ targetInterval = 5
 # the precipitation variable
 clArgs = commandArgs(trailingOnly = TRUE)
 if(length(clArgs) < 3) 
-	stop("Script must be run with 3 arguments: speciesName tempVar precipVar")
+	stop("Script must be run with 5 arguments: speciesName tempVar precipVar tempDesign precipDesign")
 spName = clArgs[1]
 tempVar = clArgs[2]
 precipVar = clArgs[3]
 
 
-## here is some code that used to be in 2
-## it will have to be re-implemented here, because the data from which to select
-## will change with each variable combination
-## 	# subset the transition data for use in the annealing
-## 	# first, drop all intervals greater than 15 years
-## 	# then take half (or whatever fraction) of the remaining observed transitions
-## 	# along with the same fraction of non-transitions
-## 	intervals = stmData$year2 - stmData$year1
-## 	indices = which(intervals <= 15)
-## 	transitions = with(stmData[indices,], which(state1 != state2))
-## 	notTransitions = with(stmData[indices,], which(state1 == state2))
-## 	sel = c(sample(transitions, as.integer(annealFraction*length(transitions))),
-## 			sample(notTransitions, as.integer(annealFraction*length(notTransitions))))
-## 	stmData.subset = stmData[sel,]
-## 	stmData.unsubset = stmData[-sel,]
-## 	saveRDS(stmData.subset, file.path(baseDir, 'dat', paste(spName, 'stm', 'calib.rds', sep='_')))
-## 	saveRDS(stmData.unsubset, file.path(baseDir, 'dat', paste(spName, 'stm', 'valid.rds', sep='_')))
-
-
-
-
+# set up some design strings to specify the model structure
 # adding a one to the beginning for the intercept
-colDesign = c(1, sapply(1:nchar(parameters[4]), function(i) as.integer(substr(parameters[4],i,i))))
-extDesign = c(1, sapply(1:nchar(parameters[5]), function(i) as.integer(substr(parameters[5],i,i))))
+# this transforms the strings of 1s and 0s into integer vectors
+colDesign = c(1, sapply(1:nchar(parameters[4]), 
+		function(i) as.integer(substr(parameters[4],i,i))))
+extDesign = c(1, sapply(1:nchar(parameters[5]), 
+		function(i) as.integer(substr(parameters[5],i,i))))
 
 design_err = function(x)
 {
@@ -99,7 +80,8 @@ minus_log_likelihood = function(params, dat, parlist)
 }
 
 
-transitionData = readRDS(file.path('species', spName, 'dat', paste(spName, 'stm_calib.rds', sep='_')))
+transitionData = readRDS(file.path('species', spName, 'dat', 
+		paste(spName, 'stm_calib.rds', sep='_')))
 
 
 modelData = data.frame(state1 = transitionData$state1, 
@@ -132,19 +114,19 @@ if(colDesign[1] == 1) parameters[1] = pr.c
 if(extDesign[1] == 1) parameters[sum(colDesign)+1] = pr.e
 
 
-print("Starting anneal with the following parameters:")
-print(paste("Species: ", spName, sep=""))
-print(paste("Env1: ", tempVar, sep=""))
-print(paste("Env2: ", precipVar, sep=""))
-print(paste("Model Design: ", paste(colDesign, collapse=""), " + ",
-		paste(extDesign, collapse=""), sep=""))
+cat("Starting anneal with the following parameters:\n")
+cat(paste("Species:", spName, '\n'))
+cat(paste("Env1:", tempVar, '\n'))
+cat(paste("Env2:", precipVar, '\n'))
+cat(paste("Model Design:", paste(colDesign, collapse=""), "+",
+		paste(extDesign, collapse=""), '\n'))
 
 
 controlPars =list(verbose = TRUE, max.time = (60*60), smooth=TRUE)
 annealParams = GenSA(par = parameters, fn = minus_log_likelihood, 
 		lower = rep(-50, length(parameters)), upper = rep(50, length(parameters)), 
 		 control = controlPars, dat = modelData, parlist=c(colDesign, extDesign))
-print("Anneal finished")
+cat("Anneal finished\n")
 
 mll = minus_log_likelihood(annealParams$par, modelData, c(colDesign, extDesign))
 annealResults = list(
@@ -163,5 +145,5 @@ filename = paste(spName, annealResults$env1, annealResults$env2,
 		paste(annealResults$extDesign, collapse=""), sep="-")
 filepath = file.path('species', spName, 'res', 'anneal', paste(filename, '.rds', sep=''))
 saveRDS(annealResults, filepath)
-print(paste("Saved file ", filepath))
+cat(paste("Saved file", filepath, '\n'))
 
