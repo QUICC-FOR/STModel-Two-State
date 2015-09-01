@@ -32,6 +32,8 @@ design_err = function(x)
 if(design_err(colDesign) | design_err(extDesign)) 
 	stop("Error in colonization or extinction design vectors: must be a vector of length 7 containing only 0 or 1")
 
+
+
 minus_log_likelihood = function(params, dat, parlist)
 {
 	# parlist is a vector of 1s and zeros indicating which positions in the likelihood

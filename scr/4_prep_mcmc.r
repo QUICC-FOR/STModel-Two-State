@@ -15,6 +15,28 @@ compute_c = function(p, env1, env2)
 }
 
 
+fit_global_models = function(resp, predictors, x.coord, y.coord)
+{
+	# fit c and e models without the prevalence
+	# fits normal (non-spatial) models as well as spatial models
+	# resp should be a 2-column matrix (state1 and state2)
+	c.sel = which(resp[,1] == 0)
+	e.sel = which(resp[,1] == 1)
+	
+	col.df = data.frame(y=as.integer(resp[c.sel,2] == 1), predictors[c.sel,])
+	ext.df = data.frame(y=as.integer(resp[e.sel],2 == 0), predictors[e.sel,])
+	
+	c.mod = glm(y ~ ., data=col.df, family=binomial)
+	c.mod.xy = glm(y ~ . + poly(x.coord[c.sel],3) + poly(y.coord[c.sel], 3), 
+			data=col.df, family=binomial)
+	e.mod = glm(y ~ ., data=ext.df, family=binomial)
+	e.mod.xy = glm(y ~ . + poly(x.coord[e.sel],3) + poly(y.coord[e.sel], 3), 
+			data=ext.df, family=binomial)
+			
+	list(c.mod, c.mod.xy, e.mod, e.mod.xy)
+	
+}
+
 
 #spList = readRDS('dat/speciesList.rds')
 spList = c('19254-JUG-NIG', '19050-ULM-RUB', '23690-OXY-ARB', '19511-OST-VIR', '32945-FRA-NIG')
@@ -102,7 +124,10 @@ for(spName in spList)
 	theMod = models[[mRanks$id[1]]]
 	saveRDS(theMod, file.path(baseDir, 'res', paste(spName, 'bestAnnealModel.rds', sep='_')))
 
-
+	### HERE - need to global models for the best model
+	
+	
+	
 
 	# get mcmc files ready
 	transitions = rbind(readRDS(file.path(baseDir, 'dat', paste(spName, 'stm_calib.rds', sep='_'))),
