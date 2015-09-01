@@ -238,8 +238,8 @@ plot_sdm_diagnostics = function(mapData, coord.cols, sdm.col, filename = NULL,
 # MAIN LOOP ACROSS SPECIES
 #######
 
-## for(spName in speciesList)
-## {
+for(spName in speciesList)
+{
 	cat(paste("Starting species", spName, '\n'))
 
 	baseDir = file.path('species', spName)
