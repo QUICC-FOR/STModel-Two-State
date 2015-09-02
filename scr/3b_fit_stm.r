@@ -20,10 +20,10 @@ precipVar = clArgs[3]
 # set up some design strings to specify the model structure
 # adding a one to the beginning for the intercept
 # this transforms the strings of 1s and 0s into integer vectors
-colDesign = c(1, sapply(1:nchar(parameters[4]), 
-		function(i) as.integer(substr(parameters[4],i,i))))
-extDesign = c(1, sapply(1:nchar(parameters[5]), 
-		function(i) as.integer(substr(parameters[5],i,i))))
+colDesign = c(1, sapply(1:nchar(clArgs[4]), 
+		function(i) as.integer(substr(clArgs[4],i,i))))
+extDesign = c(1, sapply(1:nchar(clArgs[5]), 
+		function(i) as.integer(substr(clArgs[5],i,i))))
 
 design_err = function(x)
 {

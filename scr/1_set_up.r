@@ -3,7 +3,6 @@
 # and set up a few other things that are used globally. Should be run once on each
 # computer that will be running any analyses
 
-library(rgdal)
 
 # create the directory tree needed by the project, if it doesn't already exist
 spList = c('18032-ABI-BAL', '18037-PIN-TAE', '18086-LIR-TUL', '19049-ULM-AME', 
@@ -34,10 +33,21 @@ saveRDS(spList, file.path('dat', 'speciesList.rds'))
 
 
 # set up map projections
-P4S.latlon = CRS("+proj=longlat +datum=WGS84")
-stmMapProjection = CRS("+init=epsg:5070") # albers equal area conic NAD-83 north america
-save(P4S.latlon, stmMapProjection, file="dat/map_projections.rdata")
-
+if(!file.exists("dat/map_projections.rdata"))
+{
+	tryCatch(
+	{
+		library(rgdal)
+		P4S.latlon = CRS("+proj=longlat +datum=WGS84")
+		stmMapProjection = CRS("+init=epsg:5070") # albers equal area conic NAD-83 north america
+		save(P4S.latlon, stmMapProjection, file="dat/map_projections.rdata")
+	}, error=function(e)
+	{
+		msg = paste("Could not save map projections to dat/map_projections.rdata\n",
+			"error:\n", e)
+		warning(msg)
+	})
+}
 
 
 # format and scale data
