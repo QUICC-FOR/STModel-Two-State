@@ -7,7 +7,7 @@ library(rgdal)
 sdm.threshold = 0.25
 annealFrac = 0.5
 stmMaxInterval = 15
-mask.tol = 2 # lat/lon tolerance for the data mask (how many degrees out of the range for projecting/calibrating
+mask.tol = 1 # lat/lon tolerance for the data mask (how many degrees out of the range for projecting/calibrating
 sdmColors = colorRampPalette(c("#ffffff", "#bdc9e1", "#045a8d", "#33338d", "#cc99ff"), 
 		interpolate='spline', bias=1, space="rgb")(200)
 
@@ -250,7 +250,7 @@ set_up_figure = function(nplots, filename=NULL, panel.width=4, panel.height=5,
 		png(width=as.integer(dpi*figure.width), height=as.integer(dpi*figure.height),
 			file=filename, pointsize=fontsize, res=dpi)
 	}
-	par(mfrow=c(n.panels.height,n.panels.height), ...)
+	par(mfrow=c(n.panels.height,n.panels.width), ...)
 }
 
 clean_up_figure = function(filename)
