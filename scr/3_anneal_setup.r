@@ -176,7 +176,7 @@ for(spName in speciesList)
 	
 	# read and merge transition dataset with the species range & SDM prob of presence
 	cat("  Projecting SDM to transitions\n")
-	presDat = readRDS(file.path(baseDir, 'dat', paste(sp, 'presence.rds', sep='_')))
+	presDat = readRDS(file.path(baseDir, 'dat', paste(spName, 'presence.rds', sep='_')))
 	presDat = merge(presDat, plotLocs)
 	prLocs = presDat[presDat[,spName] == 1, c('lon', 'lat', spName)]
 	coordinates(prLocs) = c('lon', 'lat')
