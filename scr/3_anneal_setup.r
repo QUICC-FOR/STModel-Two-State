@@ -182,7 +182,7 @@ for(spName in speciesList)
 	coordinates(prLocs) = c('lon', 'lat')
 	presences[[spName]] = prLocs
 	stmData = prep_transitions(spName, baseDir, transitionClimate, presDat, rf.mod, 
-				sdm.threshold, mask.tol)
+				sdm.threshold, mask.tol, plotLocs)
 	saveRDS(stmData, file.path(baseDir, 'dat', paste(spName, 'stm_data_all.rds', 
 			sep='_')))
 
