@@ -66,8 +66,8 @@ stm_mask = function(new.coords, pres, pres.coords, tol = c(10,10))
 	# if length 2, then the first will be longitude, second latitude
 
 	if(length(tol) == 1) tol = rep(tol,2)
-	lon.r = range(pres.coords[sdm.pres == 1,1]) + tol[1]*c(-1,1)
-	lat.r = range(pres.coords[sdm.pres == 1,2]) + tol[2]*c(-1,1)
+	lon.r = range(pres.coords[pres == 1,1]) + tol[1]*c(-1,1)
+	lat.r = range(pres.coords[pres == 1,2]) + tol[2]*c(-1,1)
 	inrange = function(x, r) (x >= min(r) & x <= max(r))
 	mask.ind = which(inrange(new.coords[,1], lon.r) & inrange(new.coords[,2], lat.r))
 	mask = rep(0, nrow(new.coords))
