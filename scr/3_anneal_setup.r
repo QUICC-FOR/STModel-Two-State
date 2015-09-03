@@ -99,12 +99,13 @@ subset_transitions = function(dat, frac=0.5, max.interval=15)
 	# then take half (or whatever fraction) of the remaining observed transitions
 	# along with the same fraction of non-transitions
 	intervals = dat$year2 - dat$year1
-	indices = which(intervals <= max.interval & dat$sdm.mask == 1)
-	transitions = with(dat[indices,], which(state1 != state2))
-	notTransitions = !(transitions)
+	indices = which(intervals <= max.interval & dat$stm.mask == 1)
+	dat.mask = dat[indices,]
+	transitions = with(dat.mask, which(state1 != state2))
+	notTransitions = with(dat.mask, which(state1 == state2))
 	sel = c(sample(transitions, as.integer(frac*length(transitions))),
 			sample(notTransitions, as.integer(frac*length(notTransitions))))
-	list(selected = dat[sel,], unselected = dat[-sel,])
+	list(selected = dat.mask[sel,], unselected = dat.mask[-sel,])
 }
 
 
@@ -112,7 +113,7 @@ sdm_response_curves = function(sp, dat, sdm, fname=NULL, width=10, height=7)
 {
 	# pull out all of the other information to just get climate vars
 	otherVars = c('plot', 'year1', 'year2', 'state1', 'state2', 'lat', 'lon',
-			'prevalence', 'sdm.pres', 'sdm.mask')
+			'prevalence', 'sdm.presence', 'stm.mask')
 	climVars = colnames(dat)[!(colnames(dat) %in% otherVars)]
 	
 	if(is.null(fname))
@@ -132,8 +133,8 @@ sdm_response_curves = function(sp, dat, sdm, fname=NULL, width=10, height=7)
 		plot(xx[,climVar], yy, type='l', col='#016c59', xlab=climVar, 
 				ylab="prob of presence", ylim=c(0,1))
 		# get the SDM & STM Projection range for this var
-		sdmRange = range(dat[dat$sdm.pres==1,climVar])
-		projRange = range(dat[dat$sdm.mask==1,climVar])
+		sdmRange = range(dat[dat$sdm.presence==1,climVar])
+		projRange = range(dat[dat$stm.mask==1,climVar])
 		polygon(c(projRange, rev(projRange)), c(0,0,1,1), border=NA, col="#1c909944")
 		polygon(c(sdmRange, rev(sdmRange)), c(0,0,1,1), border=NA, col="#045a8d44")
 		
@@ -194,29 +195,32 @@ for(spName in speciesList)
 			paste(spName, 'stm', 'valid.rds', sep='_')))
 
 	# massage data for mapping
-	class.trans = function(st1, st2)
+	class.trans = function(st1, st2, lat, lon)
 	{
-		res = character(length(st1))
-		res[st1 == 0 & st2 == 0] = 'absence'
-		res[st1 == 0 & st2 == 1] = 'colonization'
-		res[st1 == 1 & st2 == 1] = 'presence'
-		res[st1 == 1 & st2 == 0] = 'extinction'
-		res
+		ind = which(st1 != st2)
+		res = character(length(ind))
+## 		res[st1 == 0 & st2 == 0] = 'absence'
+		res[st1[ind] == 0 & st2[ind] == 1] = 'colonization'
+## 		res[st1 == 1 & st2 == 1] = 'presence'
+		res[st1[ind] == 1 & st2[ind] == 0] = 'extinction'
+		data.frame(transition=factor(res), lat=lat[ind], lon=lon[ind])
 	}
-	transLocs = data.frame(
-		transition = factor(c(with(annealDat$selected, class.trans(state1, state2)), 
-			with(annealDat$unselected, class.trans(state1, state2)))),
-		lon = c(annealDat$selected$lon, annealDat$unselected$lon),
-		lat = c(annealDat$selected$lat, annealDat$unselected$lat))
+	transLocs = with(annealDat$selected, class.trans(state1, state2, lat, lon))
+## 	transLocs = data.frame(
+## 		transition = factor(c(with(annealDat$selected, class.trans(state1, state2)), 
+## 			with(annealDat$unselected, class.trans(state1, state2)))),
+## 		lon = c(annealDat$selected$lon, annealDat$unselected$lon),
+## 		lat = c(annealDat$selected$lat, annealDat$unselected$lat))
 	coordinates(transLocs) = c('lon', 'lat')
-	transitions[[spName]] = transLocs
+	proj4string(transLocs) = P4S.latlon
+	transitions[[spName]] = spTransform(transLocs, stmMapProjection)
 	
 	# project SDM as well as the yes/no threshold into geographic space
 	cat("  Projecting SDM geographically\n")
 	sdmProjection = data.frame(lon=climGrid$lon, lat=climGrid$lat, 
 			sdm=predict(rf.mod, newdata=climGrid, type='prob')[,2])
 	sdmProjection$sdm.pres = sdm_pres(rf.mod, climGrid, sdm.threshold)
-	sdmProjetion$stm.mask = with(sdmProjection, stm_mask(cbind(lon, lat), presDat[,sp], 
+	sdmProjection$stm.mask = with(sdmProjection, stm_mask(cbind(lon, lat), presDat[,spName], 
 			presDat[,c('lon', 'lat')], mask.tol))
 	saveRDS(sdmProjection, file.path(baseDir, 'res', paste(spName, 
 			'sdm_grid_projection.rds', sep='_')))
@@ -226,18 +230,6 @@ for(spName in speciesList)
 	# response curves
 	sdm_response_curves(spName, stmData, rf.mod, file.path(baseDir, 'img', 'sdm_response.pdf'))
 }
-
-
-# now, set up plotting region (png, par, etc)
-# then loop across species
-# then plot the sdm for each
-# try plotting presences on the map for kicks
-
-# then set up another plotting region
-# then loop across species
-# then plot the mask for each species
-# also plot the transitions on the map
-# last panel will be empty, but with a legend
 
 
 set_up_figure = function(nplots, filename=NULL, panel.width=4, panel.height=5, 
@@ -255,7 +247,7 @@ set_up_figure = function(nplots, filename=NULL, panel.width=4, panel.height=5,
 		fontsize = 15
 		if(substr(filename, nchar(filename)-3, nchar(filename)) != '.png')
 			filename = paste(filename, 'png', sep='.')
-		png(width=as.integer(dpi*figure.width), height=as.integer(dpi*figure.height)
+		png(width=as.integer(dpi*figure.width), height=as.integer(dpi*figure.height),
 			file=filename, pointsize=fontsize, res=dpi)
 	}
 	par(mfrow=c(n.panels.height,n.panels.height), ...)
@@ -283,31 +275,33 @@ for(spName in speciesList)
 	mtext(spName,side=3,line=0.5)
 }
 # plot a legend
+plot.new()
+par(mar=c(15,0,0,0))
 plot_sdm(mapData$sdm, mapData[,coord.cols], sdmColors, zlim=c(0,1), legend=TRUE, 
-		legend.only=TRUE, plot.ocean=FALSE)
+		legend.only=TRUE, plot.ocean=FALSE, legend.width=6, legend.shrink=1, horizontal=TRUE)
 clean_up_figure(fname)
 
 
 # now plot the masks
 fname = file.path('img', 'masks.png')
-trans.colors = c('#1b9e77','#d95f02','#7570b3','#e7298a')
+trans.colors = c('#7570b3','#d95f02')
 set_up_figure(length(speciesList) + 1, fname, mar=c(0,0,1,0), oma=c(0.5,0.5,2.5,0.5))
 for(spName in speciesList)
 {
 	mapData = projections[[spName]]
 	# first the largest dataset, which is the mask
-	plot_sdm(mapData$sdm.mask, mapData[,coord.cols], c('#ffffff00', "77777744"), 
+	plot_sdm(mapData$stm.mask, mapData[,coord.cols], c('#ffffff00', "77777744"), 
 			legend=FALSE, plot.ocean=FALSE)
 	# then the SDM presence/absence
 	plot_sdm(mapData$sdm.pres, mapData[,coord.cols], c('#ffffff00', "#33333344"), 
 			legend=FALSE, add=TRUE)
 	mtext("Masks",side=3,line=0.5)
-	points(transitions, col='black', bg=trans.cols, pch=21, cex=0.4)
+	points(transitions[[spName]], col=trans.colors, pch=16, cex=0.25)
 }
-plot(0,0, type='n', xlab='', ylab='', xaxt='n', yaxt='n', xlim=c(0,1) ylim=c(0,1))
-legend(0,1, legend=c('sdm presence', 'data mask', levels(transitions[[spName]])), 
+plot(0,0, type='n', xlab='', ylab='', xaxt='n', yaxt='n', xlim=c(0,1), ylim=c(0,1))
+legend(0,1, legend=c('sdm presence', 'data mask', levels(transitions[[spName]]$transition)), 
 		pt.bg=c('#777777', '#333333', trans.colors), col='black', cex=2, 
-		pch=c(22, 22, rep(21, length(levels(transitions[[spName]])))))
+		pch=c(22, 22, rep(21, length(levels(transitions[[spName]]$transition)))))
 clean_up_figure(fname)
 
 
