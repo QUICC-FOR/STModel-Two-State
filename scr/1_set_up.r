@@ -16,7 +16,7 @@ spList = c('18032-ABI-BAL', '18037-PIN-TAE', '18086-LIR-TUL', '19049-ULM-AME',
 		'19242-CAR-OVA', '19288-QUE-COC', '22463-POP-GRA', '19254-JUG-NIG', 
 		'19050-ULM-RUB', '23690-OXY-ARB', '19511-OST-VIR', '32945-FRA-NIG')
 subDirs = c('dat', 'img', 'res')
-resDirs = c('anneal', 'mcmc1', 'mcmc2', 'mcmc3')
+resDirs = c('anneal', 'mcmc1', 'mcmc2', 'mcmc3', 'mcmc1a', 'mcmc2a', 'mcmc3a', 'mcmc1g', 'mcmc2g', 'mcmc3g')
 for(sp in spList)
 {
 	for(subD in subDirs)
