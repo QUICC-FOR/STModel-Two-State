@@ -29,22 +29,8 @@ COL=000000
 cd $DIR; Rscript ./scr/fit_stm_4.r $SPECIES $TEMP $PRECIP $COL $COL &
 RUNNING=$((RUNNING + 1)) 
 
-# loop through all single variable models
-# 6 variables * 2 col * 2 ext models each = 24 models
-for TEMP in ${AllVars[@]}
-do
-  for COL in ${SingleVar[@]}
-  do
-    for EXT in ${SingleVar[@]}
-    do
-      cd $DIR; Rscript ./scr/fit_stm_4.r $SPECIES $TEMP $PRECIP $COL $EXT &
-      RUNNING=$((RUNNING + 1))
-    done
-  done
-done
 
 # 3 temp * 3 precip * 3 col models * 3 ext models = 81 models
-# with previous, we have 106 total models
 for TEMP in ${TempVars[@]}
 do
   for PRECIP in ${PrecipVars[@]}

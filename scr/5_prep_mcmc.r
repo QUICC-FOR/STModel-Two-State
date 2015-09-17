@@ -15,22 +15,23 @@ compute_c = function(p, env1, env2)
 }
 
 
-fit_global_models = function(resp, predictors, x.coord, y.coord)
+fit_global_models = function(resp, colPredictors, extPredictors, x.coord, y.coord)
 {
+	require(gam)
 	# fit c and e models without the prevalence
 	# fits normal (non-spatial) models as well as spatial models
 	# resp should be a 2-column matrix (state1 and state2)
 	c.sel = which(resp[,1] == 0)
 	e.sel = which(resp[,1] == 1)
 	
-	col.df = data.frame(y=as.integer(resp[c.sel,2] == 1), predictors[c.sel,])
-	ext.df = data.frame(y=as.integer(resp[e.sel],2 == 0), predictors[e.sel,])
+	col.df = data.frame(y=as.integer(resp[c.sel,2] == 1), colPredictors[c.sel,])
+	ext.df = data.frame(y=as.integer(resp[e.sel],2 == 0), extPredictors[e.sel,])
 	
 	c.mod = glm(y ~ ., data=col.df, family=binomial)
-	c.mod.xy = glm(y ~ . + poly(x.coord[c.sel],3) + poly(y.coord[c.sel], 3), 
+	c.mod.xy = gam(y ~ . + s(x.coord[c.sel]) + s(y.coord[c.sel]), 
 			data=col.df, family=binomial)
 	e.mod = glm(y ~ ., data=ext.df, family=binomial)
-	e.mod.xy = glm(y ~ . + poly(x.coord[e.sel],3) + poly(y.coord[e.sel], 3), 
+	e.mod.xy = gam(y ~ . + s(x.coord[e.sel]) + s(y.coord[e.sel]), 
 			data=ext.df, family=binomial)
 			
 	list(c.mod, c.mod.xy, e.mod, e.mod.xy)
@@ -38,8 +39,7 @@ fit_global_models = function(resp, predictors, x.coord, y.coord)
 }
 
 
-#spList = readRDS('dat/speciesList.rds')
-spList = c('19254-JUG-NIG', '19050-ULM-RUB', '23690-OXY-ARB', '19511-OST-VIR', '32945-FRA-NIG')
+spList = readRDS('dat/speciesList.rds')
 for(spName in spList)
 {
 	cat(paste("Starting species", spName, "\n"))
@@ -121,13 +121,10 @@ for(spName in spList)
 
 	mRanks = mRanks[order(mRanks$dAIC),]
 	saveRDS(mRanks, file.path(baseDir, 'res', paste(spName, 'modelSelection.rds', sep='_')))
-	theMod = models[[mRanks$id[1]]]
+	spInfo = read.csv("dat/speciesInfo.csv", stringsAsFactors=FALSE)
+	modInd = spInfo$modNumber[spInfo$spName == spName]
+	theMod = models[[mRanks$id[modInd]]]
 	saveRDS(theMod, file.path(baseDir, 'res', paste(spName, 'bestAnnealModel.rds', sep='_')))
-
-	### HERE - need to global models for the best model
-	
-	
-	
 
 	# get mcmc files ready
 	transitions = rbind(readRDS(file.path(baseDir, 'dat', paste(spName, 'stm_calib.rds', sep='_'))),
@@ -150,6 +147,20 @@ for(spName in spList)
 	p[design == 1] = pars
 
 
+	### HERE - need to global models for the best model
+	make_preds = function(x1, x2, design)
+	{
+		vars = data.frame(env1=x1, env2=x2, env12=x1^2, env22=x2^2, env13=x1^3, env23=x2^3)
+		design = design[-1]
+		vars[, -(which(design == 0))]
+	}
+	gmods = fit_global_models(resp = cbind(mcmcData$initial, mcmcData$final),
+			colPredictors = make_preds(mcmcData$env1, mcmcData$env2, theMod$colDesign),
+			extPredictors = make_preds(mcmcData$env1, mcmcData$env2, theMod$extDesign),
+			x.coord = transitions$lon, y.coord = transitions$lat)
+	saveRDS(gmods, file.path(baseDir, 'res', paste(spName, 'spatialModels.rds', sep='_')))
+
+
 	mcmcInits = data.frame(
 		name = parNames,
 		initialValue = p,
@@ -160,26 +171,26 @@ for(spName in spList)
 		isConstant = as.integer(!design))
 	mcmcInits$priorSD[which(substr(parNames, nchar(parNames), nchar(parNames)) == '0')] = 10
 
-	# second one initialize to 0
-	mcmcInits2 = mcmcInits
-	mcmcInits2$initialValue = rep(0, nrow(mcmcInits2))
-
-	# third one initialize to mean values for c and e
-	mcmcInits3 = mcmcInits2
-	mcmcInits3$initialValue[parNames == 'e0'] = 
-			qlogis(with(transitions, sum(state1 == 1 & state2 == 0) / sum(state1 == 1)))
-	mcmcInits3$initialValue[parNames == 'g0'] = 
-			qlogis(with(transitions, sum(state1 == 0 & state2 == 1) / sum(state1 == 0)))
+## 	# second one initialize to 0
+## 	mcmcInits2 = mcmcInits
+## 	mcmcInits2$initialValue = rep(0, nrow(mcmcInits2))
+## 
+## 	# third one initialize to mean values for c and e
+## 	mcmcInits3 = mcmcInits2
+## 	mcmcInits3$initialValue[parNames == 'e0'] = 
+## 			qlogis(with(transitions, sum(state1 == 1 & state2 == 0) / sum(state1 == 1)))
+## 	mcmcInits3$initialValue[parNames == 'g0'] = 
+## 			qlogis(with(transitions, sum(state1 == 0 & state2 == 1) / sum(state1 == 0)))
 
 	mcmcDataFile = file.path(baseDir, 'dat', 'mcmc_data.txt')
-	mcmcInitFile1 = file.path(baseDir, 'dat', 'mcmc_inits1.txt')
-	mcmcInitFile2 = file.path(baseDir, 'dat', 'mcmc_inits2.txt')
-	mcmcInitFile3 = file.path(baseDir, 'dat', 'mcmc_inits3.txt')
+	mcmcInitFile = file.path(baseDir, 'dat', 'mcmc_inits.txt')
+## 	mcmcInitFile2 = file.path(baseDir, 'dat', 'mcmc_inits2.txt')
+## 	mcmcInitFile3 = file.path(baseDir, 'dat', 'mcmc_inits3.txt')
 
 	write.csv(mcmcData, mcmcDataFile, row.names=FALSE)
-	write.csv(mcmcInits, mcmcInitFile1, row.names=FALSE)
-	write.csv(mcmcInits2, mcmcInitFile2, row.names=FALSE)
-	write.csv(mcmcInits3, mcmcInitFile3, row.names=FALSE)
+	write.csv(mcmcInits, mcmcInitFile, row.names=FALSE)
+## 	write.csv(mcmcInits2, mcmcInitFile2, row.names=FALSE)
+## 	write.csv(mcmcInits3, mcmcInitFile3, row.names=FALSE)
 
 
 	## make a prediction map and response curve
