@@ -1,7 +1,9 @@
 #!/usr/bin/Rscript
 library(rgdal)
 library(raster)
-library(biomod2) # for TSS and ROC
+
+spInfo = read.csv("dat/speciesInfo.csv", stringsAsFactors=FALSE)
+spList = readRDS('dat/speciesList.rds')
 
 compute_e = function(p, env1, env2)
 {
@@ -38,92 +40,88 @@ fit_global_models = function(resp, colPredictors, extPredictors, x.coord, y.coor
 	
 }
 
+make_design = function(x, y) paste(paste(x, collapse=""), paste(y, collapse=""), sep="")
+parse_design = function(designStr) as.numeric(unlist(strsplit(designStr), ""))
 
-spList = readRDS('dat/speciesList.rds')
-for(spName in spList)
+rank_models = function(mods)
 {
-	cat(paste("Starting species", spName, "\n"))
+	result = do.call(rbind, lapply(mods, function(x) data.frame(id = x$id, AIC = x$AIC, 
+			BIC = x$BIC, env1 = x$env1, env2 = x$env2, 
+			design = make_design(x$colDesign, x$extDesign), stringsAsFactors=FALSE)))
+	result = within(result, {
+		dAIC = AIC - min(AIC)
+		dBIC = BIC - min(BIC)})
+	relLL = exp(-0.5 * result$dAIC)
+	result$AICw = round(relLL/sum(relLL),4)
+	relLL = exp(-0.5 * result$dBIC)
+	result$BICw = round(relLL/sum(relLL),4)
+	result[order(result$dAIC),]
+}
+
+sum_weights = function(ranks)
+{
+	AICcw = rep(NA, nrow(ranks))
+	i = delta = 0
+	while(delta <= 10)
+	{
+		i = i+1
+		delta = ranks$AICw[i]
+		if(is.na(AICcw[i]))
+		{
+			env1 = ranks$env1[i]
+			env2 = ranks$env2[i]
+			rows = which(ranks$env1 == env1 & ranks$env2 == env2)
+			AICcw[rows] = sum(ranks$AICw[rows])
+		}
+	}
+	AICcw
+}
+
+
+select_model = function(ranks, mods, useCat=TRUE)
+{
+	modInd = spInfo$modNumber[spInfo$spName == spName]
+	method = "input from dat/speciesInfo.csv"
+	if(modInd == 0)
+	{
+		# find the most complex model where:
+		#   1. the cumulative weight is greatest
+		#   2. deltaAIC < 10
+		rows = which(ranks$wt_sum == max(ranks$wt_sum) & ranks$dAIC <= 10)
+		complexity = sum(parse_design(ranks$design))
+		modInd = which(complexity[rows] == max(complexity[rows]))
+		method = "automatic selection"
+	}
+	if(useCat)
+	{
+		cat("\n")
+		print(ranks[ranks$dAIC <= 10,])
+		cat(paste("\n selected model", modInd, "by", method, "\n"))
+	}
+	mods[[modInd]]
+}
+
+
+prep_species = function(spName)
+{
 	baseDir = file.path('species', spName)
 	annealDir = file.path(baseDir, 'res', 'anneal')
 	modelFiles = list.files(annealDir)
 
 	models = lapply(modelFiles, function(x) readRDS(file.path(annealDir, x)))
 	models = lapply(1:length(models), function(i) c(models[[i]], list(id=i)))
-
-	# compute AUC
-	calibrationSet = readRDS(file.path(baseDir, 'dat', paste(spName, 'stm_calib.rds', sep='_')))
-	validationSet = readRDS(file.path(baseDir, 'dat', paste(spName, 'stm_valid.rds', sep='_')))
-
-	prep_prediction = function(x, p, e1, e2)
-	{
-		if(e1 == "NA" | is.na(e1)) {
-			env1 = rep(0, nrow(x))
-		} else {
-			env1 = x[,e1]
-		}
-		if(e2 == "NA" | is.na(e2)) {
-			env2 = rep(0, nrow(x))
-		} else {
-			env2 = x[,e2]
-		}
-		
-		interval = x$year2 - x$year1
-		c.rate = compute_c(p, env1, env2)
-		e.rate = compute_e(p, env1, env2)
-		
-		# get the interval rates (duh!)
-		# the parameters were estimated for a 5 year interval
-		c.rate = 1 - (1 - c.rate)^(interval/5)
-		e.rate = 1 - (1 - e.rate)^(interval/5)
-
-		response = x$state2
-		prediction = rep(0, length(response))
-		
-		prediction[x$state1 == 0] = (c.rate * x$prevalence)[x$state1 == 0]
-		prediction[x$state1 == 1] = (1 - e.rate)[x$state1 == 1]
-		prediction = 1000*prediction # biomod expects data from 1 to 1000
-		
-		data.frame(response, prediction)
-	}
-
-	compute_valid = function(design, params, env1, env2)
-	{
-		p = rep(0, length(design))
-		p[design == 1] = params
-		
-		calib = prep_prediction(calibrationSet, p, env1, env2)
-		valid = prep_prediction(validationSet, p, env1, env2)
 	
-		roc.calib = Find.Optim.Stat(Stat="ROC", Fit=calib$prediction, Obs=calib$response)
-		roc.valid = Find.Optim.Stat(Stat="ROC", Fit=valid$prediction, Obs=valid$response, Fixed.thresh=roc.calib[2])
-		tss.calib = Find.Optim.Stat(Stat="TSS", Fit=calib$prediction, Obs=calib$response)
-		tss.valid = Find.Optim.Stat(Stat="TSS", Fit=valid$prediction, Obs=valid$response, Fixed.thresh=tss.calib[2])
-		
-		data.frame(calibROC = roc.calib[1], validROC = roc.valid[1], 
-				calibTSS = tss.calib[1], validTSS = tss.valid[1])
-	}
-	
-	make_design = function(x, y) paste(paste(x, collapse=""), paste(y, collapse=""), sep="")
-	mRanks = do.call(rbind, lapply(models, function(x) data.frame(id = x$id, AIC = x$AIC, 
-			BIC = x$BIC, env1 = x$env1, env2 = x$env2, 
-			design = make_design(x$colDesign, x$extDesign), stringsAsFactors=FALSE)))
-			
-	mRanks = cbind(mRanks, do.call(rbind, lapply(models, function(x)
-		compute_valid(c(x$colDesign, x$extDesign), x$annealParams$par, x$env1, x$env2))))
-	
-	mRanks = within(mRanks, {
-		dAIC = AIC - min(AIC)
-		dBIC = BIC - min(BIC)})
-	relLL = exp(-0.5 * mRanks$dAIC)
-	mRanks$AICw = round(relLL/sum(relLL),4)
-	relLL = exp(-0.5 * mRanks$dBIC)
-	mRanks$BICw = round(relLL/sum(relLL),4)
 
-	mRanks = mRanks[order(mRanks$dAIC),]
+	# set up a data frame with all models ranked
+	mRanks = rank_models(models)
+	
+	# compute the cumulative ranking for all models with the same vars
+	mRanks$wt_sum = sum_weights(mRanks)
+	
+	# select a model
+	theMod = select_model(mRanks, models)
+		
 	saveRDS(mRanks, file.path(baseDir, 'res', paste(spName, 'modelSelection.rds', sep='_')))
-	spInfo = read.csv("dat/speciesInfo.csv", stringsAsFactors=FALSE)
-	modInd = spInfo$modNumber[spInfo$spName == spName]
-	theMod = models[[mRanks$id[modInd]]]
 	saveRDS(theMod, file.path(baseDir, 'res', paste(spName, 'bestAnnealModel.rds', sep='_')))
 
 	# get mcmc files ready
@@ -139,15 +137,15 @@ for(spName in spList)
 		interval = transitions$year2-transitions$year1,
 		prevalence1 = transitions$prevalence)
 
-
-
 	pars = theMod$annealParams$par
 	design =c(theMod$colDesign, theMod$extDesign)
-	p = rep(0, length(design))
-	p[design == 1] = pars
+	params[[spName]] = rep(0, length(design))
+	params[[spName]][design == 1] = pars
+	env_vars[[spName]]$env1 = theMod$env1
+	env_vars[[spName]]$env2 = theMod$env2
 
 
-	### HERE - need to global models for the best model
+	# make global models using no prevalence
 	make_preds = function(x1, x2, design)
 	{
 		vars = data.frame(env1=x1, env2=x2, env12=x1^2, env22=x2^2, env13=x1^3, env23=x2^3)
@@ -163,7 +161,7 @@ for(spName in spList)
 
 	mcmcInits = data.frame(
 		name = parNames,
-		initialValue = p,
+		initialValue = params[[spName]],
 		samplerVariance = 0.5,
 		priorMean = 0,
 		priorSD = 2.5,
@@ -171,67 +169,84 @@ for(spName in spList)
 		isConstant = as.integer(!design))
 	mcmcInits$priorSD[which(substr(parNames, nchar(parNames), nchar(parNames)) == '0')] = 10
 
-## 	# second one initialize to 0
-## 	mcmcInits2 = mcmcInits
-## 	mcmcInits2$initialValue = rep(0, nrow(mcmcInits2))
-## 
-## 	# third one initialize to mean values for c and e
-## 	mcmcInits3 = mcmcInits2
-## 	mcmcInits3$initialValue[parNames == 'e0'] = 
-## 			qlogis(with(transitions, sum(state1 == 1 & state2 == 0) / sum(state1 == 1)))
-## 	mcmcInits3$initialValue[parNames == 'g0'] = 
-## 			qlogis(with(transitions, sum(state1 == 0 & state2 == 1) / sum(state1 == 0)))
-
 	mcmcDataFile = file.path(baseDir, 'dat', 'mcmc_data.txt')
 	mcmcInitFile = file.path(baseDir, 'dat', 'mcmc_inits.txt')
-## 	mcmcInitFile2 = file.path(baseDir, 'dat', 'mcmc_inits2.txt')
-## 	mcmcInitFile3 = file.path(baseDir, 'dat', 'mcmc_inits3.txt')
 
 	write.csv(mcmcData, mcmcDataFile, row.names=FALSE)
 	write.csv(mcmcInits, mcmcInitFile, row.names=FALSE)
-## 	write.csv(mcmcInits2, mcmcInitFile2, row.names=FALSE)
-## 	write.csv(mcmcInits3, mcmcInitFile3, row.names=FALSE)
+}
+
+params = list()
+env_var = list()
+for(species in spList)
+{
+	cat(paste("Starting species", species, "\n"))
+	err_sp = function(e, species) cat(paste("  An error occurred processing species", species, "\n", e, "\n"))
+	tryCatch(prep_species(species), error=function(e) err_sp(e, species))
+}
 
 
-	## make a prediction map and response curve
-	# response curves
-	x1 = seq(-3, 3, 0.01)
-	x2 = seq(-3, 3, 0.01)
 
+# make some prediction maps and response curves
+nr = 5
+nc = 8
+
+env1.yc = env1.ye = env2.yc = env2.ye = list()
+xx = seq(-3, 3, 0.01)
+pdf("img/anneal_env1_response.pdf", w=nc*4.5, h=nr*5)
+par(mfrow=c(nr, nc), oma=c(0,0,2,0), mar=c(4.5,4.5,0.5,0.5))
+
+for(spName in spList)
+{
+	p = params[[spName]]
 	# find the point at which env1 maximizes lambda
-	env1.yc = compute_c(p, x1, rep(0, length(x1)))
-	env1.ye = compute_e(p, x1, rep(0, length(x1)))
-	env1.lam = env1.yc - env1.ye
-	env1.maxx = x1[which(env1.lam == max(env1.lam))[1]]
+	env1.yc[[spName]] = compute_c(p, xx, rep(0, length(xx)))
+	env1.ye[[spName]] = compute_e(p, xx, rep(0, length(xx)))
+	env1.lam = env1.yc[[spName]] - env1.ye[[spName]]
+	env1.maxx = xx[which(env1.lam == max(env1.lam))[1]]
 
 	# find the point at which env2 maximizes lambda with the max from the prev step
-	env2.yc = compute_c(p, rep(env1.maxx, length(x2)), x2)
-	env2.ye = compute_e(p, rep(env1.maxx, length(x2)), x2)
-	env2.lam = env2.yc - env2.ye
-	env2.maxx = x2[which(env2.lam == max(env2.lam))[1]]
+	env2.yc[[spName]] = compute_c(p, rep(env1.maxx, length(xx)), xx)
+	env2.ye[[spName]] = compute_e(p, rep(env1.maxx, length(xx)), xx)
+	env2.lam = env2.yc[[spName]] - env2.ye[[spName]]
+	env2.maxx = xx[which(env2.lam == max(env2.lam))[1]]
 
-	# re-do the computation of x1 with the new max from x2
-	env1.yc = compute_c(p, x1, rep(env2.maxx, length(x1)))
-	env1.ye = compute_e(p, x1, rep(env2.maxx, length(x1)))
+	# re-do the computation of xx with the new max from xx
+	env1.yc[[spName]] = compute_c(p, xx, rep(env2.maxx, length(xx)))
+	env1.ye[[spName]] = compute_e(p, xx, rep(env2.maxx, length(xx)))
+
+	ylim1=range(c(env1.yc[[spName]], env1.ye[[spName]]))
+	plot(xx, env1.yc[[spName]], col='blue', xlab=env_vars[[spName]]$env1, ylab="pr", type='l', ylim=ylim1, main=spName)
+	lines(xx, env1.ye[[spName]], col='red')
+}
+dev.off()	
+
+pdf("img/anneal_env2_response.pdf", w=nc*4.5, h=nr*5)
+par(mfrow=c(nr, nc), oma=c(0,0,2,0), mar=c(4.5,4.5,0.5,0.5))
+
+for(spName in spList)
+{
+	ylim2=range(c(env2.yc[[spName]], env2.ye[[spName]]))
+	plot(xx, env2.yc[[spName]], col='blue', xlab=env_vars[[spName]]$env2, ylab="pr", type='l', ylim=ylim2, main=spName)
+	lines(xx, env2.ye[[spName]], col='red')	
+}
+dev.off()
 
 
-	pdf(w=7,h=4, file=file.path(baseDir, 'img', 'anneal_response.pdf'))
-	par(mfrow=c(1,2), oma=c(0,0,2,0), mar=c(4.5,4.5,0.5,0.5))
-	ylim1=range(c(env1.yc, env1.ye))
-	ylim2=range(c(env2.yc, env2.ye))
-	plot(x1, env1.yc, col='blue', xlab=theMod$env1, ylab="pr", type='l', ylim=ylim1)
-	lines(x1, env1.ye, col='red')
-	plot(x2, env2.yc, col='blue', xlab=theMod$env2, ylab="pr", type='l', ylim=ylim2)
-	lines(x2, env2.ye, col='red')	
-	mtext(spName, outer=T, line=0.5)
-	dev.off()
 
+# map
+climDat = readRDS("dat/climateGrid_scaled.rds")
+load('dat/map_projections.rdata')
+env1 = climDat[, theMod$env1]
+env2 = climDat[, theMod$env2]
+dpi=600
+lamColors = colorRampPalette(c("#008837", "#a6dba0", "#f7f7f7", "#c2a5cf", "#7b3294"), interpolate='spline', space="rgb", bias=1.0)(200)
+png(width=as.integer(dpi*4.5*nc), height=as.integer(dpi*5*nr), file="img/anneal_response_map.png", pointsize=12, res=dpi)
+par(mfrow=c(nr, nc), oma=c(0,0,2,0), mar=c(4.5,4.5,0.5,0.5))
 
-	# map
-	climDat = readRDS("dat/climateGrid_scaled.rds")
-	load('dat/map_projections.rdata')
-	env1 = climDat[, theMod$env1]
-	env2 = climDat[, theMod$env2]
+for(spName in spList)
+{
+	p = params[[spName]]
 	lamVals = compute_c(p, env1, env2) - compute_e(p, env1, env2)
 	lambda = data.frame(lon = climDat$lon, lat = climDat$lat, lambda=lamVals)
 	coordinates(lambda) = c('lon', 'lat')
@@ -239,13 +254,6 @@ for(spName in spList)
 	lambda = raster(lambda)
 	proj4string(lambda) = P4S.latlon
 	lambda = projectRaster(lambda, crs=stmMapProjection)
-
-	lamColors = colorRampPalette(c("#008837", "#a6dba0", "#f7f7f7", "#c2a5cf", "#7b3294"), interpolate='spline', space="rgb", bias=1.0)(200)
-	at = pretty(range(lamVals))
-	labels = as.character(at)
-	arg = list(at=at, labels=labels)
-	breaks = c(seq(min(lamVals), 0, length.out=100), seq(0.001, max(lamVals), length.out=100))
-	pdf(w=7,h=7, file=file.path(baseDir, 'img', 'anneal_map.pdf'))
-	plot(lambda, col=lamColors, xaxt='n', yaxt='n', main=spName, breaks=breaks, axis.arg=arg)
-	dev.off()
+	plot(lambda, col=lamColors, xaxt='n', yaxt='n', main=spName, zlim=c(0,1),legend=FALSE)
 }
+dev.off()
