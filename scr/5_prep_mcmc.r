@@ -27,7 +27,7 @@ fit_global_models = function(resp, colPredictors, extPredictors, x.coord, y.coor
 	e.sel = which(resp[,1] == 1)
 	
 	col.df = data.frame(y=as.integer(resp[c.sel,2] == 1), colPredictors[c.sel,])
-	ext.df = data.frame(y=as.integer(resp[e.sel],2 == 0), extPredictors[e.sel,])
+	ext.df = data.frame(y=as.integer(resp[e.sel,2] == 0), extPredictors[e.sel,])
 	
 	c.mod = glm(y ~ ., data=col.df, family=binomial)
 	c.mod.xy = gam(y ~ . + s(x.coord[c.sel]) + s(y.coord[c.sel]), 
@@ -41,7 +41,7 @@ fit_global_models = function(resp, colPredictors, extPredictors, x.coord, y.coor
 }
 
 make_design = function(x, y) paste(paste(x, collapse=""), paste(y, collapse=""), sep="")
-parse_design = function(designStr) as.numeric(unlist(strsplit(designStr), ""))
+parse_design = function(designStr) as.numeric(unlist(strsplit(designStr, "")))
 
 rank_models = function(mods)
 {
@@ -62,10 +62,10 @@ sum_weights = function(ranks)
 {
 	AICcw = rep(NA, nrow(ranks))
 	i = delta = 0
-	while(delta <= 10)
+	while(delta <= 10 & i <= nrow(ranks))
 	{
 		i = i+1
-		delta = ranks$AICw[i]
+		delta = ranks$dAIC[i]
 		if(is.na(AICcw[i]))
 		{
 			env1 = ranks$env1[i]
@@ -80,25 +80,27 @@ sum_weights = function(ranks)
 
 select_model = function(ranks, mods, useCat=TRUE)
 {
-	modInd = spInfo$modNumber[spInfo$spName == spName]
+	modID = spInfo$modNumber[spInfo$spName == spName]
 	method = "input from dat/speciesInfo.csv"
-	if(modInd == 0)
+	if(modID == 0)
 	{
 		# find the most complex model where:
 		#   1. the cumulative weight is greatest
-		#   2. deltaAIC < 10
-		rows = which(ranks$wt_sum == max(ranks$wt_sum) & ranks$dAIC <= 10)
-		complexity = sum(parse_design(ranks$design))
-		modInd = which(complexity[rows] == max(complexity[rows]))
+		#   2. deltaAIC < 2
+		rows = which(ranks$wt_sum == max(ranks$wt_sum) & ranks$dAIC <= 2)
+		if(length(rows) == 0) rows = which(ranks$wt_sum == max(ranks$wt_sum))[1]
+		complexity = sapply(lapply(ranks$design, parse_design), sum)
+		modID = ranks$id[rows][which(complexity[rows] == max(complexity[rows]))]
 		method = "automatic selection"
 	}
 	if(useCat)
 	{
 		cat("\n")
 		print(ranks[ranks$dAIC <= 10,])
-		cat(paste("\n selected model", modInd, "by", method, "\n"))
+		cat(paste("\n selected model", modID, "by", method, "\n"))
 	}
-	mods[[modInd]]
+	# find the proper model
+	mods[[which(lapply(mods, function(x) x$id) == modID)]]
 }
 
 
@@ -176,8 +178,7 @@ prep_species = function(spName)
 	write.csv(mcmcInits, mcmcInitFile, row.names=FALSE)
 }
 
-params = list()
-env_var = list()
+env_vars = params = list()
 for(species in spList)
 {
 	cat(paste("Starting species", species, "\n"))
@@ -254,6 +255,6 @@ for(spName in spList)
 	lambda = raster(lambda)
 	proj4string(lambda) = P4S.latlon
 	lambda = projectRaster(lambda, crs=stmMapProjection)
-	plot(lambda, col=lamColors, xaxt='n', yaxt='n', main=spName, zlim=c(0,1),legend=FALSE)
+	plot(lambda, col=lamColors, xaxt='n', yaxt='n', main=spName, legend=FALSE)
 }
 dev.off()
