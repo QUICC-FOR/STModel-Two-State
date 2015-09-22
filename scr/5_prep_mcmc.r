@@ -78,9 +78,9 @@ sum_weights = function(ranks)
 }
 
 
-select_model = function(ranks, mods, useCat=TRUE)
+select_model = function(ranks, mods, species, useCat=TRUE)
 {
-	modID = spInfo$modNumber[spInfo$spName == spName]
+	modID = spInfo$modNumber[spInfo$spName == species]
 	method = "input from dat/speciesInfo.csv"
 	if(modID == 0)
 	{
@@ -121,7 +121,7 @@ prep_species = function(spName)
 	mRanks$wt_sum = sum_weights(mRanks)
 	
 	# select a model
-	theMod = select_model(mRanks, models)
+	theMod = select_model(mRanks, models, spName)
 		
 	saveRDS(mRanks, file.path(baseDir, 'res', paste(spName, 'modelSelection.rds', sep='_')))
 	saveRDS(theMod, file.path(baseDir, 'res', paste(spName, 'bestAnnealModel.rds', sep='_')))
