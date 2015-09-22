@@ -88,7 +88,7 @@ select_model = function(ranks, mods, species, useCat=TRUE)
 		#   1. the cumulative weight is greatest
 		#   2. deltaAIC < 2
 		rows = which(ranks$wt_sum == max(ranks$wt_sum) & ranks$dAIC <= 2)
-		if(length(rows) == 0) rows = which(ranks$wt_sum == max(ranks$wt_sum))[1]
+		if(length(rows) == 0) rows = which(ranks$wt_sum == max(ranks$wt_sum, na.rm=T))[1]
 		complexity = sapply(lapply(ranks$design, parse_design), sum)
 		modID = ranks$id[rows][which(complexity[rows] == max(complexity[rows]))]
 		method = "automatic selection"
@@ -96,7 +96,7 @@ select_model = function(ranks, mods, species, useCat=TRUE)
 	if(useCat)
 	{
 		cat("\n")
-		print(ranks[ranks$dAIC <= 10,])
+		print(head(ranks))
 		cat(paste("\n selected model", modID, "by", method, "\n"))
 	}
 	# find the proper model
