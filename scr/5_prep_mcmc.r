@@ -91,6 +91,7 @@ select_model = function(ranks, mods, species, useCat=TRUE)
 		if(length(rows) == 0) rows = which(ranks$wt_sum == max(ranks$wt_sum, na.rm=T))[1]
 		complexity = sapply(lapply(ranks$design, parse_design), sum)
 		modID = ranks$id[rows][which(complexity[rows] == max(complexity[rows]))]
+		if(length(modID) > 1) modID = modID[1]
 		method = "automatic selection"
 	}
 	if(useCat)
