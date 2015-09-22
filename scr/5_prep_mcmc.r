@@ -208,6 +208,7 @@ par(mfrow=c(nr, nc), oma=c(0,0,2,0), mar=c(4.5,4.5,0.5,0.5))
 
 for(spName in spList)
 {
+	cat(paste("Plotting species", spName, "\n"))
 	p = params[[spName]]
 	# find the point at which env1 maximizes lambda
 	env1.yc[[spName]] = compute_c(p, xx, rep(0, length(xx)))
