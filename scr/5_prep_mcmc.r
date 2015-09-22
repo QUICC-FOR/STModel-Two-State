@@ -104,9 +104,8 @@ select_model = function(ranks, mods, species, useCat=TRUE)
 	}
 	if(useCat)
 	{
-		cat("\n")
-		print(head(ranks))
-		cat(paste("\n selected model", modID, "by", method, "\n"))
+## 		print(head(ranks))
+		cat(paste("selected model", modID, "by", method, "\n\n"))
 	}
 	# find the proper model
 	mods[[which(lapply(mods, function(x) x$id) == modID)]]
@@ -150,10 +149,9 @@ prep_species = function(spName)
 
 	pars = theMod$annealParams$par
 	design =c(theMod$colDesign, theMod$extDesign)
-	params[[spName]] = rep(0, length(design))
-	params[[spName]][design == 1] = pars
-	env_vars[[spName]]$env1 = theMod$env1
-	env_vars[[spName]]$env2 = theMod$env2
+	allParams = rep(0, length(design))
+	allParams[design == 1] = pars
+	envVariables = list(env1 = theMod$env1, env2 = theMod$env2)
 
 
 	# make global models using no prevalence
@@ -172,7 +170,7 @@ prep_species = function(spName)
 
 	mcmcInits = data.frame(
 		name = parNames,
-		initialValue = params[[spName]],
+		initialValue = allParams,
 		samplerVariance = 0.5,
 		priorMean = 0,
 		priorSD = 2.5,
@@ -185,6 +183,7 @@ prep_species = function(spName)
 
 	write.csv(mcmcData, mcmcDataFile, row.names=FALSE)
 	write.csv(mcmcInits, mcmcInitFile, row.names=FALSE)
+	return(list(env_vars=envVariables, params=allParams))
 }
 
 env_vars = params = list()
@@ -192,7 +191,9 @@ for(species in spList)
 {
 	cat(paste("Starting species", species, "\n"))
 	err_sp = function(e, species) cat(paste("  An error occurred processing species", species, "\n", e, "\n"))
-	tryCatch(prep_species(species), error=function(e) err_sp(e, species))
+	result = tryCatch(prep_species(species), error=function(e) err_sp(e, species))
+	env_vars[[species]] = result$env_vars
+	params[[species]] = result$params
 }
 
 
