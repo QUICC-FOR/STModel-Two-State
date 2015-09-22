@@ -250,11 +250,16 @@ for(spName in spList)
 	p = params[[spName]]
 	lamVals = compute_c(p, env1, env2) - compute_e(p, env1, env2)
 	lambda = data.frame(lon = climDat$lon, lat = climDat$lat, lambda=lamVals)
+	at = pretty(range(lamVals))
+	labels = as.character(at)
+	arg = list(at=at, labels=labels)
+	breaks = c(seq(min(lamVals), 0, length.out=100), seq(0.001, max(lamVals), length.out=100))
+	
 	coordinates(lambda) = c('lon', 'lat')
 	gridded(lambda) = TRUE
 	lambda = raster(lambda)
 	proj4string(lambda) = P4S.latlon
 	lambda = projectRaster(lambda, crs=stmMapProjection)
-	plot(lambda, col=lamColors, xaxt='n', yaxt='n', main=spName, legend=FALSE)
+	plot(lambda, col=lamColors, xaxt='n', yaxt='n', main=spName, breaks=breaks, axis.arg=arg, legend=FALSE)
 }
 dev.off()
