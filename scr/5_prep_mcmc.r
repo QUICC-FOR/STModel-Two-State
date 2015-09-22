@@ -87,12 +87,20 @@ select_model = function(ranks, mods, species, useCat=TRUE)
 		# find the most complex model where:
 		#   1. the cumulative weight is greatest
 		#   2. deltaAIC < 2
-		rows = which(ranks$wt_sum == max(ranks$wt_sum) & ranks$dAIC <= 2)
-		if(length(rows) == 0) rows = which(ranks$wt_sum == max(ranks$wt_sum, na.rm=T))[1]
+		method = "automatic selection"
+		maxwt = max(ranks$wt_sum, na.rm=TRUE)
+		rows = which(ranks$wt_sum == maxwt & ranks$dAIC <= 2)
 		complexity = sapply(lapply(ranks$design, parse_design), sum)
+		# guard against a model with no predictors, only intercepts
+		if(length(rows) == 1 && complexity[rows] == 2)
+		{
+			maxwt = sort(unique(ranks$wt_sum), TRUE)[2]
+			method=paste(method, "; warning: best model had no predictors", sep="")
+		}
+		rows = which(ranks$wt_sum == maxwt & ranks$dAIC <= 2)		
+		if(length(rows) == 0) rows = which(ranks$wt_sum == maxwt)[1]
 		modID = ranks$id[rows][which(complexity[rows] == max(complexity[rows]))]
 		if(length(modID) > 1) modID = modID[1]
-		method = "automatic selection"
 	}
 	if(useCat)
 	{
