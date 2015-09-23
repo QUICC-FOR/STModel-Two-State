@@ -1,4 +1,5 @@
 #!/usr/bin/Rscript
+spList = readRDS('dat/speciesList.rds')
 for(spName in spList)
 {
 	baseDir = file.path('species', spName)
