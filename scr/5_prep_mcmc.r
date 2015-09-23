@@ -183,10 +183,10 @@ prep_species = function(spName)
 
 	write.csv(mcmcData, mcmcDataFile, row.names=FALSE)
 	write.csv(mcmcInits, mcmcInitFile, row.names=FALSE)
-	return(list(env_vars=envVariables, params=allParams))
+	return(list(env_vars=envVariables, params=allParams, theMod=theMod))
 }
 
-env_vars = params = list()
+env_vars = params = selected_mods = list()
 for(species in spList)
 {
 	cat(paste("Starting species", species, "\n"))
@@ -194,6 +194,7 @@ for(species in spList)
 	result = tryCatch(prep_species(species), error=function(e) err_sp(e, species))
 	env_vars[[species]] = result$env_vars
 	params[[species]] = result$params
+	selected_mods[[species]] = result$theMod
 }
 
 
@@ -249,8 +250,6 @@ dev.off()
 # map
 climDat = readRDS("dat/climateGrid_scaled.rds")
 load('dat/map_projections.rdata')
-env1 = climDat[, theMod$env1]
-env2 = climDat[, theMod$env2]
 dpi=600
 lamColors = colorRampPalette(c("#008837", "#a6dba0", "#f7f7f7", "#c2a5cf", "#7b3294"), interpolate='spline', space="rgb", bias=1.0)(200)
 png(width=as.integer(dpi*4.5*nc), height=as.integer(dpi*5*nr), file="img/anneal_response_map.png", pointsize=12, res=dpi)
@@ -259,6 +258,8 @@ par(mfrow=c(nr, nc), oma=c(0,0,2,0), mar=c(4.5,4.5,0.5,0.5))
 for(spName in spList)
 {
 	p = params[[spName]]
+	env1 = climDat[, selected_mods[[spName]]$env1]
+	env2 = climDat[, selected_mods[[spName]]$env2]
 	lamVals = compute_c(p, env1, env2) - compute_e(p, env1, env2)
 	lambda = data.frame(lon = climDat$lon, lat = climDat$lat, lambda=lamVals)
 	at = pretty(range(lamVals))
