@@ -12,7 +12,7 @@ no.variance = function(posterior)
 }
 
 # drop half
-p1.half = p1.half[1:floor(nrow(p1.raw)/2),]
+p1.half = p1.raw[1:floor(nrow(p1.raw)/2),]
 samp.points = floor(c(0.25, 0.5, 0.75) * nrow(p1.half))
 
 # check that the sampler has actually moved between each sample point
