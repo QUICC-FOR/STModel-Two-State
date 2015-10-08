@@ -1,4 +1,16 @@
 #!/usr/bin/Rscript
+
+## perform SDM on all species
+## dependencies:
+##       dat/speciesList.rds  (script 1)
+##       dat/plotClimate_scaled.rds  (script 1)
+##       dat/presence/*
+
+## creates:
+##       res/sdm/*
+##       res/sdmROC.csv
+##       img/sdm/
+
 library(randomForest)
 library(pROC)
 
@@ -22,7 +34,7 @@ rows = sapply(unique(climDat$plot_id), function(i) {
 	})
 
 
-get_sdm_dat = function(sp, baseDir, sel, climate)
+get_sdm_dat = function(sp, sel, climate)
 {
 	# select the data for a particular species to be used with the sdm
 	# sp: the species code
@@ -33,7 +45,7 @@ get_sdm_dat = function(sp, baseDir, sel, climate)
 	# selected is the dataset for use in the SDM
 	# unselected is the rest of the data
 	
-	spPath = file.path(baseDir, 'dat', paste(sp, 'presence.rds', sep='_'))
+	spPath = file.path('dat', 'presence', paste0(sp, '_presence.rds'))
 	spData = readRDS(spPath)
 	colnames(spData)[3] = 'presence'
 	sdmDat = merge(spData, climate)
@@ -63,27 +75,38 @@ get_auc = function(mod, newdata, presence.name = 'presence')
 # MAIN LOOP ACROSS SPECIES
 #######
 
+rocResults = list()
+sdmModels = list()
 for(spName in speciesList)
 {
 	cat(paste("Starting species", spName, '\n'))
-
-	baseDir = file.path('species', spName)
-	rfModFilename = file.path(baseDir, 'res', paste(spName, 'sdm.rds', sep='_'))
+	rfModFilename = file.path('res', 'sdm', paste0(spName, "_rf_sdm.rds"))
 
 	if(file.exists(rfModFilename) & !overwrite)
 	{
 		warning(paste("Output file", rfModFilename, 
 				"already exists; skipping. Use --overwrite or -o to redo all species"))
 	} else {
-		sdmDat = get_sdm_dat(spName, baseDir, rows, climDat)
+		sdmDat = get_sdm_dat(spName, rows, climDat)
 		
 		## run RF
 		cat("  Fitting random forest\n")
 		rf.mod = randomForest(as.factor(presence) ~ . , data = sdmDat$selected, ntree = 500)
 		saveRDS(rf.mod, rfModFilename)
+		sdmModels[[spName]] = rf.mod
 		
 		cat("  Computing ROC\n")
-		cat("Area under the ROC curve: ", get_auc(rf.mod, sdmDat$unselected), "\n", 
-			file=file.path(baseDir, 'res', 'sdm_roc.txt'))
-		}
+		rocResults[[spName]] = data.frame(species=spName, roc=get_auc(rf.mod, sdmDat$unselected))
+	}
+}
+
+
+# write ROC
+rocTable = do.call(rbind, rocResults)
+write.csv(rocTable, file=file.path('res', 'sdmROC.csv'))
+	
+# draw pictures -- move this in from script 3
+for(spName in speciesList)
+{
+
 }
