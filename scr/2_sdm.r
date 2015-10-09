@@ -18,6 +18,9 @@ library(pROC)
 # some constants
 overwrite = FALSE
 
+dir.create(file.path('res', 'sdm'), recursive=TRUE)
+dir.create(file.path('img'), recursive=TRUE)
+
 
 arg = commandArgs(trailingOnly = TRUE)
 if('--overwrite' %in% arg | '-o' %in% arg) overwrite = TRUE
@@ -25,7 +28,7 @@ if('--overwrite' %in% arg | '-o' %in% arg) overwrite = TRUE
 speciesList = readRDS('dat/speciesList.rds')
 climDat = readRDS("dat/plotClimate_scaled.rds")
 climGrid = readRDS('dat/climateGrid_scaled.rds')
-source("stm_functions.r")
+source("src/stm_functions.r")
 
 # subset the data for the SDM
 # select only a single row for each plot (to avoid too much spatial duplication)

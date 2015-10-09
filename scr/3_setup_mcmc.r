@@ -1,13 +1,34 @@
 #!/usr/bin/Rscript
 
+## prepare the data files for the MCMC
+## dependencies:
+##     dat/raw/plotLocations.rds
+##     dat/transitionClimate_scaled.rds (script 1)
+##     dat/transition/*
+##     res/sdm/* (script 2)
+
+## creates:
+##     dat/stm_calib/*
+##     dat/stm_valid/*
+##     dat/mcmc/*_mcmcDat.txt
+##     dat/mcmc/*_mcmcInit.txt
+
+
 mcmcProportion = 0.75
 stmMaxInterval = 15
 env1 = "annual_mean_temp"
 env2 = "tot_annual_pp"
-source("stm_functions.r")
+source("src/stm_functions.r")
 dir.create(file.path('dat', 'stm_calib'), recursive=TRUE)
 dir.create(file.path('dat', 'stm_valid'), recursive=TRUE)
 dir.create(file.path('dat', 'mcmc'), recursive=TRUE)
+dir.create(file.path('scr', 'mcmc'), recursive=TRUE)
+dir.create(file.path('res', 'mcmc'), recursive=TRUE)
+speciesList = readRDS('dat/speciesList.rds')
+speciesInfo = read.csv('dat/speciesInfo.rds')
+
+# clear all previous mcmc launch scripts
+do.call(file.remove,list(list.files("scr/mcmc")))
 
 plotLocations = readRDS('dat/raw/plotLocations.rds')
 transitionClimate = readRDS('dat/transitionClimate_scaled.rds')
@@ -87,4 +108,42 @@ for(spName in speciesList)
 		isConstant = isConstant)
 	mcmcInits$priorSD[parNames %in% c('g0', 'e0')] = 10
 	write.csv(mcmcInits, mcmcInitFile, row.names=FALSE)
+	
+	spInfo = speciesInfo[speciesInfo$spName == spName,]
+	
+	# now create the mcmc launch scripts and output directories
+	outputDirs = file.path("res", "mcmc", spName, c("0", "a", "g"))
+	for(d in outputDirs) dir.create(d, recursive=TRUE)
+	dir.create(file.path("log"), recursive=TRUE)
+	outputCommands = paste0("-o ", outputDirs)
+	mcScriptPrefix = paste0("cd $DIR; $SRC/stm2_mcmc -p ../../", mcmcInitFile, 
+			" -t ../../", mcmcDataFile, " -n ", spInfo$thin, " -b ", spInfo$burnin, 
+			" -i ", spInfo$mcmcIter, " -c 40 -l 5 -v 2")
+	mcPrevFlags = c("", "-a", "-g")
+	logfiles = paste0(">2log/mcmc_log_", spName, "_", c('0', 'a', 'g'), '.txt')
+	mcCommand = paste(mcScriptPrefix, outputCommands, mcPrevFlags, logfiles)
+	mcCommandFiles = file.path("scr", "mcmc", paste0(spName, "_", c("0", "a", "g")))
+	scNames = paste0("#PBS -N ", spInfo$shortname, "-", c('0','a','g'))
+	
+	pbsLines = c(
+		"#!/bin/sh",
+		"#PBS -q default",
+		"#PBS -l walltime=168:00:00",
+		"#PBS -l nodes=1:ppn=40",
+		"#PBS -r n"
+	)
+	mcLines = c(
+		"module load gcc/4.9.2",
+		"module load openmpi/1.8.3",
+		"SRC=~/STModel-MCMC/bin",
+		"DIR=~/STModel-Two-State/res/mcmc"
+	)
+	for(i in 1:length(mcCommand))
+	{
+		com = mcCommand[i]
+		nm = scNames[i]
+		fname = mcCommandFiles[i]
+		lns = c(pbsLines, nm, mcLines, com)
+		writeLines(lns, con=fname)
+	}
 }

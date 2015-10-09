@@ -1,19 +1,5 @@
 #!/usr/bin/Rscript
-# this is a quick utility script that will build the full working tree of directories
-# and set up a few other things that are used globally. Should be run once on each
-# computer that will be running any analyses
-
-# directory tree
-subDirs = c('img', 'res')
-resDirs = c('sdm', 'mcmc')
-
-for(sDir in subDirs)
-	dir.create(file.path(sDir, recursive=TRUE))
-	
-for(rDir in resDirs)
-	dir.create(file.path('res', rDir, recursive=TRUE))
-
-
+# set up data files etc
 
 ## species names
 # create the directory tree needed by the project, if it doesn't already exist
