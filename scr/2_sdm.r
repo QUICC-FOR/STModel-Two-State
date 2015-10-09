@@ -4,12 +4,13 @@
 ## dependencies:
 ##       dat/speciesList.rds  (script 1)
 ##       dat/plotClimate_scaled.rds  (script 1)
+##       dat/climGrid_scaled.rds  (script 1)
 ##       dat/presence/*
 
 ## creates:
 ##       res/sdm/*
 ##       res/sdmROC.csv
-##       img/sdm/
+##       img/sdms.png
 
 library(randomForest)
 library(pROC)
@@ -23,6 +24,8 @@ if('--overwrite' %in% arg | '-o' %in% arg) overwrite = TRUE
 
 speciesList = readRDS('dat/speciesList.rds')
 climDat = readRDS("dat/plotClimate_scaled.rds")
+climGrid = readRDS('dat/climateGrid_scaled.rds')
+source("stm_functions.r")
 
 # subset the data for the SDM
 # select only a single row for each plot (to avoid too much spatial duplication)
@@ -71,16 +74,29 @@ get_auc = function(mod, newdata, presence.name = 'presence')
 }
 
 
+sdm_pres = function(sdm, newdata, threshold)
+{
+	# return a presence absence vector using the predictions of an sdm and a threshold
+	predictions = predict(sdm, newdata = newdata, type='prob')[,2]
+	as.integer(predictions >= threshold)
+
+}
+
+
+
+
 #######
 # MAIN LOOP ACROSS SPECIES
 #######
 
 rocResults = list()
 sdmModels = list()
+projections = list()
 for(spName in speciesList)
 {
 	cat(paste("Starting species", spName, '\n'))
 	rfModFilename = file.path('res', 'sdm', paste0(spName, "_rf_sdm.rds"))
+	projFilename = file.path('res', 'sdm', paste0(spName, "_sdm_projection.rds"))
 
 	if(file.exists(rfModFilename) & !overwrite)
 	{
@@ -95,6 +111,17 @@ for(spName in speciesList)
 		saveRDS(rf.mod, rfModFilename)
 		sdmModels[[spName]] = rf.mod
 		
+		# project SDM into geographic space
+		cat("  Projecting SDM geographically\n")
+		sdmProjection = data.frame(lon=climGrid$lon, lat=climGrid$lat, 
+				sdm=predict(rf.mod, newdata=climGrid, type='prob')[,2])
+		sdmProjection$sdm.pres = sdm_pres(rf.mod, climGrid, sdm.threshold)
+		sdmProjection$stm.mask = with(sdmProjection, stm_mask(cbind(lon, lat), 
+				presDat[,spName], presDat[,c('lon', 'lat')], stmMaskTolerance))
+		saveRDS(sdmProjection, projFilename)
+		projections[[spName]] = sdmProjection
+
+		
 		cat("  Computing ROC\n")
 		rocResults[[spName]] = data.frame(species=spName, roc=get_auc(rf.mod, sdmDat$unselected))
 	}
@@ -105,8 +132,17 @@ for(spName in speciesList)
 rocTable = do.call(rbind, rocResults)
 write.csv(rocTable, file=file.path('res', 'sdmROC.csv'))
 	
-# draw pictures -- move this in from script 3
+# plot the SDMs
+coord.cols=c('lon', 'lat')
+fname = file.path('img', 'sdms.png')
+set_up_stm_figure(length(speciesList) + 1, fname, mar=c(0,0,1,0), oma=c(0.5,0.5,2.5,0.5))
 for(spName in speciesList)
-{
+	plot_sdm(projections[[spName]]$sdm, mapData[,coord.cols], sdmColors, zlim=c(0,1), main=spName)
 
-}
+# plot a legend
+plot.new()
+par(mar=c(15,0,0,0))
+plot_sdm(mapData$sdm, mapData[,coord.cols], sdmColors, zlim=c(0,1), legend=TRUE, 
+		legend.only=TRUE, plot.ocean=FALSE, legend.width=6, legend.shrink=1, horizontal=TRUE)
+clean_up_figure(fname)
+
