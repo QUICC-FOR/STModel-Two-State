@@ -116,7 +116,7 @@ for(spName in speciesList)
 	for(d in outputDirs) dir.create(d, recursive=TRUE)
 	dir.create(file.path("log"), recursive=TRUE)
 	outputCommands = paste0("-o ", outputDirs)
-	mcScriptPrefix = paste0("cd $DIR; $SRC/stm2_mcmc -p ../../", mcmcInitFile, 
+	mcScriptPrefix = paste0("cd $DIR; $SRC/stm2_mcmc -d -p ../../", mcmcInitFile, 
 			" -t ../../", mcmcDataFile, " -n ", spInfo$thin, " -b ", spInfo$burnin, 
 			" -i ", spInfo$mcmcIter, " -c 40 -l 5 -v 2")
 	mcPrevFlags = c("", "-a", "-g")
