@@ -12,20 +12,21 @@
 ##     dat/stm_valid/*
 ##     dat/mcmc/*_mcmcDat.txt
 ##     dat/mcmc/*_mcmcInit.txt
+##     scr/mcmc/*
 
-
-mcmcProportion = 0.75
+library(randomForest)
+mcmcProportion = 0.8
 stmMaxInterval = 15
 env1 = "annual_mean_temp"
 env2 = "tot_annual_pp"
-source("src/stm_functions.r")
+source("scr/stm_functions.r")
 dir.create(file.path('dat', 'stm_calib'), recursive=TRUE)
 dir.create(file.path('dat', 'stm_valid'), recursive=TRUE)
 dir.create(file.path('dat', 'mcmc'), recursive=TRUE)
 dir.create(file.path('scr', 'mcmc'), recursive=TRUE)
 dir.create(file.path('res', 'mcmc'), recursive=TRUE)
 speciesList = readRDS('dat/speciesList.rds')
-speciesInfo = read.csv('dat/speciesInfo.rds')
+speciesInfo = read.csv('dat/speciesInfo.csv')
 
 # clear all previous mcmc launch scripts
 do.call(file.remove,list(list.files("scr/mcmc")))
@@ -55,7 +56,7 @@ subset_transitions = function(dat, frac=0.5, max.interval=15, mask.tol = c(10,10
 		abs = which(state1 == 0 & state2 == 0)))
 	
 	# select an equal fraction of each type
-	sel = sapply(trIndices, function(x) sample(x, ceiling(frac*length(x))))
+	sel = unlist(sapply(trIndices, function(x) sample(x, ceiling(frac*length(x)))))
 	
 	list(selected = datMasked[sel,], unselected = datMasked[-sel,])
 }
@@ -112,17 +113,19 @@ for(spName in speciesList)
 	spInfo = speciesInfo[speciesInfo$spName == spName,]
 	
 	# now create the mcmc launch scripts and output directories
-	outputDirs = file.path("res", "mcmc", spName, c("0", "a", "g"))
-	for(d in outputDirs) dir.create(d, recursive=TRUE)
+	outputBase = file.path("res", "mcmc")
+	outputDirs = file.path(spName, c("0", "a", "g"))
+	outputPaths = file.path(outputBase, outputDirs)
+	for(d in outputPaths) dir.create(d, recursive=TRUE)
 	dir.create(file.path("log"), recursive=TRUE)
 	outputCommands = paste0("-o ", outputDirs)
 	mcScriptPrefix = paste0("cd $DIR; $SRC/stm2_mcmc -d -p ../../", mcmcInitFile, 
 			" -t ../../", mcmcDataFile, " -n ", spInfo$thin, " -b ", spInfo$burnin, 
 			" -i ", spInfo$mcmcIter, " -c 40 -l 5 -v 2")
 	mcPrevFlags = c("", "-a", "-g")
-	logfiles = paste0(">2log/mcmc_log_", spName, "_", c('0', 'a', 'g'), '.txt')
+	logfiles = paste0("2>../../log/mcmc_log_", spName, "_", c('0', 'a', 'g'), '.txt')
 	mcCommand = paste(mcScriptPrefix, outputCommands, mcPrevFlags, logfiles)
-	mcCommandFiles = file.path("scr", "mcmc", paste0(spName, "_", c("0", "a", "g")))
+	mcCommandFiles = file.path("scr", "mcmc", paste0(spName, "_", c("0", "a", "g"), '.sh'))
 	scNames = paste0("#PBS -N ", spInfo$shortname, "-", c('0','a','g'))
 	
 	pbsLines = c(

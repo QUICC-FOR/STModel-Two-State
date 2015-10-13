@@ -17,6 +17,7 @@ library(pROC)
 
 # some constants
 overwrite = FALSE
+sdm.threshold = 0.25
 
 dir.create(file.path('res', 'sdm'), recursive=TRUE)
 dir.create(file.path('img'), recursive=TRUE)
@@ -28,7 +29,7 @@ if('--overwrite' %in% arg | '-o' %in% arg) overwrite = TRUE
 speciesList = readRDS('dat/speciesList.rds')
 climDat = readRDS("dat/plotClimate_scaled.rds")
 climGrid = readRDS('dat/climateGrid_scaled.rds')
-source("src/stm_functions.r")
+source("scr/stm_functions.r")
 
 # subset the data for the SDM
 # select only a single row for each plot (to avoid too much spatial duplication)
@@ -119,8 +120,8 @@ for(spName in speciesList)
 		sdmProjection = data.frame(lon=climGrid$lon, lat=climGrid$lat, 
 				sdm=predict(rf.mod, newdata=climGrid, type='prob')[,2])
 		sdmProjection$sdm.pres = sdm_pres(rf.mod, climGrid, sdm.threshold)
-		sdmProjection$stm.mask = with(sdmProjection, stm_mask(cbind(lon, lat), 
-				presDat[,spName], presDat[,c('lon', 'lat')], stmMaskTolerance))
+## 		sdmProjection$stm.mask = with(sdmProjection, stm_mask(cbind(lon, lat), 
+## 				presDat[,spName], presDat[,c('lon', 'lat')], stmMaskTolerance))
 		saveRDS(sdmProjection, projFilename)
 		projections[[spName]] = sdmProjection
 
@@ -140,12 +141,12 @@ coord.cols=c('lon', 'lat')
 fname = file.path('img', 'sdms.png')
 set_up_stm_figure(length(speciesList) + 1, fname, mar=c(0,0,1,0), oma=c(0.5,0.5,2.5,0.5))
 for(spName in speciesList)
-	plot_sdm(projections[[spName]]$sdm, mapData[,coord.cols], sdmColors, zlim=c(0,1), main=spName)
+	plot_sdm(projections[[spName]]$sdm, climGrid[,coord.cols], sdmColors, zlim=c(0,1), main=spName)
 
 # plot a legend
 plot.new()
 par(mar=c(15,0,0,0))
-plot_sdm(mapData$sdm, mapData[,coord.cols], sdmColors, zlim=c(0,1), legend=TRUE, 
+plot_sdm(projections[[spName]]$sdm, climGrid[,coord.cols], sdmColors, zlim=c(0,1), legend=TRUE, 
 		legend.only=TRUE, plot.ocean=FALSE, legend.width=6, legend.shrink=1, horizontal=TRUE)
 clean_up_figure(fname)
 

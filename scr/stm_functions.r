@@ -5,9 +5,10 @@ sdmColors = colorRampPalette(c("#ffffff", "#bdc9e1", "#045a8d", "#33338d", "#cc9
 
 ### data
 library(rgdal)
+load("dat/map_projections.rdata")
 ocean = readOGR(dsn="dat/ne_50m_ocean", layer="ne_50m_ocean")
 ocean = spTransform(ocean, stmMapProjection)
-load("dat/map_projections.rdata")
+
 
 ### general functions
 compute_e = function(p, env1, env2) plogis(p[8] + env1*p[9] + env2*p[10] + env1^2*p[11] + 
