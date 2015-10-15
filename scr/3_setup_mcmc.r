@@ -27,7 +27,7 @@ suppressWarnings(
 	dir.create(file.path('dat', 'stm_calib'), recursive=TRUE)
 	dir.create(file.path('dat', 'stm_valid'), recursive=TRUE)
 	dir.create(file.path('dat', 'mcmc'), recursive=TRUE)
-	dir.create(file.path('scr', 'mcmc'), recursive=TRUE)
+	dir.create(file.path('scr', 'mcmc', 'int'), recursive=TRUE)
 	dir.create(file.path('res', 'mcmc'), recursive=TRUE)
 	dir.create(file.path("log"), recursive=TRUE)
 })
@@ -106,6 +106,7 @@ for(spName in speciesList)
 	isConstant = rep(0,length(parNames))
 	isConstant[parNames %in% c('g5','g6','e5','e6')] = 1
 	mcmcInitFile = file.path('dat', 'mcmc', paste0(spName, '_mcmcInit.txt'))
+	mcmcIntInitFile = file.path('dat', 'mcmc', paste0(spName, '_mcmcInit_int.txt'))
 	mcmcInits = data.frame(
 		name = parNames,
 		initialValue = 0,
@@ -116,6 +117,11 @@ for(spName in speciesList)
 		isConstant = isConstant)
 	mcmcInits$priorSD[parNames %in% c('g0', 'e0')] = 10
 	write.csv(mcmcInits, mcmcInitFile, row.names=FALSE)
+	
+	mcmcIntInits = mcmcInits
+	mcmcIntInits$isConstant[!(parNames %in% c('g0', 'e0'))] = 1
+	write.csv(mcmcIntInits, mcmcIntInitFile, row.names=FALSE)
+	
 	
 	spInfo = speciesInfo[speciesInfo$spName == spName,]
 	
@@ -131,7 +137,7 @@ for(spName in speciesList)
 	mcCommand = paste(mcScriptPrefix, outputCommands, mcPrevFlags, logfiles)
 	mcCommandFiles = file.path("scr", "mcmc", paste0(spName, "_", c("0", "a", "g"), '.sh'))
 	scNames = paste0("#PBS -N ", spInfo$shortname, "-", c('0','a','g'))
-	
+
 	pbsLines = c(
 		"#!/bin/sh",
 		"#PBS -q default",
@@ -153,4 +159,24 @@ for(spName in speciesList)
 		lns = c(pbsLines, nm, mcLines, com)
 		writeLines(lns, con=fname)
 	}
+
+	outputDirsInt = file.path("res", "mcmc", spName, c("i0", "ia", "ig"))
+	for(d in outputDirsInt) suppressWarnings(dir.create(d, recursive=TRUE))
+	outputCommandsInt = paste0("-o ", outputDirsInt)
+	mcIntScriptPrefix = paste0("cd $DIR; $SRC/stm2_mcmc -d -p ", mcmcIntInitFile, 
+			" -t ", mcmcDataFile, " -n ", spInfo$thin, " -b ", spInfo$burnin, 
+			" -i ", spInfo$mcmcIter, " -c 40 -l 5 -v 2")
+	logfilesInt = paste0("2>log/mcmc_log_", spName, "_", c('i0', 'ia', 'ig'), '.txt')
+	mcIntCommand = paste(mcIntScriptPrefix, outputCommandsInt, mcPrevFlags, logfilesInt)
+	mcCommandFilesInt = file.path("scr", "mcmc", "int", paste0(spName, "_", c("0", "a", "g"), '.sh'))
+	scNamesInt = paste0("#PBS -N ", spInfo$shortname, "-", c('i0','ia','ig'))
+	for(i in 1:length(mcIntCommand))
+	{
+		com = mcIntCommand[i]
+		nm = scNamesInt[i]
+		fname = mcCommandFilesInt[i]
+		lns = c(pbsLines, nm, mcLines, com)
+		writeLines(lns, con=fname)
+	}
+
 }
