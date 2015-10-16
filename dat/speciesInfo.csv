@@ -1,41 +1,41 @@
 spName,shortname,thin,burnin,mcmcIter,genus,species,rylim1,rylim2,rank,comname
-18032-ABI-BAL,abibal,5,10000,10000,Abies,balsamea,1,1,2,Balsam fir
-18034-PIC-RUB,picrub,10,10000,10000,Picea,rubens,1,1,30,Red spruce
-18037-PIN-TAE,pintae,25,10000,10000,Pinus,taeda,1,1,5,Loblolly pine
-18048-JUN-VIR,junvir,10,10000,10000,Juniperus,virginiana,1,1,27,Red cedar
-18086-LIR-TUL,lirtul,5,10000,10000,Liriodendron,tulipifera,1,1,11,American tulip tree
-183295-PIC-GLA,picgla,5,10000,10000,Picea,glauca,1,1,18,White spruce
-183302-PIC-MAR,picmar,5,10000,10000,Picea,mariana,1,1,14,Black spruce
-183335-PIN-ECH,pinech,10,10000,10000,Pinus,echinata,1,1,28,Shortleaf pine
-183385-PIN-STR,pinstr,5,10000,10000,Pinus,strobus,1,1,20,White pine
-183397-TSU-CAN,tsucan,5,10000,10000,Tsuga,canadensis,1,1,26,Eastern hemlock
-19027-LIQ-STY,liqsty,15,10000,10000,Liquidambar,styraciflua,1,1,7,American sweetgum
-19049-ULM-AME,ulmame,5,10000,10000,Ulmus,americana,1,1,10,American elm
-19050-ULM-RUB,ulmrub,5,10000,10000,Ulmus,rubra,1,1,37,Slippery elm
-19051-ULM-ALA,ulmala,5,10000,10000,Ulmus,alata,1,1,31,Winged elm
+18032-ABI-BAL,abibal,20,20000,20000,Abies,balsamea,1,1,2,Balsam fir
+28728-ACE-RUB,acerub,20,20000,20000,Acer,rubrum,1,1,1,Red maple
+28731-ACE-SAC,acesac,20,20000,20000,Acer,saccharum,1,1,3,Sugar maple
+19481-BET-ALL,betall,20,20000,20000,Betula,alleghaniensis,1,1,13,Yellow birch
+19489-BET-PAP,betpap,20,20000,20000,Betula,papyrifera,1,1,6,Paper birch
 19231-CAR-GLA,cargla,10,10000,10000,Carya,glabra,1,1,24,Pignut hickory
 19242-CAR-OVA,carova,5,10000,10000,Carya,ovata,1,1,33,Shagbark hickory
-19254-JUG-NIG,jugnig,5,10000,10000,Juglans,nigra,1,1,36,Eastern black walnut
-19277-QUE-FAL,quefal,10,10000,10000,Quercus,falcata,1,1,25,Southern red oak
-19280-QUE-NIG,quenig,5,10000,10000,Quercus,nigra,1,1,19,Water oak
-19288-QUE-COC,quecoc,5,10000,10000,Quercus,coccinea,1,1,34,Scarlet oak
-19290-QUE-ALB,quealb,5,10000,10000,Quercus,alba,1,1,4,White oak
-19408-QUE-RUB,querub,5,10000,10000,Quercus,rubra,1,1,8,Northern red oak
-19422-QUE-STE,queste,10,10000,10000,Quercus,stellata,1,1,23,Post oak
-19447-QUE-VEL,quevel,5,10000,10000,Quercus,velutina,1,1,15,Black oak
+NA-CAR-ALB,cartom,10,10000,10000,Carya,tomentosa,1,1,22,Mockernut hickory
 19462-FAG-GRA,faggra,5,10000,10000,Fagus,grandifolia,1,1,16,American beech
-19481-BET-ALL,betall,15,10000,10000,Betula,alleghaniensis,1,1,13,Yellow birch
-19489-BET-PAP,betpap,5,10000,10000,Betula,papyrifera,1,1,6,Paper birch
-19511-OST-VIR,ostvir,5,10000,10000,Ostrya,virginiana,1,1,39,American hophornbeam
-195773-POP-TRE,poptre,5,10000,10000,Populous,tremuloides,1,1,9,Quaking aspen
-22463-POP-GRA,popgra,5,10000,10000,Populus,grandidentata,1,1,35,Large-tooth aspen
-23690-OXY-ARB,oxyarb,10,10000,10000,Oxydendrum,arboreum,1,1,38,Sorrel tree
-27821-NYS-SYL,nyssyl,5,10000,10000,Nyssa,sylvatica,1,1,17,Blackgum
-28728-ACE-RUB,acerub,5,10000,10000,Acer,rubrum,1,1,1,Red maple
-28731-ACE-SAC,acesac,5,10000,10000,Acer,saccharum,1,1,3,Sugar maple
-32929-FRA-PEN,frapen,5,10000,10000,Fraxinus,pennsylvanica,1,1,21,Red ash
 32931-FRA-AME,fraame,5,10000,10000,Fraxinus,americana,0.7,0.7,12,American ash
 32945-FRA-NIG,franig,10,10000,10000,Fraxinus,nigra,1,1,40,Black ash
-505490-THU-OCC,thuocc,5,10000,10000,Thuja,occidentalis,1,1,29,Northern white cedar
-NA-CAR-ALB,cartom,10,10000,10000,Carya,tomentosa,1,1,22,Mockernut hickory
+32929-FRA-PEN,frapen,5,10000,10000,Fraxinus,pennsylvanica,1,1,21,Red ash
+19254-JUG-NIG,jugnig,5,10000,10000,Juglans,nigra,1,1,36,Eastern black walnut
+18048-JUN-VIR,junvir,10,10000,10000,Juniperus,virginiana,1,1,27,Red cedar
+19027-LIQ-STY,liqsty,15,10000,10000,Liquidambar,styraciflua,1,1,7,American sweetgum
+18086-LIR-TUL,lirtul,5,10000,10000,Liriodendron,tulipifera,1,1,11,American tulip tree
+27821-NYS-SYL,nyssyl,5,10000,10000,Nyssa,sylvatica,1,1,17,Blackgum
+19511-OST-VIR,ostvir,5,10000,10000,Ostrya,virginiana,1,1,39,American hophornbeam
+23690-OXY-ARB,oxyarb,10,10000,10000,Oxydendrum,arboreum,1,1,38,Sorrel tree
+183295-PIC-GLA,picgla,5,10000,10000,Picea,glauca,1,1,18,White spruce
+183302-PIC-MAR,picmar,20,20000,20000,Picea,mariana,1,1,14,Black spruce
+18034-PIC-RUB,picrub,10,10000,10000,Picea,rubens,1,1,30,Red spruce
+183335-PIN-ECH,pinech,10,10000,10000,Pinus,echinata,1,1,28,Shortleaf pine
+183385-PIN-STR,pinstr,5,10000,10000,Pinus,strobus,1,1,20,White pine
+18037-PIN-TAE,pintae,25,10000,10000,Pinus,taeda,1,1,5,Loblolly pine
+195773-POP-TRE,poptre,20,20000,20000,Populous,tremuloides,1,1,9,Quaking aspen
+22463-POP-GRA,popgra,5,10000,10000,Populus,grandidentata,1,1,35,Large-tooth aspen
+19290-QUE-ALB,quealb,20,20000,20000,Quercus,alba,1,1,4,White oak
+19288-QUE-COC,quecoc,5,10000,10000,Quercus,coccinea,1,1,34,Scarlet oak
+19277-QUE-FAL,quefal,10,10000,10000,Quercus,falcata,1,1,25,Southern red oak
 NA-QUE-PRI,quemon,5,10000,10000,Quercus,montana,1,1,32,Chestnut oak
+19280-QUE-NIG,quenig,5,10000,10000,Quercus,nigra,1,1,19,Water oak
+19408-QUE-RUB,querub,20,20000,20000,Quercus,rubra,1,1,8,Northern red oak
+19422-QUE-STE,queste,10,10000,10000,Quercus,stellata,1,1,23,Post oak
+19447-QUE-VEL,quevel,5,10000,10000,Quercus,velutina,1,1,15,Black oak
+505490-THU-OCC,thuocc,5,10000,10000,Thuja,occidentalis,1,1,29,Northern white cedar
+183397-TSU-CAN,tsucan,5,10000,10000,Tsuga,canadensis,1,1,26,Eastern hemlock
+19051-ULM-ALA,ulmala,5,10000,10000,Ulmus,alata,1,1,31,Winged elm
+19049-ULM-AME,ulmame,20,20000,20000,Ulmus,americana,1,1,10,American elm
+19050-ULM-RUB,ulmrub,5,10000,10000,Ulmus,rubra,1,1,37,Slippery elm
