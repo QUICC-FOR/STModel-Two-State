@@ -11,10 +11,18 @@ ocean = spTransform(ocean, stmMapProjection)
 
 
 ### general functions
-compute_e = function(p, env1, env2) plogis(p[8] + env1*p[9] + env2*p[10] + env1^2*p[11] + 
-		env2^2*p[12] + env1^3*p[13] + env2^3*p[14])
-compute_c = function(p, env1, env2) plogis(p[1] + env1*p[2] + env2*p[3] + env1^2*p[4] + 
-		env2^2*p[5] + env1^3*p[6] + env2^3*p[7])
+# deprecated - use the predict.stm_point function instead
+## compute_e = function(p, env1, env2) plogis(p[6] + env1*p[7] + env2*p[8] + env1^2*p[9] + 
+## 		env2^2*p[10])
+## compute_c = function(p, env1, env2) plogis(p[1] + env1*p[2] + env2*p[3] + env1^2*p[4] + 
+## 		env2^2*p[5])
+predict.stm_point = function(p, env1 = NA, env2 = NA)
+{
+	phi = p[1]
+	if(length(p == 5)) phi = phi + p[2]*env1 + p[3]*env2 + p[4]*env1^2 + p[5]*env2^2
+	plogis(phi)
+}
+
 
 make_raster = function(dat, coords, start.proj = NULL, dest.proj = NULL)
 {
