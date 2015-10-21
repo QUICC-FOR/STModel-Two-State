@@ -9,7 +9,7 @@
 ##    img/mcmc/*
 
 speciesList = readRDS('dat/speciesList.rds')
-arg = commandArgs(true)
+arg = commandArgs(TRUE)
 if(length(arg) > 0)
 {
 	speciesList = speciesList[which(speciesList %in% arg)]
