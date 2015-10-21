@@ -111,7 +111,7 @@ for(spName in speciesList)
 	# plotting is fast, tweaking data is slow; this is a slow script
 
 
-	spPosterior = posteriors[[spName]][['0']] # use the default posterior
+	curSpPosterior = spPosterior[['0']] # use the default posterior
 	info = speciesInfo[speciesInfo$spName == spName,]
 	calibDat = readRDS(file.path('dat', 'stm_calib', paste0(spName,'stm_calib.rds')))
 
@@ -123,27 +123,27 @@ for(spName in speciesList)
 	rc_env2 = with(calibDat, seq(min(tot_annual_pp), max(tot_annual_pp), length.out=rcRes))
 	rc_env2_c = if(is.null(info$rc_pval) || is.na(info$rc_pval))
 		{0} else {info$rc_pval}
-	rcPredict1_e = rcPredict1_c = rcPredict2_e = rcPredict2_c = matrix(NA, nrow=nrow(spPosterior), ncol=rcRes)
-	grPredict_e = grPredict_c = grLambda = grPres = matrix(NA, nrow=nrow(spPosterior), ncol=length(gr_env1))
+	rcPredict1_e = rcPredict1_c = rcPredict2_e = rcPredict2_c = matrix(NA, nrow=nrow(curSpPosterior), ncol=rcRes)
+	grPredict_e = grPredict_c = grLambda = grPres = matrix(NA, nrow=nrow(curSpPosterior), ncol=length(gr_env1))
 
-	outputSteps = seq(floor(0.01*nrow(spPosterior)), nrow(spPosterior), length.out=100)
+	outputSteps = seq(floor(0.01*nrow(curSpPosterior)), nrow(curSpPosterior), length.out=100)
 	
 	pct.done(0, FALSE, "  computing plot statistics: ")
-	for(i in 1:nrow(spPosterior))
+	for(i in 1:nrow(curSpPosterior))
 	{
 		# response curve predictions
-		rcPredict1_e[i,] = predict.stm_point(spPosterior[i,eCols], rc_env1, rc_env2_c)
-		rcPredict1_c[i,] = predict.stm_point(spPosterior[i,cCols], rc_env1, rc_env2_c)
-		rcPredict2_e[i,] = predict.stm_point(spPosterior[i,eCols], rc_env1_c, rc_env2)
-		rcPredict2_c[i,] = predict.stm_point(spPosterior[i,cCols], rc_env1_c, rc_env2)
+		rcPredict1_e[i,] = predict.stm_point(curSpPosterior[i,eCols], rc_env1, rc_env2_c)
+		rcPredict1_c[i,] = predict.stm_point(curSpPosterior[i,cCols], rc_env1, rc_env2_c)
+		rcPredict2_e[i,] = predict.stm_point(curSpPosterior[i,eCols], rc_env1_c, rc_env2)
+		rcPredict2_c[i,] = predict.stm_point(curSpPosterior[i,cCols], rc_env1_c, rc_env2)
 
 		# grid predictions
-		grPredict_e[i,] = predict.stm_point(spPosterior[i,eCols], gr_env1, gr_env2)
-		grPredict_c[i,] = predict.stm_point(spPosterior[i,cCols], gr_env1, gr_env2)
+		grPredict_e[i,] = predict.stm_point(curSpPosterior[i,eCols], gr_env1, gr_env2)
+		grPredict_c[i,] = predict.stm_point(curSpPosterior[i,cCols], gr_env1, gr_env2)
 		grLambda[i,] = grPredict_c[i,] - grPredict_e[i,]
 		grPres[i,] = as.integer(grLambda[i,] > 0)
 		if(i %in% outputSteps)
-			pct.done(100 * i / nrow(spPosterior), pad = "  computing plot statistics: ")
+			pct.done(100 * i / nrow(curSpPosterior), pad = "  computing plot statistics: ")
 	}
 	cat('\n')
 	respCurve = data.frame(
