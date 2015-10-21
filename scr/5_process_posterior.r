@@ -177,7 +177,7 @@ for(spName in speciesList)
 	outputSteps = floor(seq(0.01*nrow(spGrid), nrow(spGrid), length.out=100))
 	spGrid$stm = spGrid$stm.var = spGrid$sdm.pres = spGrid$rde.present = NA
 	spGrid$rde.present = spGrid$rde.expand = spGrid$rde.contract = spGrid$rde = NA
-	spGrid$plot.present = spGrid$plot.expand = spGrid$plot.contract = NA
+## 	spGrid$plot.present = spGrid$plot.expand = spGrid$plot.contract = NA
 	pct.done(0, FALSE, '  creating spatial projections: ')
 	for(i in 1:nrow(spGrid))
 	{
@@ -192,15 +192,15 @@ for(spName in speciesList)
 			if(spGrid$rde.present[i] >= spGrid$rde.expand[i] & spGrid$rde.present[i] >= spGrid$rde.contract[i])
 			{
 				spGrid$rde[i] = 0
-				spGrid$plot.present = spGrid$rde.present
+## 				spGrid$plot.present = spGrid$rde.present
 			} else if(spGrid$rde.expand[i] > spGrid$rde.present[i] & spGrid$rde.expand[i] >= spGrid$rde.contract[i])
 			{
 				spGrid$rde[i] = 1
-				spGrid$plot.expand = spGrid$rde.expand
+## 				spGrid$plot.expand = spGrid$rde.expand
 			} else if(spGrid$rde.contract[i] > spGrid$rde.present[i] & spGrid$rde.contract[i] > spGrid$rde.expand[i])
 			{
 				spGrid$rde[i] = 2
-				spGrid$plot.contract = spGrid$rde.contract
+## 				spGrid$plot.contract = spGrid$rde.contract
 			}
 		}
 		if(i %in% outputSteps)

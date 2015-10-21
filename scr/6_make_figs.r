@@ -1,5 +1,8 @@
+#!/usr/bin/env Rscript
+
 ## figures produced:
 ##    img/resp_curves.png (all species)
+##    img/posterior_summarys.png (all sp)
 
 library(coda)
 speciesList = readRDS('dat/speciesList.rds')
@@ -64,62 +67,53 @@ dev.off()
 
 
 
-stmCols = colorRampPalette(c("#ffffff", "#bdc9e1", "#045a8d", "#33338d", "#ffff88"), 
-		interpolate='spline', bias=2, space="rgb")
-sdmCols = colorRampPalette(c("#ffffff", "#bdc9e1", "#045a8d", "#33338d", "#ffff88"), 
-	interpolate='spline', bias=2, space="rgb")
-stmVarCols = colorRampPalette(c("#ffffff", "#bdc9e1", "#045a8d", "#33338d", "#ffff88"), 
-		interpolate='spline', bias=2, space="rgb")
-rdeCols = c('#1f78b4', '#b2df8a', '#fb9a99')
-
-spGrid = readRDS(file.path('res','maps',paste0(spName,'_maps.rds')))
-## plot_sdm = function(sdmDat, coords, sdm.col, legend=FALSE, add=FALSE, plot.ocean=TRUE, ...)
-quartz(w=10,h=3)
-par(mfrow=c(1,4), mar=c(1,1,0,0), oma=c(0,0,1,1))
-plot_sdm(spGrid$stm, spGrid[,1:2], stmCols(100))
-plot_sdm(spGrid$stm.var, spGrid[,1:2], stmVarCols(100))
-plot_sdm(spGrid$sdm, spGrid[,1:2], sdmCols(100))
-plot_sdm(spGrid$rde, spGrid[,1:2], rdeCols)
 
 
+dpi = 600
+figure.width = 6.5
+figure.height = 15
+filename = file.path('img', 'posterior_summaries.png')
+fontsize=12
+png(width=as.integer(dpi*figure.width), height=as.integer(dpi*figure.height),
+	file=filename, pointsize=fontsize, res=dpi)
+par(mfrow=c(10, 4), mar=c(1,0,1,0), oma=c(2,1,1,0), tcl=-0.2, cex.axis=0.5)
 
+stmCols = colorRampPalette(c("#ffffff", rev(c("#66c2a4", "#2ca25f", '#006d2c'))), 
+		interpolate='spline', space="rgb")
+sdmCols = colorRampPalette(c("#ffffff", rev(c("#ffffcc", "#a1dab4", "#41b6c4", "#2c7fb8", '#253494'))), 
+	interpolate='spline', space="rgb")
+stmVarCols = colorRampPalette(c("#ffffff", "#fee5d9", '#fcae91', '#fb6a4a', '#de2d26', 
+		'#a50f15'), interpolate='spline', space="rgb")
 
-
-
-## speciesList = c('28728-ACE-RUB', '28731-ACE-SAC','28728-ACE-RUB', '28731-ACE-SAC','28728-ACE-RUB', '28731-ACE-SAC','28728-ACE-RUB', '28731-ACE-SAC','28728-ACE-RUB', '28731-ACE-SAC')
-
+rdeCols = list(
+	cur = 2,
+	get_next = function()
+	{
+		rdeCols$cur <<- rdeCols$cur + 1
+		if(rdeCols$cur > length(rdeCols)) rdeCols$cur <<- 3
+		rdeCols[[rdeCols$cur]]
+	},
+	c('#1f78b4', '#b2df8a', '#fb9a99'),
+	c('#1f78b4','#a6cee3','#b2df8a'),
+	c('#386cb0','#beaed4','#FFE87C')
+)
 
 for(spName in speciesList)
 {
+	info = speciesInfo[speciesInfo$spName == spName,]
 
+	spGrid = readRDS(file.path('res','maps',paste0(spName,'_maps.rds')))
+	spGrid$stm[spGrid$stm == 0] = NA
+	spGrid$sdm[spGrid$sdm == 0] = NA
+	plot_sdm(spGrid$stm, spGrid[,1:2], stmCols(100))
+	plLab = bquote(italic(.(as.character(info$genus))~.(as.character(info$species))))
+	mtext(plLab, side=2, cex=0.6)
+	plot_sdm(spGrid$stm.var, spGrid[,1:2], stmVarCols(100))
+	plot_sdm(spGrid$sdm, spGrid[,1:2], sdmCols(100))
 
-	paperwidth = 10
-	dpi = 600
-	hToWRatio = 0.4
-	width = as.integer(dpi*paperwidth)
-	height = as.integer(width * hToWRatio)
-	fontsize = 15
-	stPres = make_raster(spGrid$stm, spGrid[,1:2], P4S.latlon, stmMapProjection)
-	png(w=width, h=height, file=paste0("img/", spName, "_posterior_maps.png"), pointsize=fontsize, res = dpi)
-	par(mfrow=c(1,3))
-	pres.colors = colorRampPalette(c("#ffffff", "#bdc9e1", "#045a8d", "#33338d", "#ffff88"), 
-		interpolate='spline', bias=2, space="rgb")
-	plot(stPres, col=pres.colors(100), xaxt='n', yaxt='n', zlim=c(0,1.00000001))
-	plotbg()
-	
-	sdPres = make_raster(spGrid$sdm, spGrid[,1:2], P4S.latlon, stmMapProjection)
-	plot(sdPres, col=pres.colors(100), xaxt='n', yaxt='n', zlim=c(0,1), legend=FALSE)
-	plotbg()
-	
-	
-	cat.colors = c('#1f78b4', '#b2df8a', '#fb9a99')
-	diseq = make_raster(spGrid$diseq, spGrid[,1:2], P4S.latlon, stmMapProjection)
-	plot(diseq, col=cat.colors, xaxt='n', yaxt='n', legend=FALSE)
-	plotbg()
-
-dev.off()
-		
-		
-	
+	cat("Be sure to comment this line out when I have the updated results from R2D2!\n")
+	spGrid$rde[spGrid$rde == 0 & spGrid$sdmPres == 0] = NA
+	plot_sdm(spGrid$rde, spGrid[,1:2], rdeCols$get_next())
 }
+dev.off()
 
