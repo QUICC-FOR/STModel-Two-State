@@ -72,22 +72,26 @@ plot_mcmc_summary = function(PD, sp, density = FALSE, make.png = TRUE)
 posteriors = list()
 for(spName in speciesList)
 {
+	cat(paste("Reading posterior for", spName, "\n"))
 	info = speciesInfo[speciesInfo$spName == spName,]
 	models = list.files(file.path('res','mcmc',spName))
 	posteriorFname = file.path('res', 'posterior', paste0(spName, '_posterior.rds'))
 	
 	## check to see if posterior distributions for the species exist
-	spPosterior = ifelse(file.exists(posteriorFname), 
-			readRDS(posteriorFname), list())
+	spPosterior = list()
 	for(mod in models)
 	{
-		pos = read.csv(file.path('res','mcmc',spName,mod,'posterior.csv'))
+		mod.path = file.path('res','mcmc',spName,mod,'posterior.csv')
+		pos = read.csv(mod.path)
+		nr = nrow(pos)
+		nc = ncol(pos)
 		pos = remove_constant_cols(pos)
+		nrm = nc - ncol(pos)
 		pd = mcmc(pos, start=info$thin*info$burnin+1, thin=info$thin)
 		spPosterior[[mod]] = pd
 	}
 	# drop any pesky null elements created by list() calls
-	spPosterior	= spPosterior[-sapply(spPosterior, is.null)]
+	spPosterior	= spPosterior[sapply(spPosterior, function(x) !is.null(x))]
 	saveRDS(spPosterior, posteriorFname)
 	posteriors[[spName]] = spPosterior
 
@@ -104,6 +108,7 @@ for(spName in speciesList)
 rcRes = 1000
 for(spName in speciesList)
 {
+	spPosterior = posteriors[[spName]][
 	info = speciesInfo[speciesInfo$spName == spName,]
 	calibDat = readRDS(file.path('dat', 'stm_calib', paste0(spName,'stm_calib.rds')))
 
