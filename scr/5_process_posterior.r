@@ -8,8 +8,14 @@
 ##    res/posterior/*
 ##    img/mcmc/*
 
-library(coda)
 speciesList = readRDS('dat/speciesList.rds')
+arg = commandArgs(true)
+if(length(arg) > 0)
+{
+	speciesList = speciesList[which(speciesList %in% arg)]
+}
+if(length(speciesList) == 0) stop("Error: no species specified")
+library(coda)
 speciesInfo = read.csv('dat/speciesInfo.csv')
 source('scr/stm_functions.r')
 climScale = readRDS('dat/climate_scaling.rds')
@@ -71,10 +77,10 @@ plot_mcmc_summary = function(PD, sp, density = FALSE, make.png = TRUE)
 
 # number of points in horizontal dimension of response curve
 rcRes = 1000
-pct.done = function(pct, overwrite = TRUE, pad='')
+pct.done = function(pct, overwrite = TRUE, pad='', digits = 0)
 {
 	if(overwrite) cat('\r')
-	cat(pad, pct, '%')
+	cat(pad, round(pct, digits), '%')
 	flush.console()
 }
 
@@ -166,7 +172,7 @@ for(spName in speciesList)
 	
 	# maps
 	spGrid = readRDS(file.path('res','sdm',paste0(spName, '_sdm_projection.rds')))
-	outputSteps = seq(floor(0.01*nrow(spGrid)), nrow(spGrid), length.out=100)
+	outputSteps = floor(seq(0.01*nrow(spGrid), nrow(spGrid), length.out=100))
 	spGrid$stm = spGrid$stm.var = spGrid$sdmPres = spGrid$rde.present = NA
 	spGrid$rde.absent = spGrid$rde.expand = spGrid$rde.contract = spGrid$rde = NA
 	pct.done(0, FALSE, '  creating spatial projections: ')
