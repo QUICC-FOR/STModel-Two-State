@@ -82,7 +82,7 @@ rcRes = 1000
 pct.done = function(pct, overwrite = TRUE, pad='', digits = 0)
 {
 	if(overwrite) cat('\r')
-	cat(pad, round(pct, digits), '%')
+	cat(paste0(pad, round(pct, digits), '%'))
 	flush.console()
 }
 
@@ -177,6 +177,7 @@ for(spName in speciesList)
 	outputSteps = floor(seq(0.01*nrow(spGrid), nrow(spGrid), length.out=100))
 	spGrid$stm = spGrid$stm.var = spGrid$sdmPres = spGrid$rde.present = NA
 	spGrid$rde.absent = spGrid$rde.expand = spGrid$rde.contract = spGrid$rde = NA
+	spGrid$plot.present = spGrid$plot.expand = spGrid$plot.contract = NA
 	pct.done(0, FALSE, '  creating spatial projections: ')
 	for(i in 1:nrow(spGrid))
 	{
@@ -187,15 +188,21 @@ for(spName in speciesList)
 		spGrid$rde.absent[i] = sum(grPres[,i] == 0 & spGrid$sdmPres[i] == 0, na.rm=TRUE)/length(grPres[,i])
 		spGrid$rde.expand[i] = sum(grPres[,i] == 1 & spGrid$sdmPres[i] == 0, na.rm=TRUE)/length(grPres[,i])
 		spGrid$rde.contract[i] = sum(grPres[,i] == 0 & spGrid$sdmPres[i] == 1, na.rm=TRUE)/length(grPres[,i])
-		if(spGrid$rde.present[i] >= spGrid$rde.expand[i] & spGrid$rde.present[i] >= spGrid$rde.contract[i])
+		if((spGrid$rde.present + spGrid$rde.expand + spGrid$rde.contract) > 0)
 		{
-			spGrid$rde[i] = 0
-		} else if(spGrid$rde.expand[i] > spGrid$rde.present[i] & spGrid$rde.expand[i] >= spGrid$rde.contract[i])
-		{
-			spGrid$rde[i] = 1
-		} else if(spGrid$rde.contract[i] > spGrid$rde.present[i] & spGrid$rde.contract[i] > spGrid$rde.expand[i])
-		{
-			spGrid$rde[i] = 2
+			if(spGrid$rde.present[i] >= spGrid$rde.expand[i] & spGrid$rde.present[i] >= spGrid$rde.contract[i])
+			{
+				spGrid$rde[i] = 0
+				spGrid$plot.present = spGrid$rde.present
+			} else if(spGrid$rde.expand[i] > spGrid$rde.present[i] & spGrid$rde.expand[i] >= spGrid$rde.contract[i])
+			{
+				spGrid$rde[i] = 1
+				spGrid$plot.expand = spGrid$rde.expand
+			} else if(spGrid$rde.contract[i] > spGrid$rde.present[i] & spGrid$rde.contract[i] > spGrid$rde.expand[i])
+			{
+				spGrid$rde[i] = 2
+				spGrid$plot.contract = spGrid$rde.contract
+			}
 		}
 		if(i %in% outputSteps)
 			pct.done(100* i / nrow(spGrid), pad = '  creating spatial projections: ')
