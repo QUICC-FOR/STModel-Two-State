@@ -106,9 +106,16 @@ for(spName in speciesList)
 
 # number of points in horizontal dimension of response curve
 rcRes = 1000
+pct.done = function(pct, overwrite = TRUE, pad='')
+{
+	if(overwrite) cat('\r    \r')
+	cat(pad, pct, '%')
+	flush.console()
+}
+
 for(spName in speciesList)
 {
-	spPosterior = posteriors[[spName]][
+	spPosterior = posteriors[[spName]][['0']] # use the default posterior
 	info = speciesInfo[speciesInfo$spName == spName,]
 	calibDat = readRDS(file.path('dat', 'stm_calib', paste0(spName,'stm_calib.rds')))
 
@@ -122,6 +129,10 @@ for(spName in speciesList)
 		{0} else {info$rc_pval}
 	rcPredict1_e = rcPredict1_c = rcPredict2_e = rcPredict2_c = matrix(NA, nrow=nrow(spPosterior), ncol=rcRes)
 	grPredict_e = grPredict_c = grLambda = grPres = matrix(NA, nrow=nrow(spPosterior), ncol=length(gr_env1))
+
+	outputSteps = seq(floor(0.01*nrow(spPosterior)), nrow(spPosterior), length.out=100)
+	cat("Computing plot statistics for", spName, "\n")
+	pct.done(0, FALSE, '  ')
 	for(i in 1:nrow(spPosterior))
 	{
 		# response curve predictions
@@ -135,7 +146,10 @@ for(spName in speciesList)
 		grPredict_c[i,] = predict.stm_point(spPosterior[i,cCols], gr_env1, gr_env2)
 		grLambda[i,] = grPredict_c[i,] - grPredict_e[i,]
 		grPres[i,] = as.integer(grLambda[i,] > 0)
+		if(i %in% outputSteps)
+			pct.done(100 * i / nrow(spPosterior), pad = '  ')
 	}
+	cat('\n')
 	respCurve = data.frame(
 		temp = (rc_env1 * climScale$scale['annual_mean_temp']) + climScale$center['annual_mean_temp'],
 		col.temp = colMeans(rcPredict1_c),
@@ -156,18 +170,33 @@ for(spName in speciesList)
 	
 	# maps
 	spGrid = readRDS(file.path('res','sdm',paste0(spName, '_sdm_projection.rds')))
-	spGrid$stm = apply(grLambda, 2, function(x) sum(x > 0, na.rm=TRUE)/length(x))
-	spGrid$stm.var = spGrid$stm*(1-spGrid$stm) # binomial variance
-	spGrid$sdmPres = as.integer(spGrid$sdm >= sdmThreshold)
-
-	# categories for range disequilibrium
-	spGrid$rde.present = apply(grPres, 2, function(x) sum(x == 1 & pGrid$sdmPres == 1)
-	spGrid$rde.absent = apply(grPres, 2, function(x) sum(x == 0 & pGrid$sdmPres == 0)
-	spGrid$rde.expand = apply(grPres, 2, function(x) sum(x == 1 & pGrid$sdmPres == 0)
-	spGrid$rde.contract = apply(grPres, 2, function(x) sum(x == 0 & pGrid$sdmPres == 1)
-	spGrid$rde = NA
-	spGrid$rde[spGrid$rde.present >= spGrid$rde.expand & spGrid$rde.present >= spGrid$rde.contract] = 0
-	spGrid$rde[spGrid$rde.expand > spGrid$rde.present & spGrid$rde.expand >= spGrid$rde.contract] = 1
-	spGrid$rde[spGrid$rde.contract > spGrid$rde.present & spGrid$rde.contract >= spGrid$rde.expand] = 2
+	spGrid = spGrid[1:1000,]
+	outputSteps = seq(floor(0.01*nrow(spGrid)), nrow(spGrid), length.out=100)
+	spGrid$stm = spGrid$stm.var = spGrid$sdmPres = spGrid$rde.present = NA
+	spGrid$rde.absent = spGrid$rde.expand = spGrid$rde.contract = spGrid$rde = NA
+	pct.done(0, FALSE, '  creating spatial projections: ')
+	for(i in 1:nrow(spGrid))
+	{
+		spGrid$stm[i] = sum(grLambda[,i] > 0, na.rm=TRUE)/length(grLambda[,i])
+		spGrid$stm.var[i] = spGrid$stm[i]*(1-spGrid$stm[i]) # binomial variance
+		spGrid$sdmPres[i] = as.integer(spGrid$sdm[i] >= sdmThreshold)
+		spGrid$rde.present[i] = sum(grPres[,i] == 1 & spGrid$sdmPres[i] == 1, na.rm=TRUE)/length(grPres[,i])
+		spGrid$rde.absent[i] = sum(grPres[,i] == 0 & spGrid$sdmPres[i] == 0, na.rm=TRUE)/length(grPres[,i])
+		spGrid$rde.expand[i] = sum(grPres[,i] == 1 & spGrid$sdmPres[i] == 0, na.rm=TRUE)/length(grPres[,i])
+		spGrid$rde.contract[i] = sum(grPres[,i] == 0 & spGrid$sdmPres[i] == 1, na.rm=TRUE)/length(grPres[,i])
+		if(spGrid$rde.present[i] >= spGrid$rde.expand[i] & spGrid$rde.present[i] >= spGrid$rde.contract[i])
+		{
+			spGrid$rde[i] = 0
+		} else if(spGrid$rde.expand[i] > spGrid$rde.present[i] & spGrid$rde.expand[i] >= spGrid$rde.contract[i])
+		{
+			spGrid$rde[i] = 1
+		} else if(spGrid$rde.contract[i] > spGrid$rde.present[i] & spGrid$rde.contract[i] > spGrid$rde.expand[i])
+		{
+			spGrid$rde[i] = 2
+		}
+		if(i %in% outputSteps)
+			pct.done(100* i / nrow(spGrid), pad = '  creating spatial projections: ')
+	}
+	cat('\n')
 	saveRDS(spGrid, file.path('res','maps',paste0(spName,'_maps.rds')))
 }
