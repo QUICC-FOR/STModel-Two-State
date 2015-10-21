@@ -69,7 +69,15 @@ plot_mcmc_summary = function(PD, sp, density = FALSE, make.png = TRUE)
 	if(make.png) dev.off()
 }
 
-posteriors = list()
+# number of points in horizontal dimension of response curve
+rcRes = 1000
+pct.done = function(pct, overwrite = TRUE, pad='')
+{
+	if(overwrite) cat('\r')
+	cat(pad, pct, '%')
+	flush.console()
+}
+
 for(spName in speciesList)
 {
 	cat(paste("Reading posterior for", spName, "\n"))
@@ -93,28 +101,16 @@ for(spName in speciesList)
 	# drop any pesky null elements created by list() calls
 	spPosterior	= spPosterior[sapply(spPosterior, function(x) !is.null(x))]
 	saveRDS(spPosterior, posteriorFname)
-	posteriors[[spName]] = spPosterior
 
 	# set up traceplots and density plots
 	plot_mcmc_summary(spPosterior, spName)
 	plot_mcmc_summary(spPosterior, spName, density=TRUE)	
-}
 
-# the following will set up the DATA for plotting posterior distributions
-# but it will not actually make the plots 
-# plotting is fast, tweaking data is slow; this is a slow script
+	# the following will set up the DATA for plotting posterior distributions
+	# but it will not actually make the plots 
+	# plotting is fast, tweaking data is slow; this is a slow script
 
-# number of points in horizontal dimension of response curve
-rcRes = 1000
-pct.done = function(pct, overwrite = TRUE, pad='')
-{
-	if(overwrite) cat('\r    \r')
-	cat(pad, pct, '%')
-	flush.console()
-}
 
-for(spName in speciesList)
-{
 	spPosterior = posteriors[[spName]][['0']] # use the default posterior
 	info = speciesInfo[speciesInfo$spName == spName,]
 	calibDat = readRDS(file.path('dat', 'stm_calib', paste0(spName,'stm_calib.rds')))
@@ -131,8 +127,8 @@ for(spName in speciesList)
 	grPredict_e = grPredict_c = grLambda = grPres = matrix(NA, nrow=nrow(spPosterior), ncol=length(gr_env1))
 
 	outputSteps = seq(floor(0.01*nrow(spPosterior)), nrow(spPosterior), length.out=100)
-	cat("Computing plot statistics for", spName, "\n")
-	pct.done(0, FALSE, '  ')
+	
+	pct.done(0, FALSE, "  computing plot statistics: ")
 	for(i in 1:nrow(spPosterior))
 	{
 		# response curve predictions
@@ -147,7 +143,7 @@ for(spName in speciesList)
 		grLambda[i,] = grPredict_c[i,] - grPredict_e[i,]
 		grPres[i,] = as.integer(grLambda[i,] > 0)
 		if(i %in% outputSteps)
-			pct.done(100 * i / nrow(spPosterior), pad = '  ')
+			pct.done(100 * i / nrow(spPosterior), pad = "  computing plot statistics: ")
 	}
 	cat('\n')
 	respCurve = data.frame(
@@ -170,7 +166,6 @@ for(spName in speciesList)
 	
 	# maps
 	spGrid = readRDS(file.path('res','sdm',paste0(spName, '_sdm_projection.rds')))
-	spGrid = spGrid[1:1000,]
 	outputSteps = seq(floor(0.01*nrow(spGrid)), nrow(spGrid), length.out=100)
 	spGrid$stm = spGrid$stm.var = spGrid$sdmPres = spGrid$rde.present = NA
 	spGrid$rde.absent = spGrid$rde.expand = spGrid$rde.contract = spGrid$rde = NA
