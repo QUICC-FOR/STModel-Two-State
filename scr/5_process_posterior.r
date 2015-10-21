@@ -15,6 +15,8 @@ if(length(arg) > 0)
 	speciesList = speciesList[which(speciesList %in% arg)]
 }
 if(length(speciesList) == 0) stop("Error: no species specified")
+cat("Will process posteriors for:\n")
+for(sp in speciesList) cat("  ", sp, "\n")
 library(coda)
 speciesInfo = read.csv('dat/speciesInfo.csv')
 source('scr/stm_functions.r')
