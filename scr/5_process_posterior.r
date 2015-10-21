@@ -175,19 +175,18 @@ for(spName in speciesList)
 	# maps
 	spGrid = readRDS(file.path('res','sdm',paste0(spName, '_sdm_projection.rds')))
 	outputSteps = floor(seq(0.01*nrow(spGrid), nrow(spGrid), length.out=100))
-	spGrid$stm = spGrid$stm.var = spGrid$sdmPres = spGrid$rde.present = NA
-	spGrid$rde.absent = spGrid$rde.expand = spGrid$rde.contract = spGrid$rde = NA
+	spGrid$stm = spGrid$stm.var = spGrid$sdm.pres = spGrid$rde.present = NA
+	spGrid$rde.present = spGrid$rde.expand = spGrid$rde.contract = spGrid$rde = NA
 	spGrid$plot.present = spGrid$plot.expand = spGrid$plot.contract = NA
 	pct.done(0, FALSE, '  creating spatial projections: ')
 	for(i in 1:nrow(spGrid))
 	{
 		spGrid$stm[i] = sum(grLambda[,i] > 0, na.rm=TRUE)/length(grLambda[,i])
 		spGrid$stm.var[i] = spGrid$stm[i]*(1-spGrid$stm[i]) # binomial variance
-		spGrid$sdmPres[i] = as.integer(spGrid$sdm[i] >= sdmThreshold)
-		spGrid$rde.present[i] = sum(grPres[,i] == 1 & spGrid$sdmPres[i] == 1, na.rm=TRUE)/length(grPres[,i])
-		spGrid$rde.absent[i] = sum(grPres[,i] == 0 & spGrid$sdmPres[i] == 0, na.rm=TRUE)/length(grPres[,i])
-		spGrid$rde.expand[i] = sum(grPres[,i] == 1 & spGrid$sdmPres[i] == 0, na.rm=TRUE)/length(grPres[,i])
-		spGrid$rde.contract[i] = sum(grPres[,i] == 0 & spGrid$sdmPres[i] == 1, na.rm=TRUE)/length(grPres[,i])
+		spGrid$sdm.pres[i] = as.integer(spGrid$sdm[i] >= sdmThreshold)
+		spGrid$rde.present[i] = sum(grPres[,i] == 1 & spGrid$sdm.pres[i] == 1, na.rm=TRUE)/length(grPres[,i])
+		spGrid$rde.expand[i] = sum(grPres[,i] == 1 & spGrid$sdm.pres[i] == 0, na.rm=TRUE)/length(grPres[,i])
+		spGrid$rde.contract[i] = sum(grPres[,i] == 0 & spGrid$sdm.pres[i] == 1, na.rm=TRUE)/length(grPres[,i])
 		if((spGrid$rde.present + spGrid$rde.expand + spGrid$rde.contract) > 0)
 		{
 			if(spGrid$rde.present[i] >= spGrid$rde.expand[i] & spGrid$rde.present[i] >= spGrid$rde.contract[i])
