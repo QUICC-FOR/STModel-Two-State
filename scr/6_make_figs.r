@@ -111,8 +111,6 @@ for(spName in speciesList)
 	plot_sdm(spGrid$stm.var, spGrid[,1:2], stmVarCols(100))
 	plot_sdm(spGrid$sdm, spGrid[,1:2], sdmCols(100))
 
-	cat("Be sure to comment this line out when I have the updated results from R2D2!\n")
-	spGrid$rde[spGrid$rde == 0 & spGrid$sdmPres == 0] = NA
 	plot_sdm(spGrid$rde, spGrid[,1:2], rdeCols$get_next())
 }
 dev.off()
