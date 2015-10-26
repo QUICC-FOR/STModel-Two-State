@@ -149,7 +149,7 @@ png(width=as.integer(dpi*figure.width), height=as.integer(dpi*figure.height),
 	file=filename, pointsize=fontsize, res=dpi)
 par(mar=c(3,3,0.5,1.5), mgp=c(1.5,0.5,0), tcl=-0.2, cex.axis=0.6, cex.lab=0.7, xpd=NA)
 
-plot(0,0,type='n', xlab="Mean Annual Temperature (°C)", ylab=expression("|"~d~lambda/d~t~"|"),
+plot(0,0,type='n', xlab="Mean Annual Temperature (°C)", ylab=expression("|"*partialdiff*lambda/partialdiff*T*"|"),
 		xlim=c(-5,25), ylim=c(0,0.6), bty='n')
 for(sp in dldt.df$spcode)
 {
