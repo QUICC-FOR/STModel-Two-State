@@ -3,12 +3,14 @@
 library(rstan)
 ## setwd("~/Dropbox/work/projects/STModel-Two-State_git")
 species = read.table("dat/raw/dbh_trees_20151026.csv", header=TRUE, sep=';', dec='.', stringsAsFactors=FALSE)
+species = species[complete.cases(species),]
 
 # dbh filter to follow the original data
 species = species[species$dbh > 127 & species$dbh < 9999,]
 
+
 speciesList = unique(species$id_spe)
-speciesInfo = read.csv('dat/speciesInfo.csv')
+## speciesInfo = read.csv('dat/speciesInfo.csv')
 source('scr/stm_functions.r')
 rdeCols = c('#1f78b4', '#fb9a99')
 
@@ -57,7 +59,13 @@ species2 = species2[species2$type != 1,]
 # keep only live trees
 species2 = species2[species2$is_dead == 'f',]
 ## species2$is_dead[species2$is_dead == ""] = NA
-species2 = species2[complete.cases(species2),]
+## species2 = species2[complete.cases(species2),]
+# print warning if not all cases are complete
+if(sum(complete.cases(species2)) != nrow(species2))
+{
+	warning(paste("nrow(species2) - sum(complete.cases(species2)), "NA's found in species2"))
+	species2 = species2[complete.cases(species2),]
+}
 species2$plot_id = factor(species2$plot_id)
 species2$id_spe = factor(species2$id_spe)
 species2$type = factor(species2$type)
