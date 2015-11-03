@@ -35,11 +35,14 @@ make_raster = function(dat, coords, start.proj = NULL, dest.proj = NULL)
 	coordinates(ras) = c(2,3)
 	gridded(ras) = TRUE
 	ras = raster(ras)
-	if(!is.null(start.proj))
+	if(is.null(start.proj))
 	{
 		proj4string(ras) = P4S.latlon
-		if(!is.null(dest.proj))
-			ras = projectRaster(ras, crs=dest.proj)
+	} else {
+		proj4string(ras) = start.proj
+	}
+	if(!is.null(dest.proj)) {
+		ras = projectRaster(ras, crs=dest.proj)
 	}
 	return(ras)
 }
