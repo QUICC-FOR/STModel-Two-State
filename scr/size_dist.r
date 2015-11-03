@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-library(lme4)
+## library(lme4)
 library(rstan)
 setwd("~/Dropbox/work/projects/STModel-Two-State_git")
 species = read.table("dat/raw/dbh_trees_20151026.csv", header=TRUE, sep=';', dec='.', stringsAsFactors=FALSE)
@@ -76,7 +76,7 @@ species2$year_measured = factor(species2$year_measured)
 ## 
 # fit mod2 in stan
 rstan_options(auto_write = TRUE)
-options(mc.cores = 2)
+options(mc.cores = parallel::detectCores())
 
 species2.stan = species2
 stdat = list(
@@ -96,8 +96,8 @@ stdat2 = list(
 	plot = as.integer(species2.stan$plot_id),
 	type = as.integer(species2.stan$type) - 1)
 
-stanMod = stan(file='scr/size_dist.stan', dat=stdat, iter=1000, chains=4)
-stanMod2 = stan(file='scr/size_dist2.stan', dat=stdat2, iter=1000, chains=4)
+stanMod = stan(file='scr/size_dist.stan', dat=stdat, iter=5000, chains=4)
+stanMod2 = stan(file='scr/size_dist2.stan', dat=stdat2, iter=5000, chains=4)
 
 saveRDS(stanMod, 'res/dbhStanMod.rds')
 saveRDS(stanMod2, 'res/dbhStanMod2.rds')
