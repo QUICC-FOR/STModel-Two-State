@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 ## library(lme4)
 library(rstan)
-setwd("~/Dropbox/work/projects/STModel-Two-State_git")
+## setwd("~/Dropbox/work/projects/STModel-Two-State_git")
 species = read.table("dat/raw/dbh_trees_20151026.csv", header=TRUE, sep=';', dec='.', stringsAsFactors=FALSE)
 
 # dbh filter to follow the original data
