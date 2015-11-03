@@ -63,7 +63,7 @@ species2 = species2[species2$is_dead == 'f',]
 # print warning if not all cases are complete
 if(sum(complete.cases(species2)) != nrow(species2))
 {
-	warning(paste("nrow(species2) - sum(complete.cases(species2)), "NA's found in species2"))
+	warning(paste(nrow(species2) - sum(complete.cases(species2)), "NA's found in species2"))
 	species2 = species2[complete.cases(species2),]
 }
 species2$plot_id = factor(species2$plot_id)
