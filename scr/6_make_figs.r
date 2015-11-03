@@ -69,13 +69,14 @@ dev.off()
 
 
 
-dpi = 600
+## dpi = 600
 figure.width = 6.5
-figure.height = 15
-filename = file.path('img', 'posterior_summaries.png')
-fontsize=12
-png(width=as.integer(dpi*figure.width), height=as.integer(dpi*figure.height),
-	file=filename, pointsize=fontsize, res=dpi)
+figure.height = 4
+filename = file.path('img', 'fig', 'conceptual.pdf')
+## fontsize=12
+pdf(width=figure.wid
+## png(width=as.integer(dpi*figure.width), height=as.integer(dpi*figure.height),
+## 	file=filename, pointsize=fontsize, res=dpi)
 par(mfrow=c(10, 4), mar=c(1,0,1,0), oma=c(2,1,1,0), tcl=-0.2, cex.axis=0.5)
 
 stmCols = colorRampPalette(c("#ffffff", rev(c("#66c2a4", "#2ca25f", '#006d2c'))), 
