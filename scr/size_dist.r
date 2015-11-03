@@ -1,6 +1,9 @@
 #!/usr/bin/env Rscript
 ## library(lme4)
 library(rstan)
+rstan_options(auto_write = TRUE)
+options(mc.cores = parallel::detectCores())
+
 ## setwd("~/Dropbox/work/projects/STModel-Two-State_git")
 species = read.table("dat/raw/dbh_trees_20151026.csv", header=TRUE, sep=';', dec='.', stringsAsFactors=FALSE)
 species = species[complete.cases(species),]
@@ -63,7 +66,7 @@ species2 = species2[species2$is_dead == 'f',]
 # print warning if not all cases are complete
 if(sum(complete.cases(species2)) != nrow(species2))
 {
-	warning(paste(nrow(species2) - sum(complete.cases(species2)), "NA's found in species2"))
+	warning(paste(nrow(species2) - sum(complete.cases(species2)), "NA's found in species2 out of", nrow(species2), "rows"))
 	species2 = species2[complete.cases(species2),]
 }
 species2$plot_id = factor(species2$plot_id)
@@ -83,8 +86,6 @@ species2$year_measured = factor(species2$year_measured)
 ## mod2 = lmer(dbh ~  type + (type|id_spe), data=species2.subsample)
 ## 
 # fit mod2 in stan
-rstan_options(auto_write = TRUE)
-options(mc.cores = parallel::detectCores())
 
 species2.stan = species2
 stdat = list(
@@ -104,7 +105,9 @@ stdat2 = list(
 	plot = as.integer(species2.stan$plot_id),
 	type = as.integer(species2.stan$type) - 1)
 
+cat('starting first stan model\n')
 stanMod = stan(file='scr/size_dist.stan', dat=stdat, iter=5000, chains=4)
+cat('starting second stan model\n')
 stanMod2 = stan(file='scr/size_dist2.stan', dat=stdat2, iter=5000, chains=4)
 
 saveRDS(stanMod, 'res/dbhStanMod.rds')
