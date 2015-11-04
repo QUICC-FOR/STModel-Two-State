@@ -1,16 +1,15 @@
 #!/usr/bin/env Rscript
+library(reshape2)
 ## library(lme4)
 library(rstan)
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
 
-## setwd("~/Dropbox/work/projects/STModel-Two-State_git")
 species = read.table("dat/raw/dbh_trees_20151026.csv", header=TRUE, sep=';', dec='.', stringsAsFactors=FALSE)
 species = species[complete.cases(species),]
 
 # dbh filter to follow the original data
 species = species[species$dbh > 127 & species$dbh < 9999,]
-
 
 speciesList = unique(species$id_spe)
 ## speciesInfo = read.csv('dat/speciesInfo.csv')
@@ -59,11 +58,7 @@ species.merged = merge(species, spIn.df, by=c('plot_id', 'id_spe'), all.x=TRUE)
 species2 = species.merged
 # drop type 1 (expansion)
 species2 = species2[species2$type != 1,]
-# keep only live trees
-species2 = species2[species2$is_dead == 'f',]
-## species2$is_dead[species2$is_dead == ""] = NA
-## species2 = species2[complete.cases(species2),]
-# print warning if not all cases are complete
+species2$is_dead[species2$is_dead == ''] = NA
 if(sum(complete.cases(species2)) != nrow(species2))
 {
 	warning(paste(nrow(species2) - sum(complete.cases(species2)), "NA's found in species2 out of", nrow(species2), "rows"))
@@ -73,43 +68,57 @@ species2$plot_id = factor(species2$plot_id)
 species2$id_spe = factor(species2$id_spe)
 species2$type = factor(species2$type)
 species2$year_measured = factor(species2$year_measured)
-## species2$is_dead = factor(species2$is_dead)
 
 
+# look at DBH dead vs live
 ## par(las=2, cex.axis=0.5)
-## box.locs = 1:20 + rep(0:9, each=2)
-## boxplot(dbh ~ type + id_spe, data=species2,  
-## 		notch=TRUE, range=1.5,outline=FALSE, col=rdeCols, boxwex=0.5, at=box.locs)
-## 
-## species2.subsample=species2.live[sample(1:nrow(species2.live),as.integer(nrow(species2.live)/10)),]	
-## mod1 = lmer(dbh ~ type + (1|id_spe), data=species2.subsample)
-## mod2 = lmer(dbh ~  type + (type|id_spe), data=species2.subsample)
-## 
-# fit mod2 in stan
+## cols = c(rdeCols, paste0(rdeCols, "44"))
+## box.locs = 1:40 + rep(0:9, each=4)
+## boxplot(dbh ~ type + is_dead + id_spe, data=species2,  
+## 	notch=TRUE, range=1.5,outline=FALSE, col=cols, boxwex=0.5, at=box.locs)
+# note: there was nothing interesting here
 
-species2.stan = species2
+
+
+# now look at % dead by species in type 0 and type 1 plots
+species2$weight = 1
+temp = melt(species2, id.vars=c('id_spe', 'is_dead', 'type'), measure.vars='weight')
+dead.noplots = dcast(temp, id_spe + type ~ is_dead, fun.aggregate=sum)
+
+# note to self; including random effects for plot and year improves the model, but it's not
+# really necessary; the effects are the same no matter what
+## m1 = glmer(cbind(t, t+f) ~ type + (1|id_spe), data=dead.noplots, family=binomial)
+## m2 = glmer(cbind(t, t+f) ~ type + (type|id_spe), data=dead.noplots, family=binomial)
+
+
+######## these are here for the record, but unneeded
+##
+## temp = melt(species2, id.vars=c('id_spe', 'is_dead', 'type', 'plot_id'), measure.vars='weight')
+## dead.plots = dcast(temp, id_spe + type + plot_id ~ is_dead, fun.aggregate=sum)
+## m3 = glmer(cbind(t, t+f) ~ type + (type|id_spe), data=dead.plots, family=binomial)
+## m4 = glmer(cbind(t, t+f) ~ type + (type|id_spe) + (1|plot_id), data=dead.plots, family=binomial)
+## temp = melt(species2, id.vars=c('id_spe', 'is_dead', 'type', 'year_measured', 'plot_id'), measure.vars='weight')
+## dead.years = dcast(temp, id_spe + type + year_measured + plot_id ~ is_dead, fun.aggregate=sum)
+## m5 = glmer(cbind(t, t+f) ~ type + (type|id_spe) + (1|plot_id), data=dead.years, family=binomial)
+## # plot nested within year
+## m6 = glmer(cbind(t, t+f) ~ type + (type|id_spe) + (1|year_measured/plot_id), data=dead.years, family=binomial)
+
+# fit m2 within stan
+
 stdat = list(
-	num_data_points = nrow(species2.stan),
-	num_species = length(levels(species2.stan$id_spe)),
-	dbh = species2.stan$dbh,
-	species = as.integer(species2.stan$id_spe),
-	type = as.integer(species2.stan$type) - 1)
-stdat2 = list(
-	num_data_points = nrow(species2.stan),
-	num_species = length(levels(species2.stan$id_spe)),
-	num_years = length(levels(species2.stan$year_measured)),
-	num_plots = length(levels(species2.stan$plot_id)),
-	dbh = species2.stan$dbh,
-	species = as.integer(species2.stan$id_spe),
-	year = as.integer(species2.stan$year_measured),
-	plot = as.integer(species2.stan$plot_id),
-	type = as.integer(species2.stan$type) - 1)
+	num_data_points = nrow(dead.noplots),
+	num_species = length(levels(dead.noplots$id_spe)),
+	dead = dead.noplots$t,
+	alive = dead.noplots$f,
+	species = as.integer(dead.noplots$id_spe),
+	type = as.integer(dead.noplots$type) - 1)
 
-cat('starting first stan model\n')
-stanMod = stan(file='scr/size_dist.stan', dat=stdat, iter=5000, chains=4)
-saveRDS(stanMod, 'res/dbhStanMod.rds')
+stanMod = stan(file='scr/dead_trees.stan', dat=stdat, iter=5000, chains=3)
+stnResults = list(
+	data.orig = dead.noplots,
+	data.stan = stdat,
+	species = data.frame(name = unique(dead.noplots$id_spe), 
+				value = unique(as.integer(dead.noplots$id_spe))),
+	results = stanMod)
 
-cat('starting second stan model\n')
-stanMod2 = stan(file='scr/size_dist2.stan', dat=stdat2, iter=5000, chains=4)
-saveRDS(stanMod2, 'res/dbhStanMod2.rds')
-
+saveRDS(stnResults, 'res/deadStanMod.rds')
