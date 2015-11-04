@@ -107,10 +107,10 @@ stdat2 = list(
 
 cat('starting first stan model\n')
 stanMod = stan(file='scr/size_dist.stan', dat=stdat, iter=5000, chains=4)
+saveRDS(stanMod, 'res/dbhStanMod.rds')
+
 cat('starting second stan model\n')
 stanMod2 = stan(file='scr/size_dist2.stan', dat=stdat2, iter=5000, chains=4)
-
-saveRDS(stanMod, 'res/dbhStanMod.rds')
 saveRDS(stanMod2, 'res/dbhStanMod2.rds')
 
 
