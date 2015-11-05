@@ -1,8 +1,8 @@
 #!/usr/bin/env Rscript
-## library(lme4)
-library(rstan)
-rstan_options(auto_write = TRUE)
-options(mc.cores = parallel::detectCores())
+library(lme4)
+## library(rstan)
+## rstan_options(auto_write = TRUE)
+## options(mc.cores = parallel::detectCores())
 
 ## setwd("~/Dropbox/work/projects/STModel-Two-State_git")
 species = read.table("dat/raw/dbh_trees_20151026.csv", header=TRUE, sep=';', dec='.', stringsAsFactors=FALSE)
@@ -87,29 +87,81 @@ species2$year_measured = factor(species2$year_measured)
 ## 
 # fit mod2 in stan
 
-species2.stan = species2
-stdat = list(
-	num_data_points = nrow(species2.stan),
-	num_species = length(levels(species2.stan$id_spe)),
-	dbh = species2.stan$dbh,
-	species = as.integer(species2.stan$id_spe),
-	type = as.integer(species2.stan$type) - 1)
-stdat2 = list(
-	num_data_points = nrow(species2.stan),
-	num_species = length(levels(species2.stan$id_spe)),
-	num_years = length(levels(species2.stan$year_measured)),
-	num_plots = length(levels(species2.stan$plot_id)),
-	dbh = species2.stan$dbh,
-	species = as.integer(species2.stan$id_spe),
-	year = as.integer(species2.stan$year_measured),
-	plot = as.integer(species2.stan$plot_id),
-	type = as.integer(species2.stan$type) - 1)
+## species2.stan = species2
+## stdat = list(
+## 	num_data_points = nrow(species2.stan),
+## 	num_species = length(levels(species2.stan$id_spe)),
+## 	dbh = species2.stan$dbh,
+## 	species = as.integer(species2.stan$id_spe),
+## 	type = as.integer(species2.stan$type) - 1)
+## stdat2 = list(
+## 	num_data_points = nrow(species2.stan),
+## 	num_species = length(levels(species2.stan$id_spe)),
+## 	num_years = length(levels(species2.stan$year_measured)),
+## 	num_plots = length(levels(species2.stan$plot_id)),
+## 	dbh = species2.stan$dbh,
+## 	species = as.integer(species2.stan$id_spe),
+## 	year = as.integer(species2.stan$year_measured),
+## 	plot = as.integer(species2.stan$plot_id),
+## 	type = as.integer(species2.stan$type) - 1)
+## 
+## cat('starting first stan model\n')
+## stanMod = stan(file='scr/size_dist.stan', dat=stdat, iter=5000, chains=4)
+## saveRDS(stanMod, 'res/dbhStanMod.rds')
+## 
+## cat('starting second stan model\n')
+## stanMod2 = stan(file='scr/size_dist2.stan', dat=stdat2, iter=5000, chains=4)
+## saveRDS(stanMod2, 'res/dbhStanMod2.rds')
 
-cat('starting first stan model\n')
-stanMod = stan(file='scr/size_dist.stan', dat=stdat, iter=5000, chains=4)
-saveRDS(stanMod, 'res/dbhStanMod.rds')
+gap=0.3
+boxwidth = 0.4
+between=5
+nspecies=10
+xlocs = rep(seq(0, by=between, length.out=nspecies), each=2) + rep(c(0,gap), nspecies)
+xlim = range(xlocs) + 0.5*c(-between, between)
+cex.pt = 0.7
+rdeCols = c('#1f78b4', '#fb9a99')
+cols = rep(rdeCols, nspecies)
+cols=paste0(cols, "88")
 
-cat('starting second stan model\n')
-stanMod2 = stan(file='scr/size_dist2.stan', dat=stdat2, iter=5000, chains=4)
-saveRDS(stanMod2, 'res/dbhStanMod2.rds')
+## stan models were no good, too much data - try to get CIs via a bootstrap
+# model 1: no random effects
+m1 = lm(dbh ~ type*id_spe, data=species2)
+nd = expand.grid(levels(species2$type), levels(species2$id_spe))
+names(nd) = c('type', 'id_spe')
+m1.pr = cbind(nd, predict(m1, newdata=nd, interval='prediction'))
+
+par(mfrow=c(1,2), mar=c(0.5, 4, 0.5, 0.5))
+plot(0,0, xlim=xlim, ylim=c(min(m1.pr$lwr), max(m1.pr$upr)), type='n', xaxt='n',xlab='',  ylab="dbh (mm)")
+for(i in 1:nrow(m1.pr))
+{
+	xx = xlocs[i] + c(-boxwidth,boxwidth, boxwidth, -boxwidth)
+	yy = rep(c(m1.pr$lwr[i], m1.pr$upr[i]), each=2)
+	polygon(xx, yy, border=NA, col=cols[i])
+	points(xlocs[i], m1.pr$fit[i], pch=16, cex=cex.pt)
+}
+
+inds = c(2, 12:20)
+effs = c(coefficients(m1)[inds[1]], coefficients(m1)[inds[-1]] + coefficients(m1)[inds[1]])
+cis = confint(m1, inds)
+cis[2:nrow(cis),] = cis[2:nrow(cis),] + effs[1]
+
+xl2 = seq(0, by=between, length.out = nspecies)
+xlim2 = range(xl2) + 0.5*c(-between, between)
+plot(0,0, xlim=xlim, ylim=c(min(cis[,1]), max(cis[,2])), type='n', xaxt='n',xlab='',  ylab=bquote(Delta*dbh~(mm)))
+for(i in 1:nrow(cis))
+{
+	xx = xl2[i] + c(-boxwidth,boxwidth, boxwidth, -boxwidth)
+	yy = rep(c(cis[i,1], cis[i,2]), each=2)
+	polygon(xx, yy, border=NA, col=rdeCols[2])
+	points(xl2[i], effs[i], pch=16, cex=cex.pt)
+}
+
+
+
+# model 2: random plot effect
+m2 = lmer(dbh ~ type*id_spe + (1|plot_id), data=species2)
+
+# model 3: year nested in plot
+m3 = lmer(dbh ~ type*id_spe + (1|plot_id/year_measured), data=species2)
 
