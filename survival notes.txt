@@ -1,0 +1,14 @@
+coding for interval censoring:
+	time: the initial observation year
+	time2: the repeat observation year
+	event=
+		0: left censored - dead at time2, unknown time (used for trees that have only a dead observation)
+				time=NA, time2=year dead
+		1: tree was alive at time and dead at time2 (trees with a repeat OR with an initial presence and then gone by time2)
+				time=year alive, time2 = year dead
+		2: right censored - alive at time2, unknown time (trees where they weren't observed at time but were present at time2)
+				time=NA, time2=year alive
+		3: interval censored - alive at both time periods
+				time=first year alive, time2=second year alive
+		
+Surv(time, time2, event, type='interval')
