@@ -1,7 +1,7 @@
 spName,shortname,thin,burnin,mcmcIter,genus,species,rc_tval,rc_pval,rc_tymax,rc_pymax,rank,comname
 18032-ABI-BAL,abibal,20,20000,20000,Abies,balsamea,-0.5,-1,0.2,0.2,2,Balsam fir
-28728-ACE-RUB,acerub,20,20000,20000,Acer,rubrum,1,0,0.5,0.4,1,Red maple
-28731-ACE-SAC,acesac,20,20000,20000,Acer,saccharum,0.5,-0.5,0.6,0.5,3,Sugar maple
+28728-ACE-RUB,acerub,20,20000,20000,Acer,rubrum,1,0,0.3,0.4,1,Red maple
+28731-ACE-SAC,acesac,20,20000,20000,Acer,saccharum,0.5,-0.5,0.3,0.5,3,Sugar maple
 19481-BET-ALL,betall,20,20000,20000,Betula,alleghaniensis,0,0,0.5,0.3,13,Yellow birch
 19489-BET-PAP,betpap,20,20000,20000,Betula,papyrifera,-0.65,0,0.5,0.5,6,Paper birch
 19231-CAR-GLA,cargla,10,10000,10000,Carya,glabra,,,,,24,Pignut hickory
