@@ -125,7 +125,12 @@ for(spName in speciesList)
 
 	# set x values for the response curves; for constants (env1 is constant in the curve 
 	# for env2, we lookup the values in info; if missing we use 0 (the mean)
-	rc_env1 = with(calibDat, seq(min(annual_mean_temp), max(annual_mean_temp), length.out=rcRes))
+	minTemp = -5
+	maxTemp = 25
+	## use these to restrict to calibration range
+	## minTemp = min(annual_mean_temp)
+	## maxTemp = max(annual_mean_temp)
+	rc_env1 = with(calibDat, seq(minTemp, maxTemp, length.out=rcRes))
 	rc_env1_c = if(is.null(info$rc_tval) || is.na(info$rc_tval)) 
 		{0} else {info$rc_tval}
 	rc_env2 = with(calibDat, seq(min(tot_annual_pp), max(tot_annual_pp), length.out=rcRes))
