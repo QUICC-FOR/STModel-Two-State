@@ -13,7 +13,12 @@ doResponse = doMaps = TRUE
 arg = commandArgs(TRUE)
 if(length(arg) > 0)
 {
-	speciesList = speciesList[which(speciesList %in% arg)]
+	sps = which(speciesList %in% arg)
+	if(length(sps) == 0) 
+	{
+		warning("No species specified on command line; falling back to default")
+	} else 
+		speciesList = speciesList[which(speciesList %in% arg)]
 	if('-r' %in% arg) doResponse = FALSE
 	if('-m' %in% arg) doMaps = FALSE
 }
