@@ -9,10 +9,13 @@
 ##    img/mcmc/*
 
 speciesList = readRDS('dat/speciesList.rds')
+doResponse = doMaps = TRUE
 arg = commandArgs(TRUE)
 if(length(arg) > 0)
 {
 	speciesList = speciesList[which(speciesList %in% arg)]
+	if('-r' %in% arg) doResponse = FALSE
+	if('-m' %in% arg) doMaps = FALSE
 }
 if(length(speciesList) == 0) stop("Error: no species specified")
 cat("Will process posteriors for:\n")
@@ -140,77 +143,83 @@ for(spName in speciesList)
 	grPredict_e = grPredict_c = grLambda = grPres = matrix(NA, nrow=nrow(curSpPosterior), ncol=length(gr_env1))
 
 	outputSteps = seq(floor(0.01*nrow(curSpPosterior)), nrow(curSpPosterior), length.out=100)
-	
-	pct.done(0, FALSE, "  computing plot statistics: ")
-	for(i in 1:nrow(curSpPosterior))
-	{
-		# response curve predictions
-		rcPredict1_e[i,] = predict.stm_point(curSpPosterior[i,eCols], rc_env1, rc_env2_c)
-		rcPredict1_c[i,] = predict.stm_point(curSpPosterior[i,cCols], rc_env1, rc_env2_c)
-		rcPredict2_e[i,] = predict.stm_point(curSpPosterior[i,eCols], rc_env1_c, rc_env2)
-		rcPredict2_c[i,] = predict.stm_point(curSpPosterior[i,cCols], rc_env1_c, rc_env2)
 
-		# grid predictions
-		grPredict_e[i,] = predict.stm_point(curSpPosterior[i,eCols], gr_env1, gr_env2)
-		grPredict_c[i,] = predict.stm_point(curSpPosterior[i,cCols], gr_env1, gr_env2)
-		grLambda[i,] = grPredict_c[i,] - grPredict_e[i,]
-		grPres[i,] = as.integer(grLambda[i,] > 0)
-		if(i %in% outputSteps)
-			pct.done(100 * i / nrow(curSpPosterior), pad = "  computing plot statistics: ")
-	}
-	cat('\n')
-	respCurve = data.frame(
-		temp = (rc_env1 * climScale$scale['annual_mean_temp']) + climScale$center['annual_mean_temp'],
-		col.temp = colMeans(rcPredict1_c),
-		col.temp.upper = apply(rcPredict1_c,2,quantile,0.95),
-		col.temp.lower = apply(rcPredict1_c,2,quantile,0.05),
-		ext.temp = colMeans(rcPredict1_e),
-		ext.temp.upper = apply(rcPredict1_e,2,quantile,0.95),
-		ext.temp.lower = apply(rcPredict1_e,2,quantile,0.05),
-		precip = (rc_env2 * climScale$scale['tot_annual_pp']) + climScale$center['tot_annual_pp'],
-		col.precip = colMeans(rcPredict2_c),
-		col.precip.upper = apply(rcPredict2_c,2,quantile,0.95),
-		col.precip.lower = apply(rcPredict2_c,2,quantile,0.05),
-		ext.precip = colMeans(rcPredict2_e),
-		ext.precip.upper = apply(rcPredict2_e,2,quantile,0.95),
-		ext.precip.lower = apply(rcPredict2_e,2,quantile,0.05)
-	)
-	saveRDS(respCurve, file.path('res','resp_curve',paste0(spName,'_respCurve.rds')))
-	
-	# maps
-	spGrid = readRDS(file.path('res','sdm',paste0(spName, '_sdm_projection.rds')))
-	outputSteps = floor(seq(0.01*nrow(spGrid), nrow(spGrid), length.out=100))
-	spGrid$stm = spGrid$stm.var = spGrid$sdm.pres = spGrid$rde.present = NA
-	spGrid$rde.present = spGrid$rde.expand = spGrid$rde.contract = spGrid$rde = NA
-## 	spGrid$plot.present = spGrid$plot.expand = spGrid$plot.contract = NA
-	pct.done(0, FALSE, '  creating spatial projections: ')
-	for(i in 1:nrow(spGrid))
-	{
-		spGrid$stm[i] = sum(grLambda[,i] > 0, na.rm=TRUE)/length(grLambda[,i])
-		spGrid$stm.var[i] = spGrid$stm[i]*(1-spGrid$stm[i]) # binomial variance
-		spGrid$sdm.pres[i] = as.integer(spGrid$sdm[i] >= sdmThreshold)
-		spGrid$rde.present[i] = sum(grPres[,i] == 1 & spGrid$sdm.pres[i] == 1, na.rm=TRUE)/length(grPres[,i])
-		spGrid$rde.expand[i] = sum(grPres[,i] == 1 & spGrid$sdm.pres[i] == 0, na.rm=TRUE)/length(grPres[,i])
-		spGrid$rde.contract[i] = sum(grPres[,i] == 0 & spGrid$sdm.pres[i] == 1, na.rm=TRUE)/length(grPres[,i])
-		if((spGrid$rde.present + spGrid$rde.expand + spGrid$rde.contract) > 0)
+	if(doResponse)
+	{	
+		pct.done(0, FALSE, "  computing plot statistics: ")
+		for(i in 1:nrow(curSpPosterior))
 		{
-			if(spGrid$rde.present[i] >= spGrid$rde.expand[i] & spGrid$rde.present[i] >= spGrid$rde.contract[i])
-			{
-				spGrid$rde[i] = 0
-## 				spGrid$plot.present = spGrid$rde.present
-			} else if(spGrid$rde.expand[i] > spGrid$rde.present[i] & spGrid$rde.expand[i] >= spGrid$rde.contract[i])
-			{
-				spGrid$rde[i] = 1
-## 				spGrid$plot.expand = spGrid$rde.expand
-			} else if(spGrid$rde.contract[i] > spGrid$rde.present[i] & spGrid$rde.contract[i] > spGrid$rde.expand[i])
-			{
-				spGrid$rde[i] = 2
-## 				spGrid$plot.contract = spGrid$rde.contract
-			}
+			# response curve predictions
+			rcPredict1_e[i,] = predict.stm_point(curSpPosterior[i,eCols], rc_env1, rc_env2_c)
+			rcPredict1_c[i,] = predict.stm_point(curSpPosterior[i,cCols], rc_env1, rc_env2_c)
+			rcPredict2_e[i,] = predict.stm_point(curSpPosterior[i,eCols], rc_env1_c, rc_env2)
+			rcPredict2_c[i,] = predict.stm_point(curSpPosterior[i,cCols], rc_env1_c, rc_env2)
+
+			# grid predictions
+			grPredict_e[i,] = predict.stm_point(curSpPosterior[i,eCols], gr_env1, gr_env2)
+			grPredict_c[i,] = predict.stm_point(curSpPosterior[i,cCols], gr_env1, gr_env2)
+			grLambda[i,] = grPredict_c[i,] - grPredict_e[i,]
+			grPres[i,] = as.integer(grLambda[i,] > 0)
+			if(i %in% outputSteps)
+				pct.done(100 * i / nrow(curSpPosterior), pad = "  computing plot statistics: ")
 		}
-		if(i %in% outputSteps)
-			pct.done(100* i / nrow(spGrid), pad = '  creating spatial projections: ')
+		cat('\n')
+		respCurve = data.frame(
+			temp = (rc_env1 * climScale$scale['annual_mean_temp']) + climScale$center['annual_mean_temp'],
+			col.temp = colMeans(rcPredict1_c),
+			col.temp.upper = apply(rcPredict1_c,2,quantile,0.95),
+			col.temp.lower = apply(rcPredict1_c,2,quantile,0.05),
+			ext.temp = colMeans(rcPredict1_e),
+			ext.temp.upper = apply(rcPredict1_e,2,quantile,0.95),
+			ext.temp.lower = apply(rcPredict1_e,2,quantile,0.05),
+			precip = (rc_env2 * climScale$scale['tot_annual_pp']) + climScale$center['tot_annual_pp'],
+			col.precip = colMeans(rcPredict2_c),
+			col.precip.upper = apply(rcPredict2_c,2,quantile,0.95),
+			col.precip.lower = apply(rcPredict2_c,2,quantile,0.05),
+			ext.precip = colMeans(rcPredict2_e),
+			ext.precip.upper = apply(rcPredict2_e,2,quantile,0.95),
+			ext.precip.lower = apply(rcPredict2_e,2,quantile,0.05)
+		)
+		saveRDS(respCurve, file.path('res','resp_curve',paste0(spName,'_respCurve.rds')))
 	}
-	cat('\n')
-	saveRDS(spGrid, file.path('res','maps',paste0(spName,'_maps.rds')))
+		
+	# maps
+	if(doMaps)
+	{
+		spGrid = readRDS(file.path('res','sdm',paste0(spName, '_sdm_projection.rds')))
+		outputSteps = floor(seq(0.01*nrow(spGrid), nrow(spGrid), length.out=100))
+		spGrid$stm = spGrid$stm.var = spGrid$sdm.pres = spGrid$rde.present = NA
+		spGrid$rde.present = spGrid$rde.expand = spGrid$rde.contract = spGrid$rde = NA
+	## 	spGrid$plot.present = spGrid$plot.expand = spGrid$plot.contract = NA
+		pct.done(0, FALSE, '  creating spatial projections: ')
+		for(i in 1:nrow(spGrid))
+		{
+			spGrid$stm[i] = sum(grLambda[,i] > 0, na.rm=TRUE)/length(grLambda[,i])
+			spGrid$stm.var[i] = spGrid$stm[i]*(1-spGrid$stm[i]) # binomial variance
+			spGrid$sdm.pres[i] = as.integer(spGrid$sdm[i] >= sdmThreshold)
+			spGrid$rde.present[i] = sum(grPres[,i] == 1 & spGrid$sdm.pres[i] == 1, na.rm=TRUE)/length(grPres[,i])
+			spGrid$rde.expand[i] = sum(grPres[,i] == 1 & spGrid$sdm.pres[i] == 0, na.rm=TRUE)/length(grPres[,i])
+			spGrid$rde.contract[i] = sum(grPres[,i] == 0 & spGrid$sdm.pres[i] == 1, na.rm=TRUE)/length(grPres[,i])
+			if((spGrid$rde.present + spGrid$rde.expand + spGrid$rde.contract) > 0)
+			{
+				if(spGrid$rde.present[i] >= spGrid$rde.expand[i] & spGrid$rde.present[i] >= spGrid$rde.contract[i])
+				{
+					spGrid$rde[i] = 0
+	## 				spGrid$plot.present = spGrid$rde.present
+				} else if(spGrid$rde.expand[i] > spGrid$rde.present[i] & spGrid$rde.expand[i] >= spGrid$rde.contract[i])
+				{
+					spGrid$rde[i] = 1
+	## 				spGrid$plot.expand = spGrid$rde.expand
+				} else if(spGrid$rde.contract[i] > spGrid$rde.present[i] & spGrid$rde.contract[i] > spGrid$rde.expand[i])
+				{
+					spGrid$rde[i] = 2
+	## 				spGrid$plot.contract = spGrid$rde.contract
+				}
+			}
+			if(i %in% outputSteps)
+				pct.done(100* i / nrow(spGrid), pad = '  creating spatial projections: ')
+		}
+		cat('\n')
+		saveRDS(spGrid, file.path('res','maps',paste0(spName,'_maps.rds')))
+	}
 }
