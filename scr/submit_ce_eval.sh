@@ -6,6 +6,6 @@ for sp in "${SPECIES[@]}"
 do
 	for mod in "${MODELS[@]}"
 	do
- 		qsub $DIR/scr/do_ce_eval.sh $sp $mod
+ 		qsub -vSP=$sp,MOD=$mod $DIR/scr/do_ce_eval.sh
 	done
 done

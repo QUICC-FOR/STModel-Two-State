@@ -6,4 +6,4 @@
 #PBS -N abibal-0
 DIR=~/STModel-Two-State
 
-cd $DIR; ./scr/ce_evaluation.r $1 $2 40 1000
+cd $DIR; ./scr/ce_evaluation.r $SP $MOD 40 1000
