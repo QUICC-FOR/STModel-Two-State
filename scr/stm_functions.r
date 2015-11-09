@@ -19,7 +19,7 @@ sdmColors = colorRampPalette(c("#ffffff", "#bdc9e1", "#045a8d", "#33338d", "#cc9
 predict.stm_point = function(p, env1 = NA, env2 = NA)
 {
 	phi = p[1]
-	if(length(p == 5)) phi = phi + p[2]*env1 + p[3]*env2 + p[4]*env1^2 + p[5]*env2^2
+	if(length(p) == 5) phi = phi + p[2]*env1 + p[3]*env2 + p[4]*env1^2 + p[5]*env2^2
 	plogis(phi)
 }
 
