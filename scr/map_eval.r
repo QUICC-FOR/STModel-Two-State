@@ -1,113 +1,124 @@
+library(reshape2)
 library(foreach)
 library(doParallel)
-library(reshape2)
+library(raster)
+library(rgdal)
 library(randomForest)
-library(coda)
+library(biomod2)
 registerDoParallel(cores=4)
-## setwd("/Users/mtalluto/Dropbox/work/projects/STModel-Two-State_git/")
+source('scr/stm_functions.r')
 
+pp = readRDS('dat/pp_grid_tall.rds')
+tempPlotsAll = readRDS("dat/tempPlot_presence.rds")
 
-## notes to self
-### this isn't really going to work the way it's done here. The temporary plot data
-# are only for quebec. this means there isn't much variance in climate, and there is lots
-# of spatial duplication and poor resolution in the STM predictions (mostly just 0 or 1)
-# need to read in the original dataset and get any calibration data points that are NOT in the
-# transition dataset (i.e., plots that were only sampled once)
-# then need to intersect them with the climate rasters, so that the observed values are 1 or 0 for
-# each climate cell (within a given year)
-# the output will be a set of rasters for each year, with values of 1 (at least one observed presence), 
-# 0 (no presences), or NA (no observations for that cell for that year)
+# reshape to be wide by variable
+ras.wide = dcast(pp, year_measured + lon + lat ~ biovar, value.var = 'val')
+ras.wide = ras.wide[complete.cases(ras.wide),]
 
+ras.wide[,'mean_diurnal_range'] = ras.wide[,'mean_diurnal_range'] / 10
+ras.wide[,'mean_temp_wettest_quarter'] = ras.wide[,'mean_temp_wettest_quarter'] / 10
 
-
-source("scr/stm_functions.r")
-# process temp plot climate
+# scale variables
 climScale = readRDS("dat/climate_scaling.rds")
-tp_clim = read.csv("dat/raw/temp_plots/tp_climData_reshaped.csv", dec=',', sep=';')
-colsToKeep = c('plot_id', 'year_measured')
-tp_clim = cbind(tp_clim[,colsToKeep], scale(tp_clim[,names(climScale$center)], 
-		center=climScale$center, scale=climScale$scale))
-tp_clim = tp_clim[complete.cases(tp_clim),]
+ras.wide.scale = ras.wide
+for(v in names(climScale$center))
+	ras.wide.scale[,v] = scale(ras.wide.scale[,v], center = climScale$center[v], scale=climScale$scale[v])
 
 
-tempPlots = read.csv("dat/raw/temp_plots/tp_plotinfoData.csv", dec='.', sep=';')
-
-tp_species = read.csv("dat/raw/temp_plots/tp_treeData_allSpecies.csv", dec='.', sep=';')
-
-treeDat = merge(tp_species, tempPlots, all.x=TRUE)
-sampleDat = dcast(treeDat, plot_id + year_measured + latitude + longitude ~ id_spe, fill = 0, 
-		value.var = "basal_area", fun.aggregate = function(x) as.integer(sum(x) > 0))
-stateData = merge(sampleDat, tp_clim, all = 'T', by=c("plot_id", "year_measured"))
-## stateData = merge(stateData, tempPlots, all = 'T', by=c("plot_id", "year_measured"))
-stateData = stateData[complete.cases(stateData),]
-
-spName = '18032-ABI-BAL'
-modName = '0'
-
-# to do:
-# √1. for grid cells with multiple plots, select one at random
-# √2. read in the original random forest model (the one used to fit the STM) and project to temp plots
-# 3. read STM pars and project to temporary plot grid (one per posterior rep)
-# 4. compute TSS for RF and for STM for both datasets
-
-# 1. for grid cells with multiple plots, select one at random
-# get unique IDs based on climate values and select one plot at random from each set of identical climate values
-climCols = c(colnames(tp_clim), spName, 'longitude', 'latitude')
-climDat = stateData[,climCols]
-# subset climDat to the projection range (+/- 10 degrees of the most extreme presences)
-trans = readRDS(file.path("dat", "transition", paste0(spName, "_transitions.rds")))
-plotLocations = readRDS('dat/raw/plotLocations.rds')
-trans = merge(trans, plotLocations, all=TRUE, by.x = 'plot', by.y = 'plot_id')
-trans = trans[complete.cases(trans),]
-rows = stm_mask(new.coords = climDat[,c('longitude', 'latitude')], 
-	pres = as.integer(trans$state1 | trans$state2), pres.coords = trans[,c('lon', 'lat')])
-climDat = climDat[rows==1,]
-
-
-rfvars = c('annual_mean_temp', 'mean_diurnal_range', 'mean_temp_wettest_quarter', 
-		'pp_seasonality', 'pp_warmest_quarter', 'tot_annual_pp')
-climDat.unique = unique(climDat[,rfvars])
-climDat.unique$climID = 1:nrow(climDat.unique)
-climDat = merge(climDat, climDat.unique)
-climIDID = with(climDat, ave(annual_mean_temp, factor(climID), FUN=function(x) sample.int(length(x))))
-climDat.subset = climDat[climIDID == 1,]
-
-# 2. read in the original random forest model (the one used to fit the STM) and project to temp plots
-RFMod = readRDS(file.path('res', 'sdm', paste0(spName, '_rf_sdm.rds')))
-rfvars = c('annual_mean_temp', 'mean_diurnal_range', 'mean_temp_wettest_quarter', 
-		'pp_seasonality', 'pp_warmest_quarter', 'tot_annual_pp')
-climDat$rf.pred = predict(RFMod, newdata = climDat[,rfvars], type='prob')[,2]
-climDat.subset$rf.pred = predict(RFMod, newdata = climDat.subset[,rfvars], type='prob')[,2]
-
-# 3. read STM pars and project to temporary plot grid (one per posterior rep), compute TSS
-## stmvars = c('annual_mean_temp', 'tot_annual_pp')
-## cdat = climDat
-cdat = climDat.subset
-## 
-STMPars = readRDS(file.path('res', 'posterior', paste0(spName, '_posterior.rds')))[[modName]]
-STMPars = STMPars[sample(nrow(STMPars), 1000),]
-obs = cdat[,spName]
-numPres = foreach(pars = iter(STMPars, by='row'), .combine=cbind, .final=function(x) rowSums(x)) %dopar% {
-## foreach(pars = t(STMPars), .combine=c, .packages='biomod2') %do% {
-	if(length(pars) == 2) {
-		C = predict.stm_point(pars[1], env1 = cdat[,'annual_mean_temp'], env2 = cdat[,'tot_annual_pp'])
-		E = predict.stm_point(pars[2], env1 = cdat[,'annual_mean_temp'], env2 = cdat[,'tot_annual_pp'])
-	} else {
-		C = predict.stm_point(pars[1:5], env1 = cdat[,'annual_mean_temp'], env2 = cdat[,'tot_annual_pp'])
-		E = predict.stm_point(pars[6:10], env1 = cdat[,'annual_mean_temp'], env2 = cdat[,'tot_annual_pp'])
-	}
-	as.integer(C > E)
+# make a list by year
+rasList = foreach(year=unique(ras.wide.scale$year_measured), .inorder=TRUE, 
+		.final=function(x) {
+			names(x) = unique(ras.wide.scale$year_measured)
+			x}) %dopar%
+{
+	dfsub = ras.wide.scale[ras.wide.scale$year_measured == year,2:ncol(ras.wide.scale)]
+	coordinates(dfsub) = 1:2
+	gridded(dfsub) = TRUE
+	brick(dfsub)
 }
 
 
-colFun = function(x) rgb(colorRamp(c('black', 'red'))(x), maxColorValue=256)
-plot(cdat$longitude, cdat$latitude, col=colFun(cdat$rf.pred), pch=16, cex=0.5)
+spName = '18032-ABI-BAL'
 
-quartz()
-plot(cdat$longitude, cdat$latitude, col=colFun(numPres/nrow(STMPars)), pch=16, cex=0.5)
 
-# 6. Read in original calibration P/A dataset
-# 7. Aggregate PA to 1 or 0 for each climate grid cell for calibration and temp plot data
-# 8. Build a new random forest on these aggregate data for the calibration set
-# 9. Project RF and STM to the aggregated temporary plot dataset
-# 10. Compute TSS for both models for the aggregated temp plot dataset
+
+# read in calibration data and find points that were only sampled once
+# (and thus not used to fit the STM)
+trans = readRDS(file.path('dat', 'transition', paste0(spName, '_transitions.rds')))
+pres = readRDS(file.path('dat', 'presence', paste0(spName, '_presence.rds')))
+plotLocs = readRDS('dat/raw/plotLocations.rds')
+singlePlots = pres[which(!(pres$plot_id %in% trans$plot)),]
+singlePlots = merge(singlePlots, plotLocs)
+
+
+# combine with temporary plots
+tempPlots = tempPlotsAll[,c('plot_id', 'year_measured', spName, 'latitude', 'longitude')]
+names(tempPlots) = names(singlePlots)
+allPlots = rbind(singlePlots, tempPlots)
+allPlots = allPlots[complete.cases(allPlots),]
+
+
+# for each year, compute obs and converte to data frame with complete cases only
+mapValidCells = do.call(rbind, lapply(unique(allPlots$year), function(year) {
+	pl = allPlots[allPlots$year == year,c(spName, 'lon', 'lat')]
+	coordinates(pl) = c('lon', 'lat')
+	rb = rasList[[as.character(year)]]
+	rb$obs = rasterize(pl, rb, 
+			fun=function(x, ...) as.integer(sum(x, ...) > 0))[[2]]
+	res = getValues(rb)
+	res[complete.cases(res),]
+}))
+
+
+# get SDM fit
+rfvars = c('annual_mean_temp', 'mean_diurnal_range', 'mean_temp_wettest_quarter', 
+		'pp_seasonality', 'pp_warmest_quarter', 'tot_annual_pp')
+RFMod = readRDS(file.path('res', 'sdm', paste0(spName, '_rf_sdm.rds')))
+mapValidCells$fit.rf = predict(RFMod, newdata = mapValidCells[,rfvars], type='prob')[,2]
+tss.rf = with(mapValidCells, Find.Optim.Stat(Stat="TSS", Fit=fit.rf, Obs=obs))
+
+modName = '0'
+sampleSize = NA
+
+# get STM fit
+posterior = readRDS(file.path('res', 'posterior', paste0(spName, '_posterior.rds')))[[modName]]
+if(is.null(sampleSize) || is.na(sampleSize)) {
+	samples = posterior
+} else
+	samples = posterior[sample(nrow(posterior), sampleSize),]
+
+
+env1 = mapValidCells$annual_mean_temp
+env2 = mapValidCells$tot_annual_pp
+## mapValidCells$fit.stm = foreach(pars = iter(samples, by='row'), .combine=cbind, 
+## 		.final=function(x) rowSums(x) / nrow(samples)) %dopar% {
+## 	if(length(pars) == 2)
+## 	{
+## 		cp = pars[1]
+## 		ep = pars[2]
+## 	} else {
+## 		cp = pars[1:5]
+## 		ep = pars[6:10]
+## 	}
+## 	C = predict.stm_point(cp, env1, env2)
+## 	E = predict.stm_point(ep, env1, env2)
+## 	as.integer(C > E)
+## }
+# this is a single summary tss value
+## tss.stm = with(mapValidCells, Find.Optim.Stat(Stat="TSS", Fit=fit.stm, Obs=obs))
+
+system.time(tss.posterior <- foreach(pars = iter(samples, by='row'), .combine=c) %dopar% {
+	if(length(pars) == 2)
+	{
+		cp = pars[1]
+		ep = pars[2]
+	} else {
+		cp = pars[1:5]
+		ep = pars[6:10]
+	}
+	C = predict.stm_point(cp, env1, env2)
+	E = predict.stm_point(ep, env1, env2)
+	fit = as.integer(C > E)
+	Find.Optim.Stat(Stat="TSS", Fit=fit, Obs=mapValidCells$obs)[1]
+}
+)
