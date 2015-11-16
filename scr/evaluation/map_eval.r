@@ -25,6 +25,9 @@ sampleSize = if(length(clArgs) > 3) clArgs[4] else NA
 source('scr/stm_functions.r')
 registerDoParallel(cores=numCores)
 
+cat("Evaluation for ", spName, " model ", modName, "\n\n")
+cat("Evaluation for ", spName, " model ", modName, "\n\n", file = stderr())
+
 # get STM fit
 posterior = readRDS(file.path('res', 'posterior', paste0(spName, '_posterior.rds')))[[modName]]
 if(is.null(sampleSize) || is.na(sampleSize)) {
@@ -55,4 +58,4 @@ eval.posterior <- foreach(pars = iter(samples, by='row'), .combine=rbind,
 	c(Find.Optim.Stat(Stat="TSS", Fit=(1000*fit), Obs=mapValidCells$obs)[1],
 	Find.Optim.Stat(Stat="ROC", Fit=(1000*fit), Obs=mapValidCells$obs)[1])
 }
-saveRDS(file.path('res', 'eval', paste0(spName, '_', modName, '_posterior_eval.rds')))
+saveRDS(eval.posterior, file.path('res', 'eval', paste0(spName, '_', modName, '_posterior_eval.rds')))
