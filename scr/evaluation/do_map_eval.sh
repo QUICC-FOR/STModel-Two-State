@@ -8,7 +8,7 @@
 DIR=~/STModel-Two-State
 MODELS=(0 a g i0 ia ig)
 
-cd $DIR; ./scr/map_eval.r $SP 0 40 1000
-cd $DIR; ./scr/map_eval.r $SP g 40 1000
-cd $DIR; ./scr/map_eval.r $SP i0 40 1000
-cd $DIR; ./scr/map_eval.r $SP ig 40 1000
+cd $DIR; ./scr/evaluation/map_eval.r $SP 0 40 1000
+cd $DIR; ./scr/evaluation/map_eval.r $SP g 40 1000
+cd $DIR; ./scr/evaluation/map_eval.r $SP i0 40 1000
+cd $DIR; ./scr/evaluation/map_eval.r $SP ig 40 1000
