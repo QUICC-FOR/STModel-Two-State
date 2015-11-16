@@ -7,6 +7,7 @@
 #    dat/raw/temp_plots/tp_plotinfoData.csv
 #    dat/raw/temp_plots/tp_treeData_allSpecies.csv
 #    dat/pp_grid_tall.rds
+#    dat/tp_grid_tall.rds
 #    dat/transition/*
 #    dat/presence/*
 #    res/sdm/*
