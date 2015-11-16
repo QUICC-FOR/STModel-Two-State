@@ -3,5 +3,5 @@ SPECIES=(18032-ABI-BAL 19049-ULM-AME 19290-QUE-ALB 19408-QUE-RUB 19481-BET-ALL 1
 DIR=~/STModel-Two-State
 for sp in "${SPECIES[@]}"
 do
-	qsub -vSP=$sp,MOD=$mod $DIR/scr/do_ce_eval.sh
+	qsub -vSP=$sp,MOD=$mod $DIR/scr/evaluation/do_map_eval.sh
 done
