@@ -23,6 +23,7 @@ numCores = if(length(clArgs) > 2) clArgs[3] else detectCores()
 sampleSize = if(length(clArgs) > 3) clArgs[4] else NA
 
 source('scr/stm_functions.r')
+registerDoParallel(cores=numCores)
 
 # get STM fit
 posterior = readRDS(file.path('res', 'posterior', paste0(spName, '_posterior.rds')))[[modName]]
@@ -37,7 +38,7 @@ env1 = mapValidCells$annual_mean_temp
 env2 = mapValidCells$tot_annual_pp
 
 eval.posterior <- foreach(pars = iter(samples, by='row'), .combine=rbind, 
-		final = function(x) {
+		.final = function(x) {
 			data.frame(tss = x[,1], roc = x[,2])
 }) %dopar% {
 	if(length(pars) == 2)
