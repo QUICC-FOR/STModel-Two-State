@@ -40,9 +40,17 @@ mapValidCells = readRDS(file.path('dat', 'eval', paste0(spName, '_evalCells.rds'
 env1 = mapValidCells$annual_mean_temp
 env2 = mapValidCells$tot_annual_pp
 
+
+stm_prev = function(C, E)
+{
+	pr = 1 - (E/C)
+	pr[pr < 0] = 0
+	pr
+}
+
 eval.posterior <- foreach(pars = iter(samples, by='row'), .combine=rbind, 
 		.final = function(x) {
-			data.frame(tss = x[,1], roc = x[,2])
+			data.frame(tss = x[,1], roc = x[,2], tss.prev=x[,3], roc.prev=x[,4])
 }) %dopar% {
 	if(length(pars) == 2)
 	{
@@ -55,7 +63,10 @@ eval.posterior <- foreach(pars = iter(samples, by='row'), .combine=rbind,
 	C = predict.stm_point(cp, env1, env2)
 	E = predict.stm_point(ep, env1, env2)
 	fit = as.integer(C > E)
+	fit2 = stm_prev(C, E)
 	c(Find.Optim.Stat(Stat="TSS", Fit=(1000*fit), Obs=mapValidCells$obs)[1],
-	Find.Optim.Stat(Stat="ROC", Fit=(1000*fit), Obs=mapValidCells$obs)[1])
+	Find.Optim.Stat(Stat="ROC", Fit=(1000*fit), Obs=mapValidCells$obs)[1],
+	Find.Optim.Stat(Stat="TSS", Fit=(1000*fit2), Obs=mapValidCells$obs)[1],
+	Find.Optim.Stat(Stat="ROC", Fit=(1000*fit2), Obs=mapValidCells$obs)[1])
 }
 saveRDS(eval.posterior, file.path('res', 'eval', paste0(spName, '_', modName, '_posterior_eval.rds')))
