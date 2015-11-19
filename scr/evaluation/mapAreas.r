@@ -18,6 +18,8 @@ speciesList = readRDS('dat/speciesList.rds')
 
 suppressWarnings(dir.create('res/eval', recursive = TRUE))
 
+load("dat/map_projections.rdata")
+
 clArgs <- commandArgs(trailingOnly = TRUE)
 
 ## these will be read in from the command line
