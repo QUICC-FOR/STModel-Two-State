@@ -186,6 +186,9 @@ for(spName in speciesList)
 			ext.precip.lower = apply(rcPredict2_e,2,quantile,0.05)
 		)
 		saveRDS(respCurve, file.path('res','resp_curve',paste0(spName,'_respCurve.rds')))
+		saveRDS(list(coordinates = climGrid[,c('lon', 'lat')], E = grPredict_e, 
+				C = grPredict_c, lambda = grLambda, stmPres = grPres), 
+				file.path('res','posteriorGrid',,paste0(spName,'_posteriorGrid.rds')))
 	}
 		
 	# maps
