@@ -12,7 +12,7 @@ library(doParallel)
 library(coda)
 library(raster)
 library(sp)
-## source('scr/stm_functions.r')
+source('scr/stm_functions.r')
 ## speciesList = readRDS('dat/speciesList.rds')
 
 
