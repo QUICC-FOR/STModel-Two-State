@@ -3,11 +3,6 @@ stmMaskTolerance = 1 # lat/lon tolerance for the data mask (how many degrees out
 sdmColors = colorRampPalette(c("#ffffff", "#bdc9e1", "#045a8d", "#33338d", "#cc99ff"), 
 		interpolate='spline', bias=1, space="rgb")(200)
 
-### data
-## library(rgdal)
-## load("dat/map_projections.rdata")
-## ocean = readOGR(dsn="dat/ne_50m_ocean", layer="ne_50m_ocean")
-## ocean = spTransform(ocean, stmMapProjection)
 
 
 ### general functions
@@ -22,32 +17,37 @@ predict.stm_point = function(p, env1 = NA, env2 = NA)
 	if(length(p) == 5) {
 		phi = phi + p[2]*env1 + p[3]*env2 + p[4]*env1^2 + p[5]*env2^2
 	} else if(!is.na(env1)) phi = rep(phi, length(env1))
-	plogis(phi)
+	result = tryCatch({
+		plogis(phi)},
+	error = function(e) {
+		exp(phi) / (1 + exp(phi))
+	})
+	result
 }
 
 
-## make_raster = function(dat, coords, start.proj = NULL, dest.proj = NULL)
-## {
-## 	# simple utility to make a projected raster out of a vector and lat/long coords
-## 	require(raster)
-## 	require(rgdal)
-## 	if(!(ncol(coords) == 2 & nrow(coords) == length(dat)))
-## 		stop("Coords must have 2 columns and a number of rows equal to the length of dat")
-## 	ras = cbind(dat, coords)
-## 	coordinates(ras) = c(2,3)
-## 	gridded(ras) = TRUE
-## 	ras = raster(ras)
-## 	if(is.null(start.proj))
-## 	{
-## 		proj4string(ras) = P4S.latlon
-## 	} else {
-## 		proj4string(ras) = start.proj
-## 	}
-## 	if(!is.null(dest.proj)) {
-## 		ras = projectRaster(ras, crs=dest.proj)
-## 	}
-## 	return(ras)
-## }
+make_raster = function(dat, coords, start.proj = NULL, dest.proj = NULL)
+{
+	# simple utility to make a projected raster out of a vector and lat/long coords
+	require(raster)
+	require(rgdal)
+	if(!(ncol(coords) == 2 & nrow(coords) == length(dat)))
+		stop("Coords must have 2 columns and a number of rows equal to the length of dat")
+	ras = cbind(dat, coords)
+	coordinates(ras) = c(2,3)
+	gridded(ras) = TRUE
+	ras = raster(ras)
+	if(is.null(start.proj))
+	{
+		proj4string(ras) = P4S.latlon
+	} else {
+		proj4string(ras) = start.proj
+	}
+	if(!is.null(dest.proj)) {
+		ras = projectRaster(ras, crs=dest.proj)
+	}
+	return(ras)
+}
 
 
 stm_mask = function(new.coords, pres, pres.coords, tol = c(10,10))
@@ -121,7 +121,18 @@ plot_sdm = function(sdmDat, coords, sdm.col, legend=FALSE, add=FALSE, plot.ocean
 {
 	sdmRas = make_raster(sdmDat, coords, P4S.latlon, stmMapProjection)
 	plot(sdmRas, xaxt='n', yaxt='n', col=sdm.col, legend=legend, add=add, ...)
-	if(plot.ocean) plot(ocean, col="white", add=TRUE)
+	if(plot.ocean)
+	{
+		require(rgdal)
+		if(!exists("stmMapProjection"))
+			load("dat/map_projections.rdata")
+		if(!exists("ocean") || !("SpatialPolygonsDataFrame" %in% class(ocean)))
+		{
+			ocean = readOGR(dsn="dat/ne_50m_ocean", layer="ne_50m_ocean")
+			ocean = spTransform(ocean, stmMapProjection)
+		}
+		plot(ocean, col="white", add=TRUE)
+	}
 }
 
 
