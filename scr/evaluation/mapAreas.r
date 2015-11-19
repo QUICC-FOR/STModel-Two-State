@@ -13,12 +13,16 @@ library(foreach)
 library(doParallel)
 library(coda)
 library(raster)
+library(sp)
 source('scr/stm_functions.r')
 speciesList = readRDS('dat/speciesList.rds')
 
 suppressWarnings(dir.create('res/eval', recursive = TRUE))
 
+# doing this manually to avoid GDAL
 load("dat/map_projections.rdata")
+P4S.latlon = CRS("+proj=longlat +datum=WGS84")
+stmMapProjection = CRS("+init=epsg:5070")
 
 clArgs <- commandArgs(trailingOnly = TRUE)
 
