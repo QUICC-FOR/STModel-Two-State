@@ -11,12 +11,17 @@ sdmColors = colorRampPalette(c("#ffffff", "#bdc9e1", "#045a8d", "#33338d", "#cc9
 ## 		env2^2*p[10])
 ## compute_c = function(p, env1, env2) plogis(p[1] + env1*p[2] + env2*p[3] + env1^2*p[4] + 
 ## 		env2^2*p[5])
-predict.stm_point = function(p, env1 = NA, env2 = NA)
+predict.stm_point = function(p, env1 = NULL, env2 = NULL)
 {
-	phi = p[1]
-	if(length(p) == 5) {
-		phi = phi + p[2]*env1 + p[3]*env2 + p[4]*env1^2 + p[5]*env2^2
-	} else if(!is.na(env1)) phi = rep(phi, length(env1))
+	if(is.null(env1) | is.null(env2))
+	{
+		phi = p[1]
+	} else {
+		phi = p[1] + 0 * env1
+		if(length(p) == 5)
+			phi = phi + p[2]*env1 + p[3]*env2 + p[4]*env1^2 + p[5]*env2^2
+	}
+	
 	result = tryCatch({
 		plogis(phi)},
 	error = function(e) {
