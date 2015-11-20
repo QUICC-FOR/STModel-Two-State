@@ -7,9 +7,6 @@
 ##    res/posteriorGrid/*
 
 library(coda)
-library(doParallel)
-numCores=detectCores() - 2
-
 speciesList = readRDS('dat/speciesList.rds')
 models = c('0', 'i0', 'g', 'ig')
 speciesInfo = read.csv('dat/speciesInfo.csv')
@@ -25,10 +22,7 @@ if(length(arg) > 0)
 		warning("No species specified on command line; falling back to default")
 	} else 
 		speciesList = speciesList[which(speciesList %in% arg)]
-	corTest = as.numeric(arg[length(arg)])
-	if(!is.na(corTest)) numCores = corTest
 }
-registerDoParallel(cores=numCores)
 
 if(length(speciesList) == 0) stop("Error: no species specified")
 cat("Will process posteriors for:\n")
@@ -39,8 +33,6 @@ suppressWarnings(dir.create(file.path('res', 'posteriorGrid'), recursive=TRUE))
 climGrid = readRDS(file.path('dat', 'climateGrid_scaled.rds'))
 gr_env1 = climGrid$annual_mean_temp
 gr_env2 = climGrid$tot_annual_pp
-
-
 
 # the posterior columns containing extinction and colonization parameters
 e_pars = function(pars)	if(length(pars) > 2) pars[6:10] else pars[2]
@@ -67,11 +59,6 @@ for(spName in speciesList)
 			grPredict_e[i,] = predict.stm_point(e_pars(pars), gr_env1, gr_env2)
 			grPredict_c[i,] = predict.stm_point(c_pars(pars), gr_env1, gr_env2)
 		}		
-## 		grPredict_e = foreach(pars = iter(curPosterior, by='row'), .combine=rbind) %dopar%
-## 			predict.stm_point(e_pars(pars), gr_env1, gr_env2)
-## 		grPredict_c = foreach(pars = iter(curPosterior, by='row'), .combine=rbind) %dopar%
-## 			predict.stm_point(c_pars(pars), gr_env1, gr_env2)
-
 		grLambda = grPredict_c - grPredict_e
 		grPres = (grLambda > 0) * 1
 
