@@ -8,9 +8,6 @@
 ##    res/maps/*
 
 library(coda)
-library(foreach)
-library(doParallel)
-numCores=detectCores() - 2
 
 speciesList = readRDS('dat/speciesList.rds')
 models = c('0', 'i0', 'g', 'ig')
@@ -24,10 +21,7 @@ if(length(arg) > 0)
 		warning("No species specified on command line; falling back to default")
 	} else 
 		speciesList = speciesList[which(speciesList %in% arg)]
-	corTest = as.numeric(arg[length(arg)])
-	if(!is.na(corTest)) numCores = corTest
 }
-registerDoParallel(cores=numCores)
 
 if(length(speciesList) == 0) stop("Error: no species specified")
 cat("Will process posteriors for:\n")
@@ -50,20 +44,23 @@ for(spName in speciesList)
 		grPres = postGrid$stmPres
 		grLambda = postGrid$lambda
 		
-		spGrResult = foreach(i = 1:nrow(spGrid), .combine=rbind, .final=data.frame) %dopar% {
-			c(stm = sum(grLambda[,i] > 0, na.rm=TRUE)/length(grLambda[,i]),
-				rde.present = sum(grPres[,i] == 1 & spGrid$sdm.pres[i] == 1, na.rm=TRUE)/length(grPres[,i]),
-				rde.expand = sum(grPres[,i] == 1 & spGrid$sdm.pres[i] == 0, na.rm=TRUE)/length(grPres[,i]),
-				rde.contract = sum(grPres[,i] == 0 & spGrid$sdm.pres[i] == 1, na.rm=TRUE)/length(grPres[,i])
-			)}
-		spGrResult$stm.pres = as.integer(spGrResult$stm > stmThreshold)
-		spGrResult$rde = (1 * (spGrResult$stm.pres & spGrid$sdm.pres)) + 
-				(2 * (spGrResult$stm.pres & !spGrid$sdm.pres)) + 
-				(3 * (!spGrResult$stm.pres & spGrid$sdm.pres))
+		spGrid$stm = spGrid$rde.present = spGrid$rde.expand = spGrid$rde.contract = NA
+		for(i in 1:nrow(spGrid))
+		{
+			spGrid$stm[i] = sum(grLambda[,i] > 0, na.rm=TRUE)/length(grLambda[,i])
+			spGrid$rde.present[i] = sum(grPres[,i] == 1 & spGrid$sdm.pres[i] == 1, na.rm=TRUE)/length(grPres[,i])
+			spGrid$rde.expand[i] = sum(grPres[,i] == 1 & spGrid$sdm.pres[i] == 0, na.rm=TRUE)/length(grPres[,i])
+			spGrid$rde.contract[i] = sum(grPres[,i] == 0 & spGrid$sdm.pres[i] == 1, na.rm=TRUE)/length(grPres[,i])
+		}
+		
+		spGrid$stm.pres = as.integer(spGrid$stm > stmThreshold)
+		spGrid$rde = (1 * (spGrid$stm.pres & spGrid$sdm.pres)) + 
+				(2 * (spGrid$stm.pres & !spGrid$sdm.pres)) + 
+				(3 * (!spGrid$stm.pres & spGrid$sdm.pres))
 		# change absences to NA and subtract 1 from all cats
-		spGrResult$rde[spGrResult$rde == 0] = NA 
-		spGrResult$rde = spGrResult$rde - 1
-		saveRDS(spGrResult, file.path('res','maps',paste0(spName,'_',mod,'_maps.rds')))
+		spGrid$rde[spGrid$rde == 0] = NA 
+		spGrid$rde = spGrid$rde - 1
+		saveRDS(spGrid, file.path('res','maps',paste0(spName,'_',mod,'_maps.rds')))
 	}
 }
 
