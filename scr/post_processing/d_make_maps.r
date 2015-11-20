@@ -1,6 +1,5 @@
 #!/usr/bin/env Rscript
 
-## reads all posterior results in and processes them into CODA objects; also makes some plots
 ## depends:
 ##    res/posteriorGrid/*
 

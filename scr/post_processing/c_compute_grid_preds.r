@@ -12,6 +12,8 @@ models = c('0', 'i0', 'g', 'ig')
 speciesInfo = read.csv('dat/speciesInfo.csv')
 source('scr/stm_functions.r')
 
+sampleSize = 1000
+
 
 arg = commandArgs(TRUE)
 if(length(arg) > 0)
@@ -51,6 +53,7 @@ for(spName in speciesList)
 	{
 
 		curPosterior = posterior[[mod]]
+		curPosterior = curPosterior[sample(nrow(curPosterior), sampleSize),]
 
 		grPredict_e = grPredict_c = matrix(NA, nrow = nrow(curPosterior), ncol=length(gr_env1))
 		for(i in 1:nrow(curPosterior))
