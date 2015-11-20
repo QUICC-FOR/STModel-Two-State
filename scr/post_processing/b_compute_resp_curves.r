@@ -7,11 +7,7 @@
 ##    res/resp_curve/*
 
 library(coda)
-library(doParallel)
 
-
-
-numCores=detectCores() - 2
 speciesList = readRDS('dat/speciesList.rds')
 models = c('0', 'i0', 'g', 'ig')
 speciesInfo = read.csv('dat/speciesInfo.csv')
@@ -27,11 +23,7 @@ if(length(arg) > 0)
 		warning("No species specified on command line; falling back to default")
 	} else 
 		speciesList = speciesList[which(speciesList %in% arg)]
-		
-	corTest = as.numeric(arg[length(arg)])
-	if(!is.na(corTest)) numCores = corTest
 }
-registerDoParallel(cores=numCores)
 
 if(length(speciesList) == 0) stop("Error: no species specified")
 cat("Will process posteriors for:\n")
@@ -76,15 +68,17 @@ for(spName in speciesList)
 		rc_env2_c = if(is.null(info$rc_pval) || is.na(info$rc_pval))
 			{0} else {info$rc_pval}
 			
-		rcPredict1_e = foreach(pars = iter(curPosterior, by='row'), .combine=rbind) %dopar%
-			predict.stm_point(e_pars(pars), rc_env1, rc_env2_c)
-		rcPredict1_c = foreach(pars = iter(curPosterior, by='row'), .combine=rbind) %dopar%
-			predict.stm_point(c_pars(pars), rc_env1, rc_env2_c)
-		rcPredict2_e = foreach(pars = iter(curPosterior, by='row'), .combine=rbind) %dopar%
-			predict.stm_point(e_pars(pars), rc_env1_c, rc_env2)
-		rcPredict2_c = foreach(pars = iter(curPosterior, by='row'), .combine=rbind) %dopar%
-			predict.stm_point(c_pars(pars), rc_env1_c, rc_env2)
-
+		rcPredict1_e = rcPredict1_c = rcPredict2_e = rcPredict2_c = 
+					matrix(nrow = nrow(curPosterior), ncol=rcRes)
+		for(i in 1:nrow(curPosterior))
+		{
+			pars = curPosterior[i,]
+			rcPredict1_e[i,] = predict.stm_point(e_pars(pars), rc_env1, rc_env2_c)
+			rcPredict1_c[i,] = predict.stm_point(c_pars(pars), rc_env1, rc_env2_c)
+			rcPredict2_e[i,] = predict.stm_point(e_pars(pars), rc_env1_c, rc_env2)
+			rcPredict2_c[i,] = predict.stm_point(c_pars(pars), rc_env1_c, rc_env2)
+		}
+		
 		respCurve = data.frame(
 			temp = (rc_env1 * climScale$scale['annual_mean_temp']) + climScale$center['annual_mean_temp'],
 			col.temp = colMeans(rcPredict1_c),

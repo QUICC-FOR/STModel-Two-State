@@ -8,6 +8,7 @@
 ##    res/maps/*
 
 library(coda)
+library(foreach)
 library(doParallel)
 numCores=detectCores() - 2
 

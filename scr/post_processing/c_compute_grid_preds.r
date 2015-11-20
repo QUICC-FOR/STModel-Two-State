@@ -60,10 +60,17 @@ for(spName in speciesList)
 
 		curPosterior = posterior[[mod]]
 
-		grPredict_e = foreach(pars = iter(curPosterior, by='row'), .combine=rbind) %dopar%
-			predict.stm_point(e_pars(pars), gr_env1, gr_env2)
-		grPredict_c = foreach(pars = iter(curPosterior, by='row'), .combine=rbind) %dopar%
-			predict.stm_point(c_pars(pars), gr_env1, gr_env2)
+		grPredict_e = grPredict_c = matrix(NA, nrow = nrow(curPosterior), ncol=length(gr_env1))
+		for(i in 1:nrow(curPosterior))
+		{
+			pars = curPosterior[i,]
+			grPredict_e[i,] = predict.stm_point(e_pars(pars), gr_env1, gr_env2)
+			grPredict_c[i,] = predict.stm_point(c_pars(pars), gr_env1, gr_env2)
+		}		
+## 		grPredict_e = foreach(pars = iter(curPosterior, by='row'), .combine=rbind) %dopar%
+## 			predict.stm_point(e_pars(pars), gr_env1, gr_env2)
+## 		grPredict_c = foreach(pars = iter(curPosterior, by='row'), .combine=rbind) %dopar%
+## 			predict.stm_point(c_pars(pars), gr_env1, gr_env2)
 
 		grLambda = grPredict_c - grPredict_e
 		grPres = (grLambda > 0) * 1
