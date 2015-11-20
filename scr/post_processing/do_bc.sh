@@ -1,7 +1,7 @@
 #!/bin/sh
 #PBS -q default
 #PBS -l walltime=24:00:00
-#PBS -l nodes=3:ppn=40
+#PBS -l nodes=2:ppn=40
 #PBS -r n
 #PBS -N rc_grid
 DIR=~/STModel-Two-State

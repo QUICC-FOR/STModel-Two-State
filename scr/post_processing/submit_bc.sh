@@ -4,8 +4,5 @@ MODELS=(0 g i0 ig)
 DIR=~/STModel-Two-State
 for sp in "${SPECIES[@]}"
 do
-	for mod in "${MODELS[@]}"
-	do
-		qsub -vSP=$sp,MOD=$mod $DIR/scr/evaluation/do_bc.sh
-	done
+    qsub -vSP=$sp,MOD=$mod $DIR/scr/post_processing/do_bc.sh
 done
