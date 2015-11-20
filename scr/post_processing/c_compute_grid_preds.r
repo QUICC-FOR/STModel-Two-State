@@ -8,11 +8,11 @@
 
 library(coda)
 speciesList = readRDS('dat/speciesList.rds')
-models = c('0', 'i0', 'g', 'ig')
+models = c('0', 'g')
 speciesInfo = read.csv('dat/speciesInfo.csv')
 source('scr/stm_functions.r')
 
-sampleSize = 1000
+sampleSize = 2000
 
 
 arg = commandArgs(TRUE)

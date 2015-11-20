@@ -7,7 +7,7 @@
 ##    res/maps/*
 
 speciesList = readRDS('dat/speciesList.rds')
-models = c('0', 'i0', 'g', 'ig')
+models = c('0', 'g')
 
 arg = commandArgs(TRUE)
 if(length(arg) > 0)

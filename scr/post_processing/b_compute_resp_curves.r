@@ -9,7 +9,7 @@
 library(coda)
 
 speciesList = readRDS('dat/speciesList.rds')
-models = c('0', 'i0', 'g', 'ig')
+models = c('0', 'g')
 speciesInfo = read.csv('dat/speciesInfo.csv')
 source('scr/stm_functions.r')
 
@@ -58,7 +58,7 @@ for(spName in speciesList)
 		# for env2, we lookup the values in info; if missing we use 0 (the mean)
 		trange = scale(c(-5, 25), center = climScale$center['annual_mean_temp'], 
 					scale = climScale$scale['annual_mean_temp'])
-		prange = scale(range(calibDat$tot_annual_pp), 
+		prange = scale(c(500, 2000), 
 					center = climScale$center['tot_annual_pp'], 
 					scale = climScale$scale['tot_annual_pp'])
 		rc_env1 = seq(trange[1], trange[2], length.out=rcRes)
