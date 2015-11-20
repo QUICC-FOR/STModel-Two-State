@@ -126,13 +126,13 @@ clean_up_figure = function(filename)
 
 plot_sdm = function(sdmDat, coords, sdm.col, legend=FALSE, add=FALSE, plot.ocean=TRUE, ...)
 {
+	if(!exists("stmMapProjection"))
+		load("dat/map_projections.rdata")
 	sdmRas = make_raster(sdmDat, coords, P4S.latlon, stmMapProjection)
 	plot(sdmRas, xaxt='n', yaxt='n', col=sdm.col, legend=legend, add=add, ...)
 	if(plot.ocean)
 	{
 		require(rgdal)
-		if(!exists("stmMapProjection"))
-			load("dat/map_projections.rdata")
 		if(!exists("ocean") || !("SpatialPolygonsDataFrame" %in% class(ocean)))
 		{
 			ocean = readOGR(dsn="dat/ne_50m_ocean", layer="ne_50m_ocean")

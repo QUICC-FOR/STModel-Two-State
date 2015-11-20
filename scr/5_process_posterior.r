@@ -197,33 +197,29 @@ for(spName in speciesList)
 		spGrid = readRDS(file.path('res','sdm',paste0(spName, '_sdm_projection.rds')))
 		outputSteps = floor(seq(0.01*nrow(spGrid), nrow(spGrid), length.out=100))
 		spGrid$stm = spGrid$stm.var = spGrid$sdm.pres = spGrid$rde.present = NA
-		spGrid$rde.present = spGrid$rde.expand = spGrid$rde.contract = spGrid$rde = NA
+		spGrid$rde.present = spGrid$rde.expand = spGrid$rde.contract = NA
+		spGrid$rde
 	## 	spGrid$plot.present = spGrid$plot.expand = spGrid$plot.contract = NA
 		pct.done(0, FALSE, '  creating spatial projections: ')
 		for(i in 1:nrow(spGrid))
 		{
 			spGrid$stm[i] = sum(grLambda[,i] > 0, na.rm=TRUE)/length(grLambda[,i])
-			spGrid$stm.var[i] = spGrid$stm[i]*(1-spGrid$stm[i]) # binomial variance
+## 			spGrid$stm.var[i] = spGrid$stm[i]*(1-spGrid$stm[i]) # binomial variance
 			spGrid$sdm.pres[i] = as.integer(spGrid$sdm[i] >= sdmThreshold)
+			spGrid$stm.pres[i] = as.integer(spGrid$stm[i] >= sdmThreshold)
 			spGrid$rde.present[i] = sum(grPres[,i] == 1 & spGrid$sdm.pres[i] == 1, na.rm=TRUE)/length(grPres[,i])
 			spGrid$rde.expand[i] = sum(grPres[,i] == 1 & spGrid$sdm.pres[i] == 0, na.rm=TRUE)/length(grPres[,i])
 			spGrid$rde.contract[i] = sum(grPres[,i] == 0 & spGrid$sdm.pres[i] == 1, na.rm=TRUE)/length(grPres[,i])
-			if((spGrid$rde.present + spGrid$rde.expand + spGrid$rde.contract) > 0)
-			{
-				if(spGrid$rde.present[i] >= spGrid$rde.expand[i] & spGrid$rde.present[i] >= spGrid$rde.contract[i])
-				{
-					spGrid$rde[i] = 0
-	## 				spGrid$plot.present = spGrid$rde.present
-				} else if(spGrid$rde.expand[i] > spGrid$rde.present[i] & spGrid$rde.expand[i] >= spGrid$rde.contract[i])
-				{
-					spGrid$rde[i] = 1
-	## 				spGrid$plot.expand = spGrid$rde.expand
-				} else if(spGrid$rde.contract[i] > spGrid$rde.present[i] & spGrid$rde.contract[i] > spGrid$rde.expand[i])
-				{
-					spGrid$rde[i] = 2
-	## 				spGrid$plot.contract = spGrid$rde.contract
-				}
-			}
+
+			spGrid$rde.new[i] = (1 * (spGrid$stm.pres[i] & spGrid$sdm.pres[i])) + 
+				(2 * (spGrid$stm.pres[i] & !spGrid$sdm.pres[i])) + 
+				(3 * (!spGrid$stm.pres[i] & spGrid$sdm.pres[i]))
+			# change absences to NA and subtract 1 from all cats
+			if(spGrid$rde.new[i] == 0) {
+				spGrid$rde.new[i] = NA
+			} else {
+				spGrid$rde.new[i] = spGrid$rde.new[i] - 1
+			}	
 			if(i %in% outputSteps)
 				pct.done(100* i / nrow(spGrid), pad = '  creating spatial projections: ')
 		}
