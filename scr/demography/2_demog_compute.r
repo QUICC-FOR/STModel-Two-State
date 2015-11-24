@@ -30,7 +30,7 @@ demog = foreach(spp = iter(spPlots, by='row'), .combine=rbind, .packages='foreac
 {
 	sp = spp['id_spe']
 	pl = spp['plot_id']
-	dat = with(trees.wide, trees.wide[id_spe == sp & plot_id = pl,])
+	dat = with(trees.wide, trees.wide[id_spe == sp & plot_id == pl,])
 	yrs = colnames(sampleYears)[which(sampleYears[pl,] > 0)]
 	res = foreach(i=2:length(yrs), .combine=rbind) %do% {
 		yr = yrs[i]
