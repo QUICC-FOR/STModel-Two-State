@@ -4,7 +4,7 @@
 library(rgdal)
 library(foreach)
 library(doParallel)
-numCores = detectCores() - 1
+numCores = min(10,detectCores() - 1)
 registerDoParallel(cores=numCores)
 load("dat/map_projections.rdata")
 source("scr/stm_functions.r")
@@ -15,8 +15,13 @@ outDir = file.path('res', 'demography')
 suppressWarnings(dir.create(outDir, recursive=TRUE))
 
 cat("reading raw data\n")
-trees = read.table("dat/raw/dbh_trees_20151026.csv", header=TRUE, sep=';', dec='.', stringsAsFactors=FALSE)
-trees.orig = trees  # just in case we need it
+if(!file.exists("dat/raw/dbh_trees_20151026.rds"))
+{
+	trees = read.table("dat/raw/dbh_trees_20151026.csv", header=TRUE, sep=';', dec='.', stringsAsFactors=FALSE)
+	saveRDS(trees, "dat/raw/dbh_trees_20151026.rds")
+} else {
+	trees = readRDS("dat/raw/dbh_trees_20151026.rds")
+}
 
 speciesList = unique(trees$id_spe)
 
@@ -56,7 +61,7 @@ coordinates(plots) = c('longitude', 'latitude')
 proj4string(plots) = P4S.latlon
 
 cat("computing plot categories\n")
-spCategories = foreach(spName = speciesList, .combine=rbind, .final=data.frame) %dopar%
+spCategories = foreach(spName = speciesList, .combine=rbind, .final=data.frame) %do%
 {
 	spGrid = readRDS(file.path('res','maps',paste0(spName, '_', modName, '_maps.rds')))
 
@@ -134,7 +139,6 @@ demog = foreach(sp = speciesList, .combine=rbind) %dopar%
 			N.died = sum(dat[dat$plot_id == pl,yr_prev] > 0))
 		}
 		# get rid of any rows where there was no recruitement/mortality and no trees
-		res = res[res$total > 0,]
 		res[!(res$recruit == 0 & res$died == 0),]
 	}
 }
