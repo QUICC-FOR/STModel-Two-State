@@ -50,6 +50,7 @@ trees = trees[!(trees$plot_id %in% singlePlots) & trees$dbh > 127 &
 # use the rde maps to do this, then merge back to the trees table
 # warning: SLOW
 # make a list of all unique points
+modName = '0'
 plots = unique(trees[,c('plot_id', 'longitude', 'latitude')])
 coordinates(plots) = c('longitude', 'latitude')
 proj4string(plots) = P4S.latlon
@@ -57,7 +58,7 @@ proj4string(plots) = P4S.latlon
 cat("computing plot categories\n")
 spCategories = foreach(spName = speciesList, .combine=rbind, .final=data.frame) %dopar%
 {
-	spGrid = readRDS(file.path('res','maps',paste0(spName,'_maps.rds')))
+	spGrid = readRDS(file.path('res','maps',paste0(spName, '_', modName, '_maps.rds')))
 
 	# rde is fucked up for some reason; fix it here temporarily
 	spGrid = within(spGrid,
