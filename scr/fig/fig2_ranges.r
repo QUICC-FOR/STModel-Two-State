@@ -41,11 +41,6 @@ for(spName in speciesList)
 ## 	# rde is fucked up for some reason; fix it here temporarily
 	spGrid = within(spGrid,
 	{
-## 		rde[rde.present >= rde.contract & rde.present >= rde.expand ] = 0
-## 		rde[rde.expand >= rde.contract & rde.expand > rde.present ] = 1
-## 		rde[rde.contract > rde.present & rde.contract > rde.expand ] = 2
-## 		rde[sdm < 0.1 & stm < 0.1 ] = NA
-## 		
 		# restrict to calibration range
 		rde[lon < lonLim[1] | lon > lonLim[2] | lat < latLim[1] | lat > latLim[2]] = NA
 		if(spName == "183302-PIC-MAR")
