@@ -52,16 +52,11 @@ for(spName in speciesList)
 
 	cat('    computing across posterior\n')	
 	
-	area_sp = matrix(nrow = nrow(grPres), ncol=3)
-for(i in 1:nrow(grPres))
-{
-cat(i, 'of', nrow(grPres), '\n')
-pres = grPres[i,]
-## 	area_sp = foreach(pres = iter(grPres, by='row'), .combine=rbind, 
-## 	.packages=c('raster', 'rgdal'), .final=function(x) {
-## 			colnames(x) = c('present', 'expand', 'contract')
-## 			as.data.frame(x)
-## 		}) %dopar% {
+	area_sp = foreach(pres = iter(grPres, by='row'), .combine=rbind, 
+	.packages=c('raster', 'rgdal'), .final=function(x) {
+			colnames(x) = c('present', 'expand', 'contract')
+			as.data.frame(x)
+		}) %dopar% {
 			rde = (1 * (pres & spGrid$sdm.pres)) + (2 * (pres & !spGrid$sdm.pres)) + 
 						(3 * (!pres & spGrid$sdm.pres))
 			rde[rde == 0] = NA	
@@ -73,8 +68,7 @@ pres = grPres[i,]
 				rde[lat < (latLim[1]+1.9)] = NA
 
 			rdeRas = make_raster(rde, spGrid[,1:2], P4S.latlon, stmMapProjection)
-## 			freq(rdeRas)[1:3,2] * prod(res(rdeRas)/1000)/1000
-area_sp[i,] = freq(rdeRas)[1:3,2] * prod(res(rdeRas)/1000)/1000
+			freq(rdeRas)[1:3,2] * prod(res(rdeRas)/1000)/1000
 	}
 	cat('    saving\n')	
 	saveRDS(area_sp, file.path('res','areas',paste0(spName, '_', mod, '_areas.rds')))
