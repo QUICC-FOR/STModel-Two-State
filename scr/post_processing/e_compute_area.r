@@ -40,8 +40,8 @@ calibDat = sapply(speciesList, simplify = FALSE, USE.NAMES = TRUE, FUN=function(
 		readRDS(file.path('dat', 'stm_calib', paste0(spName, 'stm_calib.rds'))))	
 	
 # compute lat/lon limits
-latLim = lapply(calibDat, FUN=function(x) range(x[,'lat'])
-lonLim = lapply(calibDat, function(x) range(x[,'lon'])
+latLim = lapply(calibDat, FUN=function(x) range(x[,'lat']))
+lonLim = lapply(calibDat, function(x) range(x[,'lon']))
 
 
 cat('starting species loop\n')
