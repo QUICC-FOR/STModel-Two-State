@@ -51,7 +51,7 @@ for(spName in speciesList)
 	lat = spGrid$lat
 
 	cat('    computing across posterior\n')	
-	area_sp = foreach(pres = iter(spGrid, by='row'), .combine=rbind, 
+	area_sp = foreach(pres = iter(grPres, by='row'), .combine=rbind, 
 	.packages=c('raster', 'rgdal'), .final=function(x) {
 			colnames(x) = c('present', 'expand', 'contract')
 			as.data.frame(x)
