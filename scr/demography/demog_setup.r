@@ -108,11 +108,11 @@ for(yr in colnames(sampleYears))
 }
 
 # just to make sure the main loop doesn't fail
-sampleYears = with(trees, table(trees$plot_id, trees$year_measured))
-if(any(rowSums(sampleYears > 0) < 2)) {
-	plts = rownames(sampleYears)[which(rowSums(sampleYears > 0) < 2)]
-	stop(paste("The following plots have only one sample : [", paste(plts, collapse=' '), ']' ))
-}
+## sampleYears = with(trees, table(trees$plot_id, trees$year_measured))
+## if(any(rowSums(sampleYears > 0) < 2)) {
+## 	plts = rownames(sampleYears)[which(rowSums(sampleYears > 0) < 2)]
+## 	stop(paste("The following plots have only one sample : [", paste(plts, collapse=' '), ']' ))
+## }
 
 cat("starting species loop\n")
 demog = foreach(sp = speciesList, .combine=rbind) %dopar%
@@ -128,8 +128,9 @@ demog = foreach(sp = speciesList, .combine=rbind) %dopar%
 			interval=as.numeric(yr) - as.numeric(yr_prev), year = as.numeric(yr), 
 			type=unique(dat[dat$plot_id == pl,'type']),		# should be length 1
 			recruit = sum(dat[dat$plot_id == pl,yr] > 0 & dat[dat$plot_id == pl,yr_prev] == 0),
+			N.recruit = sum(dat[dat$plot_id == pl,yr] > 0),
 			died = sum(dat[dat$plot_id == pl,yr] == 0 & dat[dat$plot_id == pl,yr_prev] > 0),
-			total = sum(dat[dat$plot_id == pl,yr] > 0))
+			N.died = sum(dat[dat$plot_id == pl,yr_prev] > 0))
 		}
 		# get rid of any rows where there was no recruitement/mortality and no trees
 		res = res[res$total > 0,]
