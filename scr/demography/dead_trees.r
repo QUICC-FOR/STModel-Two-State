@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 library(reshape2)
 library(rstan)
+library(sp)
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
 source('scr/stm_functions.r')
@@ -15,24 +16,15 @@ species = species[species$dbh > 127 & species$dbh < 9999,]
 speciesList = unique(species$id_spe)
 
 # make a list of all unique points
-plots = unique(species[,c('plot_id', 'longitude', 'latitude')])
-coordinates(plots) = c('longitude', 'latitude')
+plots = unique(species[,c('plot_id', 'x', 'y')])
+coordinates(plots) = c('x', 'y')
 proj4string(plots) = P4S.latlon
 
 spIn = list()
+cat("Extracting grid values\n")
 for(spName in speciesList)
 {
 	spGrid = readRDS(file.path('res','maps',paste0(spName,'_maps.rds')))
-
-	# rde is fucked up for some reason; fix it here temporarily
-	spGrid = within(spGrid,
-	{
-		rde[rde.present >= rde.contract & rde.present >= rde.expand ] = 0
-		rde[rde.expand >= rde.contract & rde.expand > rde.present ] = 1
-		rde[rde.contract > rde.present & rde.contract > rde.expand ] = 2
-		rde[sdm < 0.1 & stm < 0.1 ] = NA
-	
-	})
 
 	# make a raster of spGrid$rde
 	rdeRas = make_raster(spGrid$rde, spGrid[,1:2])
@@ -47,6 +39,8 @@ for(spName in speciesList)
 }
 spIn.df = do.call(rbind, spIn)
 
+
+cat("Setting species ranges\n")
 # set the in_range column in species to equal the point value from the extraction
 species.merged = merge(species, spIn.df, by=c('plot_id', 'id_spe'), all.x=TRUE)
 species2 = species.merged
@@ -84,6 +78,7 @@ stdat = list(
 	species = as.integer(dead.noplots$id_spe),
 	type = as.integer(dead.noplots$type) - 1)
 
+cat("Running model\n")
 stanMod = stan(file='scr/dead_trees.stan', dat=stdat, iter=5000, chains=3)
 stnResults = list(
 	data.orig = dead.noplots,

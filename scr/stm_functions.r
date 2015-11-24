@@ -5,12 +5,48 @@ sdmColors = colorRampPalette(c("#ffffff", "#bdc9e1", "#045a8d", "#33338d", "#cc9
 
 
 
-### general functions
-# deprecated - use the predict.stm_point function instead
-## compute_e = function(p, env1, env2) plogis(p[6] + env1*p[7] + env2*p[8] + env1^2*p[9] + 
-## 		env2^2*p[10])
-## compute_c = function(p, env1, env2) plogis(p[1] + env1*p[2] + env2*p[3] + env1^2*p[4] + 
-## 		env2^2*p[5])
+prep.basedata = function()
+{
+	library(rgdal)
+	library(raster)
+	mapProj = readRDS("dat/map_projections.rds")
+	ocean.up = readOGR(dsn="dat/basemaps/ne_50m_ocean", layer="ne_50m_ocean")
+	ocean = spTransform(ocean.up, mapProj$projected)
+	lakes = readOGR(dsn="dat/basemaps/ne_50m_lakes", layer="ne_50m_lakes")
+	lkNames = c("Huron", "Michigan", "Superior", "Ontario", "Erie", "St. Clair")
+	grLakes = lakes[as.integer(sapply(lkNames, grep, lakes$name)),]
+	lakes = spTransform(lakes, mapProj$projected)
+	grLakes = spTransform(grLakes, mapProj$projected)
+	rivers = readOGR(dsn="dat/basemaps/ne_50m_rivers_lake_centerlines", layer="ne_50m_rivers_lake_centerlines")
+	rivers = spTransform(rivers, mapProj$projected)
+
+## 	climGrid.raw = read.csv("dat/raw/SDMClimate_grid.csv")
+## 	climGrid.raw = climGrid.raw[complete.cases(climGrid.raw),]
+## 	coordinates(climGrid.raw) = c('lon', 'lat')
+## 	gridded(climGrid.raw) = TRUE
+## 	climGrid.raw = raster(climGrid.raw)
+
+	raster.lims = expand.grid(lon=seq(-110, -45, 0.5), lat=seq(15, 65, 0.5), val=0)
+	raster.lims = rasterFromXYZ(raster.lims)
+	proj4string(raster.lims) = mapProj$latlon
+
+	set_up_baseraster = function(fname)
+	{
+		ras = stack(fname)
+		proj4string(ras) = mapProj$latlon
+		ras = crop(ras, raster.lims)
+		ras = projectRaster(ras, crs=mapProj$projected)
+		stack(ras)
+	}
+	basemap1 = set_up_baseraster('dat/basemaps/NE1_50M_SR/NE1_50M_SR.tif')
+	basemap2 = set_up_baseraster('dat/basemaps/NE1_50M_SR_W/NE1_50M_SR_W.tif')
+	basemap3 = set_up_baseraster('dat/basemaps/HYP_50M_SR/HYP_50M_SR.tif')
+	hillshade = set_up_baseraster('dat/basemaps/GRAY_50M_SR_W/GRAY_50M_SR_W.tif')
+
+	saveRDS(list(ocean=ocean, lakes=lakes, grLakes=grLakes, rivers=rivers,
+			hillshade=hillshade, nat.earth1 = basemap1, nat.earth2 = basemap2, 
+			hypso=basemap3), "dat/basedata.rds")
+}
 predict.stm_point = function(p, env1 = NULL, env2 = NULL)
 {
 	if(is.null(env1) | is.null(env2))
@@ -28,32 +64,6 @@ predict.stm_point = function(p, env1 = NULL, env2 = NULL)
 		exp(phi) / (1 + exp(phi))
 	})
 	result
-}
-
-
-make_raster = function(dat, coords, start.proj = NULL, dest.proj = NULL)
-{
-	# simple utility to make a projected raster out of a vector and lat/long coords
-	require(raster)
-#	require(rgdal)
-	if(!exists("stmMapProjection"))
-		load("dat/map_projections.rdata")
-	if(!(ncol(coords) == 2 & nrow(coords) == length(dat)))
-		stop("Coords must have 2 columns and a number of rows equal to the length of dat")
-	ras = cbind(dat, coords)
-	coordinates(ras) = c(2,3)
-	gridded(ras) = TRUE
-	ras = raster(ras)
-	if(is.null(start.proj))
-	{
-		proj4string(ras) = P4S.latlon
-	} else {
-		proj4string(ras) = start.proj
-	}
-	if(!is.null(dest.proj)) {
-		ras = projectRaster(ras, crs=dest.proj)
-	}
-	return(ras)
 }
 
 
@@ -124,22 +134,31 @@ clean_up_figure = function(filename)
 # panel plot. Thus they do no modifications of margins or anything; those should be handled
 # at a higher level.
 
-plot_sdm = function(sdmDat, coords, sdm.col, legend=FALSE, add=FALSE, plot.ocean=TRUE, ...)
+plot.sdm = function(sdmDat, sdm.col, coords=c(1,2), hill=FALSE, data.column = 3, legend=FALSE, add=FALSE, plot.ocean=TRUE, ...)
 {
-	if(!exists("stmMapProjection"))
-		load("dat/map_projections.rdata")
-	sdmRas = make_raster(sdmDat, coords, P4S.latlon, stmMapProjection)
+	# function expects a 3-column dataframe, with coordinates in first two columns
+	# if this is not the case, use the coords and data.column arguments to adjust
+	# this function only plots a single panel; is does no modifications of margins or 
+	# anything; those should be handled at a higher level.
+	require(raster)
+	require(rgdal)
+	if(hill | plot.ocean)
+		basedata = readRDS("dat/basedata.rds")
+
+	if(hill)
+	{
+		plotRGB(basedata$hillshade)
+		add = TRUE		
+	}
+	if(!(identical(coords, c(1,2))))
+		sdmDat = sdmDat[, c(coords, data.column)]
+	sdmRas = rasterFromXYZ(sdmDat)
 	plot(sdmRas, xaxt='n', yaxt='n', col=sdm.col, legend=legend, add=add, ...)
+
 	if(plot.ocean)
 	{
-		require(rgdal)
-		if(!exists("ocean") || !("SpatialPolygonsDataFrame" %in% class(ocean)))
-		{
-			ocean = readOGR(dsn="dat/ne_50m_ocean", layer="ne_50m_ocean")
-			ocean = spTransform(ocean, stmMapProjection)
-		}
-		plot(ocean, col="white", add=TRUE)
+		plot(basedata$ocean, col="white", add=TRUE, lwd=0.5)
+		plot(basedata$grLakes, col="white", add=TRUE, lwd=0.5)
 	}
 }
-
 

@@ -1,37 +1,41 @@
+library(foreach)
+library(xtable)
 spList = readRDS('dat/speciesList.rds')
+spInfo = read.csv('dat/speciesInfo.csv')
+get.info = function(sp)  spInfo[spInfo$spName == sp,]
 
-
-for(spName in spList) {
-	trdat = rbind(readRDS(file.path('dat', 'stm_calib', paste0(spName, 'stm_calib.rds'))),
-		readRDS(file.path('dat', 'stm_valid', paste0(spName, 'stm_valid.rds'))))
-	prdat = readRDS(file.path('dat', 'presence', paste0(spName, '_presence.rds')))
-
-	type = rep('pres', nrow(trdat))
-	type[trdat$state1 == 0 & trdat$state2 == 0] = 'abs'
-	type[trdat$state1 == 0 & trdat$state2 == 1] = 'col'
-	type[trdat$state1 == 1 & trdat$state2 == 0] = 'ext'
-	cat(spName, '\n')
-	print(table(type))
-	cat(sum(prdat[,spName]), '\n')
+# get the 2 datasets
+trdat = foreach(spName = spList, .final=function(x) {names(x) = spList; x}) %do% {
+	readRDS(file.path('dat', 'stm_calib', paste0(spName, '_stm_calib.rds')))
+}
+prdat = foreach(spName = spList, .final=function(x) {names(x) = spList; x}) %do% {
+	readRDS(file.path('dat', 'presence', paste0(spName, '_presence.rds')))
 }
 
-obs = sapply(spList, function(spName)
+trans.stat = foreach(sp = spList, .final=function(x) {names(x) = spList; x}) %do%
 {
-prdat = readRDS(file.path('dat', 'presence', paste0(spName, '_presence.rds')))
-sum(prdat[,spName])
-})
+	tab = trdat[[sp]]
+	type = rep('pres', nrow(tab))
+	type[tab$state1 == 0 & tab$state2 == 0] = 'abs'
+	type[tab$state1 == 0 & tab$state2 == 1] = 'col'
+	type[tab$state1 == 1 & tab$state2 == 0] = 'ext'
+	table(type)
+}
 
-trdat = lapply(spList, function(spName) {
-	td = rbind(readRDS(file.path('dat', 'stm_calib', paste0(spName, 'stm_calib.rds'))),
-		readRDS(file.path('dat', 'stm_valid', paste0(spName, 'stm_valid.rds'))))
-	type = rep('pres', nrow(td))
-	type[td$state1 == 0 & td$state2 == 0] = 'abs'
-	type[td$state1 == 0 & td$state2 == 1] = 'col'
-	type[td$state1 == 1 & td$state2 == 0] = 'ext'
-	type
-})
 
-pres = sapply(trdat, function(x) sum(x == 'pres'))
-abse = sapply(trdat, function(x) sum(x == 'abs'))
-colo = sapply(trdat, function(x) sum(x == 'col'))
-ext = sapply(trdat, function(x) sum(x == 'ext'))
+spTab = data.frame(
+	"Scientific name"=foreach(sp = spList, .combine=c) %do% paste(get.info(sp)$genus, get.info(sp)$species),
+	"English name"=foreach(sp = spList, .combine=c) %do% as.character(get.info(sp)$comname),
+#	"Occurrences"=foreach(sp = spList, .combine=c) %do% sum(prdat[[sp]][,sp]),
+	"Presences"=foreach(sp = spList, .combine=c) %do% trans.stat[[sp]]['pres'],
+	"Absences"=foreach(sp = spList, .combine=c) %do% trans.stat[[sp]]['abs'],
+	"Colonizations"=foreach(sp = spList, .combine=c) %do% trans.stat[[sp]]['col'],
+	"Extinctions"=foreach(sp = spList, .combine=c) %do% trans.stat[[sp]]['ext'],
+	check.names=F
+)
+
+spXTab = xtable(spTab, label="tab:species_list", align='lllllll',
+	caption="List of species studied and the number of observations in the database")
+	
+print(spXTab, file="res/table/si_tab_s1_species.tex", caption.placement="top", booktabs=TRUE, include.rownames=FALSE)
+

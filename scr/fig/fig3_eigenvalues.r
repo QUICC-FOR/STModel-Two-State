@@ -4,10 +4,23 @@
 ##    img/figs/fig3.png
 
 library(numDeriv)
-## library(ellipse)
+library(rootSolve)
+library(foreach)
+library(iterators)
+library(coda)
+library(doParallel)
+registerDoParallel(cores=detectCores())
+
 speciesInfo = read.csv('dat/speciesInfo.csv')
-climScale = readRDS('dat/climate_scaling.rds')
+climScale = readRDS('dat/clim/climate_scaling.rds')
 dldt.path = file.path('res','dldt.rds')
+speciesList = readRDS('dat/speciesList.rds')
+posterior.n = 1000
+climGrid = readRDS(file.path('dat', 'clim', 'climateGrid_scaled.rds'))
+
+recompute = FALSE
+arg = commandArgs(trailingOnly = TRUE)
+if('--recompute' %in% arg | '-r' %in% arg) recompute = TRUE
 
 north.col = '#4575b4'
 south.col = '#d73027'
@@ -19,163 +32,174 @@ lam_t = function(T, pars, P)
 }
 
 
-get_derivs = function(curPars, temp, precip, stepSize = 0.25)
+get_derivs = function(curPars, temp.range, precip, stepSize = 0.25)
 {
-	starts = seq(min(temp), max(temp), stepSize)
+	roots = uniroot.all(lam_t, pars=curPars, P = precip, lower=temp.range[1], upper=temp.range[2])
+	if(length(roots) > 0)
+	{
+		dldt = grad(lam_t, roots, pars = curPars, P = precip)
+		type = sapply(roots, function(r)
+			# if we get colder (root - 0.01) and lambda is negative, then it is a northern limit
+			ifelse(lam_t(r-0.01, curPars, precip) < 0, "northern", "southern"))
+	} else {
+		dldt = roots = type = NA
+	}
 
-	roots = sapply(starts, function(st) 
-		{
-			tryCatch(
-			uniroot(lam_t, pars = curPars, P = precip, lower = st, upper = st + stepSize)$root,
-			error=function(e) NA,
-			warning=function(w) NA)
-		})
-	roots = roots[!is.na(roots)]
-	roots = unique(roots)
-
-	dldt = grad(lam_t, roots, pars = curPars, P = precip)
-	type = c(1,2)
-	if(length(roots) == 1) type = -1
-
-	matrix(c(dldt, roots, type), nrow=length(roots), ncol=3)
+	data.frame(dldt=dldt, root=roots, boundary=type, stringsAsFactors = FALSE)
 }
 
-pct.done = function(pct, overwrite = TRUE, pad='', digits = 0)
-{
-	if(overwrite) cat('\r')
-	cat(paste0(pad, round(pct, digits), '%'))
-	flush.console()
-}
+## pct.done = function(pct, overwrite = TRUE, pad='', digits = 0)
+## {
+## 	if(overwrite) cat('\r')
+## 	cat(paste0(pad, round(pct, digits), '%'))
+## 	flush.console()
+## }
 
 compute_species_dldt = function(spName)
 {
-	# get the calibration range - the range limits must be within this range
-	calibDat = readRDS(file.path('dat', 'stm_calib', paste0(spName, 'stm_calib.rds')))
-	precip = median(calibDat$tot_annual_pp)
-
+	info = speciesInfo[speciesInfo$spName == spName,]
+	# get the median precipitation experienced at the range boundary
+	# we use the 'uncertainty range' where p is between 0.05 and 0.95
+	spGrid = readRDS(file.path('res','rangemaps',paste0(spName,'_rangemaps.rds')))
+	spGrid = merge(spGrid, climGrid[,c('x','y', 'annual_mean_temp', 'tot_annual_pp')])
+	precip = median(spGrid$tot_annual_pp[spGrid$stm>0.05 & spGrid$stm < 0.95], na.rm=TRUE)
+	trange = range(spGrid$annual_mean_temp)
+	
 	# get posterior
-	posteriorFname = file.path('res', 'posterior', paste0(spName, '_posterior.rds'))
-	spPosterior = readRDS(posteriorFname)[['0']]
+	posteriorFname = file.path('res', 'posterior', paste0(spName, '_0_samples.rds'))
+	samples = readRDS(posteriorFname)
+	samples = samples[seq(1, nrow(samples), length.out=posterior.n),]
 
-	outputSteps = seq(floor(0.01*nrow(spPosterior)), nrow(spPosterior), length.out=100)
+	dldt = foreach(curPars=iter(samples, by='row'), .combine=rbind) %do%
+			get_derivs(curPars, trange, precip)
+	dldt$dldt = abs(dldt$dldt)
+	dldt$precip = precip
+	dldt$spName = spName
+	dldt$type = info$type
 
-	result = matrix(NA, nrow = (2*nrow(spPosterior)+4), ncol=3)
-	curRow = 1
-	cat(spName,'\n')
-	pct.done(0, FALSE, "computing dldt: ")
-	for(i in 1:nrow(spPosterior))
-	{
-		curPars = spPosterior[i,]
-		dldt = get_derivs(curPars, calibDat$annual_mean_temp, precip)
-		result[curRow:(curRow + nrow(dldt) - 1),] = dldt
-		curRow = curRow + nrow(dldt)
-		if(curRow > nrow(result)) stop("Something is wrong")
-		if(i %in% outputSteps)
-			pct.done(100* i / nrow(spPosterior), pad = 'computing dldt: ')
-	}
-	cat('\n')
-	result = result[1:(curRow - 1),]
 
-	# classify single roots as belonging either upper or lower range limit
-	singles = which(result[,3]==-1)
-	lowers = which(result[,3]==1)
-	uppers = which(result[,3]==2)
-	lowdist = abs(result[singles,2] - mean(result[lowers,2]))
-	updist = abs(result[singles,2] - mean(result[uppers,2]))
-	result[singles,3][lowdist <= updist] = 1
-	result[singles,3][lowdist > updist] = 2
+	# picmar and pinban boundaries are misclassified for some reason
+	# drop the fake northern boundary
+	if(spName == "183319-PIN-BAN" | spName == "183302-PIC-MAR")
+		# drop all fake northern boundaries and relabel the northern boundary
+		dldt = dldt[-which(dldt$boundary == 'northern'),]
 
-	# recompute after reclassifying
-	lowers = which(result[,3]==1)
-	uppers = which(result[,3]==2)
-	result[,1] = abs(result[,1])
 
-	lapply(list(north=lowers,south=uppers), function(ind) 
-	{
-		c(T=mean(result[ind,2]), dldt=mean(result[ind,1]),
-		 cor=cor(result[ind,2],result[ind,1]), sd.T = sd(result[ind,2]), 
-		 sd.dldt=sd(result[ind,1]))
-	})
+	dldt[complete.cases(dldt),]
+## 	if(nrow(dldt) > 0) {
+## 		data.frame(spcode = spName, genus=info$genus, species=info$species,
+## 			boundary = unique(dldt$type),
+## 			dldt.mean=tapply(dldt$dldt, dldt$type, mean),
+## 			dldt.sd = tapply(dldt$dldt, dldt$type, sd),
+## 			temp.mean=tapply(dldt$root, dldt$type, mean),
+## 			temp.sd=tapply(dldt$root, dldt$type, sd),
+## 			dldt.cor = cor(dldt$root, dldt$dldt))
+## 	} else {
+## 		data.frame(spcode = spName, genus=info$genus, species=info$species, boundary = NA, 
+## 			dldt.mean=NA, dldt.sd = NA, temp.mean=NA, temp.sd=NA, dldt.cor = NA)
+## 	}
+	
 }
 
-if(!file.exists(dldt.path))
+if(!file.exists(dldt.path) | recompute)
 {
-	spList = as.list(speciesList)
-	names(spList) = speciesList
-	dldt = lapply(spList, compute_species_dldt)
-
-	dldt.df = data.frame(spcode=character(0), genus=character(0), species=character(0),
-			boundary=character(0), T=numeric(0), dldt=numeric(0), cor=numeric(0), 
-			sd.T = numeric(0), sd.dldt=numeric(0))
-	for(sp in speciesList)
-	{
-		info = speciesInfo[speciesInfo$spName == sp,]
-		for(bound in c("north", "south"))
-		{
-			X = dldt[[sp]][[bound]]
-			dldt.df = rbind(dldt.df,data.frame(spcode=sp, genus=info$genus, species=info$species,
-					boundary=bound, T=X[1], dldt=X[2], cor=X[3], sd.T=X[4], sd.dldt=X[5]))
-		}
-	}
-	rownames(dldt.df) = 1:nrow(dldt.df)
-	# fix picmar - the boundary gets incorrectly classified
-	dldt.df = dldt.df[-which(dldt.df$spcode == '183302-PIC-MAR' & dldt.df$boundary=='south'),]
-	dldt.df$boundary[dldt.df$spcode == '183302-PIC-MAR'] = 'south'
+	dldt = foreach(spName = speciesList, .combine = rbind) %dopar%
+		 compute_species_dldt(spName)
+## 	rownames(dldt) = 1:nrow(dldt)
 
 	# transform the x-coordinates back to the original range
-	dldt.df = within(dldt.df, {
-		T = (T * climScale$scale['annual_mean_temp']) + climScale$center['annual_mean_temp']})
-	## 	T.lower = (T.lower * climScale$scale['annual_mean_temp']) + climScale$center['annual_mean_temp']
-	## 	T.upper = (T.upper * climScale$scale['annual_mean_temp']) + climScale$center['annual_mean_temp']})
+	dldt = within(dldt, { root = (root * climScale$scale['annual_mean_temp']) + 
+				climScale$center['annual_mean_temp']})
 
-	dldt.df$color = north.col
-	dldt.df$color[dldt.df$boundary == 'south'] = south.col
-
-	saveRDS(dldt.df,dldt.path)
+	saveRDS(dldt,dldt.path)
 } else
 {
-	dldt.df = readRDS(dldt.path)
+	dldt = readRDS(dldt.path)
 }
 
+
+
+
+# if we go down the lmer path (or stan) this is the model I liked the best
+## drp = which(dldt$spName == "183319-PIN-BAN" | dldt$spName == "183302-PIC-MAR")
+## will have to simulate northern range boundaries for larlar pinban and picmar
+## dldt$boundary = factor(dldt$boundary)
+## dldt$spName = factor(dldt$spName)
+## summary(lmer(dldt ~ boundary + (1+boundary|spName), data=dldt[-drp,]))
 
 # make the actual figure
 
 dpi = 600
-figure.width = 4
-figure.height = 4.5
-filename = file.path('img', 'figs', 'fig3.png')
-fontsize=12
-png(width=as.integer(dpi*figure.width), height=as.integer(dpi*figure.height),
-	file=filename, pointsize=fontsize, res=dpi)
-par(mar=c(3,3,0.5,1.5), mgp=c(1.5,0.5,0), tcl=-0.2, cex.axis=0.6, cex.lab=0.7, xpd=NA)
+figure.width = 5.5/2.54
+figure.height = 6/2.54
+filename = file.path('img', 'figs', 'fig3.pdf')
+fontsize=9
+pdf(width=figure.width, height=figure.height, file=filename, pointsize=fontsize)
+## png(width=as.integer(dpi*figure.width), height=as.integer(dpi*figure.height),
+## 	file=filename, pointsize=fontsize, res=dpi)
+par(mar=c(3,3,0.5,1.5), mgp=c(1.5,0.5,0), tcl=-0.2, cex.axis=0.7, cex.lab=0.8, xpd=NA)
 
-plot(0,0,type='n', xlab="Mean Annual Temperature (°C)", ylab=expression("|"*partialdiff*lambda/partialdiff*T*"|"),
-		xlim=c(-5,25), ylim=c(0,0.6), bty='n')
-for(sp in dldt.df$spcode)
+
+
+dldt.fig = aggregate(.~boundary+spName+type, data=dldt, FUN=mean)
+# exclude species that only have one range boundary
+exclusions = c("183319-PIN-BAN", "183412-LAR-LAR", "183302-PIC-MAR")
+dldt.fig = dldt.fig[!(dldt.fig$spName %in% exclusions),]
+
+lab.offsets = data.frame(spCode=unique(dldt.fig$spName), x=0, y=0)
+lab.offsets[lab.offsets$spCode == "28731-ACE-SAC", c('x', 'y')] = c(0.5, 0.0)
+lab.offsets[lab.offsets$spCode == "183385-PIN-STR", c('x', 'y')] = c(-0.5, -0.02)
+lab.offsets[lab.offsets$spCode == "19408-QUE-RUB", c('x', 'y')] = c(0.2, 0.04)
+lab.offsets[lab.offsets$spCode == "19489-BET-PAP", c('x', 'y')] = c(-0.5, 0.02)
+lab.offsets[lab.offsets$spCode == "18032-ABI-BAL", c('x', 'y')] = c(-0.5, 0.02)
+lab.offsets[lab.offsets$spCode == "195773-POP-TRE", c('x', 'y')] = c(-.3, -0.02)
+lab.offsets[lab.offsets$spCode == "183375-PIN-RES", c('x', 'y')] = c(-0.25, 0.01)
+lab.offsets[lab.offsets$spCode == "19481-BET-ALL", c('x', 'y')] = c(-3.5, -0.035)
+lab.offsets[lab.offsets$spCode == "183397-TSU-CAN", c('x', 'y')] = c(-0.5, 0.015)
+lab.offsets[lab.offsets$spCode == "183295-PIC-GLA", c('x', 'y')] = c(-0.5, -0.005)
+lab.offsets[lab.offsets$spCode == "28728-ACE-RUB", c('x', 'y')] = c(-0.5, -0.01)
+lab.offsets[lab.offsets$spCode == "19462-FAG-GRA", c('x', 'y')] = c(-0.5, -0.01)
+
+
+pch.types = c(temperate=16, boreal=17, transitional=18)
+cex.pt.types = c(temperate=0.8, boreal=0.8, transitional=0.8)
+
+yl = c(0,1)
+plot(0,0,type='n', xlab="Mean Annual Temperature (°C)", ylab=expression(partialdiff*lambda/partialdiff*T),
+		xlim=c(-5,20), ylim = yl, bty='n')
+for(sp in unique(as.character(dldt.fig$spName)))
 {
+	dat = dldt.fig[dldt.fig$spName == sp,]
 	info = speciesInfo[speciesInfo$spName == sp,]
-	plLab = bquote(italic(.(as.character(info$genus))~.(as.character(info$species))))
-	xs = dldt.df[dldt.df$spcode == sp & dldt.df$boundary == 'south',]
-	xn = dldt.df[dldt.df$spcode == sp & dldt.df$boundary == 'north',]
+	plLab = bquote(italic(.(paste0(substr(as.character(info$genus), 1, 1), '.'))~.(as.character(info$species))))
+	pch = pch.types[as.character(info$type)]
+	cex.pt = cex.pt.types[as.character(info$type)]
+	oset.x = lab.offsets[lab.offsets$spCode == sp, 'x']
+	oset.y = lab.offsets[lab.offsets$spCode == sp, 'y']
 	
-	# the ellipses show multivariate 95% confidence limits
-## 	el = ellipse(xs$cor, scale=c(xs$sd.T, xs$sd.dldt), centre=c(xs$T, xs$dldt))
-## 	polygon(el[,1], el[,2], bg="NA", col=paste0(xs$color,'22'), border=NA)
-	if(sp != '183302-PIC-MAR')
-	{
-		segments(xn$T, xn$dldt, xs$T, xs$dldt, lty=1, lwd=0.7, col="#555555")
-## 		el = ellipse(xn$cor, scale=c(xn$sd.T, xn$sd.dldt), centre=c(xn$T, xn$dldt))
-## 		polygon(el[,1], el[,2], bg="NA", col=paste0(xn$color,'22'), border=NA)
-	}
-	a = text(xs$T, xs$dldt, plLab, pos=4, cex=0.55, col="#444444")
+	xs = dat[dat$boundary == 'southern',]
+	xn = dat[dat$boundary == 'northern',]
+	tl.x = xs$root
+	tl.y = xs$dldt
+	segments(xn$root, xn$dldt, xs$root, xs$dldt, lty=1, lwd=0.7, col="#555555")
+	points(xs$root, xs$dldt, col=south.col, pch=pch, cex=cex.pt)
+	points(xn$root, xn$dldt, col=north.col, pch=pch, cex=cex.pt)
+	text(tl.x+oset.x, tl.y+oset.y, plLab, pos=4, cex=0.45, col="#444444")
 }
-with(dldt.df, points(T, dldt, col=color, pch=16))
-## legend(-4.5, 0.6, legend=c("Northern range limit", 
-## 		"Southern range limit"), col=c(north.col, south.col), 
-## 		text.col = c(north.col, south.col), pch=16, bty='n', cex=0.7)
-text(-6, -0.01, expression(bold(Northern~range~limits)), col=north.col, cex=0.6, pos=4)
-text(8, -0.01, expression(bold(Southern~range~limits)), col=south.col, cex=0.6, pos=4)
-arrows(-10,0.45, -10, 0.6, length=.07, lwd=1.5)
-text(-11.5,0.45, "Faster dynamics", srt=90, cex=0.5, pos=4)
-arrows(-10,0.15, -10, 0, length=.07, lwd=1.5)
-text(-9.5,0.15, "Slower dynamics", srt=90, cex=0.5, pos=2)
+legend(-4.5, 0.8, legend=c("Temperate", "Transitional", "Boreal"), 
+		pch=c(pch.types[c('temperate', 'transitional', 'boreal')]), 
+		col='black', bty='n', cex=0.6)
+## text(-3, 0, expression(bold(Northern~range~limits)), col=north.col, cex=0.6, pos=4)
+## text(7, 0, expression(bold(Southern~range~limits)), col=south.col, cex=0.6, pos=4)
+par(xpd=NA)
+arrow.x = -11
+atext.oset=-2.5
+mid = 0.5
+a.len = 0.25
+a.oset = 0.2
+slow.text.yoset = 0.3
+arrows(arrow.x,mid+a.oset, arrow.x, mid+a.oset+a.len, length=.05, lwd=1.25)
+text(arrow.x+atext.oset,mid+a.oset, "Faster dynamics", srt=90, cex=0.5, pos=4)
+arrows(arrow.x,mid-a.oset, arrow.x, mid-a.oset-a.len, length=.05, lwd=1.25)
+text(arrow.x+atext.oset,mid-a.oset-slow.text.yoset, "Slower dynamics", srt=90, cex=0.5, pos=4)
+dev.off()
