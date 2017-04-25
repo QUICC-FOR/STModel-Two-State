@@ -92,7 +92,7 @@ for(spName in speciesList)
 	lines(rc$precip, rc$ext.precip, col=ext.color) 
 	polygon(c(rc$precip, rev(rc$precip)), c(rc$ext.precip.lower, rev(rc$ext.precip.upper)), col=ext.bgcolor, border=NA)
 }
-mtext("Mean Annual Precipitation (mm)", side=1, outer=TRUE, cex=cex.xtitle, line=0)
+mtext("Total Annual Precipitation (mm)", side=1, outer=TRUE, cex=cex.xtitle, line=0)
 mtext("Probability of colonization/extinction",col="black", side=2, outer=TRUE, cex=cex.ytitle, line=0)
 ## mtext(expression("Probability of " * phantom(bold(" colonization")) * "/" * 
 ## 		phantom(bold("extinction"))),col="black", side=2, outer=TRUE, cex=cex.ytitle, line=0)
