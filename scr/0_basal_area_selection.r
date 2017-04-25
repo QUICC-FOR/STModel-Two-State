@@ -1,3 +1,6 @@
+# This script was used to check how many species to select to include; species are ranked by total basal area
+# in the study area and then we view how much BA we get with certain cutoffs.
+
 trees = read.csv("/Volumes/Data/matt/Dropbox/work/projects_git/STModel-Data/out_files/treeData.csv")
 plots = read.csv("/Volumes/Data/matt/Dropbox/work/projects_git/STModel-Data/out_files/plotInfoData.csv")
 species = read.csv("/Volumes/Data/matt/Dropbox/work/projects_git/STModel-Data/out_files/speciesCode.csv")
@@ -12,7 +15,6 @@ lat.lims = c(42,50)
 trees.ll = merge(trees, plots)
 
 trees.transition = trees.ll[which(trees.ll$lat <= max(lat.lims) & trees.ll$lat >= min(lat.lims)),]
-## trees.ba.plot = aggregate(basal_area ~ plot_id + id_spe, trees.transition, FUN=sum)
 trees.ba = aggregate(basal_area ~ id_spe, trees.transition, FUN=sum)
 trees.ba$ba_prop = trees.ba$basal_area / sum(trees.ba$basal_area)
 trees.ba = merge(trees.ba, species)
