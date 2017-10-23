@@ -11,7 +11,7 @@ ext_fit <- function(dat.ext)
 	# setup inla stack
 	stk.ext <- inla.stack(tag='extinction', data=list(y=dat.ext$ext), A=list(A.ext, 1),
 												effects=list(s=1:spde.ext$n.spde, list(intercept=rep(1, nrow(dat.ext)), 
-																															 t=dat.ext$annual_mean_temp, p=dat.ext$tot_annual_pp)))
+												t=dat.ext$annual_mean_temp, p=dat.ext$tot_annual_pp)))
 	
 	# build 2 models:
 	#	climate effects only
